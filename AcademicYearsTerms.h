@@ -1085,6 +1085,17 @@ namespace SchoolCore
             }
             catch (sql::SQLException& ex)
             {
+                try
+                {
+                    if (con)
+                    {
+                        con->rollback();
+                    }
+                }
+                catch (...)
+                {
+                }
+
                 MessageBox::Show(
                     gcnew String(ex.what()),
                     L"Database Error",
@@ -1094,6 +1105,17 @@ namespace SchoolCore
             }
             catch (std::exception& ex)
             {
+                try
+                {
+                    if (con)
+                    {
+                        con->rollback();
+                    }
+                }
+                catch (...)
+                {
+                }
+
                 MessageBox::Show(
                     gcnew String(ex.what()),
                     L"Error",
