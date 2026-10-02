@@ -931,6 +931,20 @@ namespace SchoolCore
                 con->setAutoCommit(false);
 
 
+                // The newest academic year becomes the single
+                // current active year.
+                std::unique_ptr<sql::PreparedStatement>
+                    deactivateOtherYears(
+                        con->prepareStatement(
+                            "UPDATE academic_years "
+                            "SET status = 'Inactive' "
+                            "WHERE status = 'Active'"
+                        )
+                    );
+
+                deactivateOtherYears->executeUpdate();
+
+
                 // -----------------------------------------------
                 // Insert academic year
                 // -----------------------------------------------
@@ -1179,29 +1193,92 @@ namespace SchoolCore
                 );
 
 
-            String^ newStatus =
-                currentStatus->Equals(
-                    L"Active",
-                    StringComparison::OrdinalIgnoreCase
-                )
-                ? L"Inactive"
-                : L"Active";
-
-
             try
             {
                 auto con =
                     DbConnection::GetConnection();
 
+                bool currentlyActive =
+                    currentStatus->Equals(
+                        L"Active",
+                        StringComparison::OrdinalIgnoreCase
+                    );
 
-                std::unique_ptr<sql::PreparedStatement> stmt(
-                    con->prepareStatement(
-                        "UPDATE academic_years "
-                        "SET status = ? "
-                        "WHERE academic_year_id = ?"
-                    )
-                );
+                // Do not allow the system to end up with no
+                // current academic year.
+                if (currentlyActive)
+                {
+                    std::unique_ptr<sql::PreparedStatement>
+                        countStmt(
+                            con->prepareStatement(
+                                "SELECT COUNT(*) AS total "
+                                "FROM academic_years "
+                                "WHERE status = 'Active'"
+                            )
+                        );
 
+                    std::unique_ptr<sql::ResultSet>
+                        countResult(
+                            countStmt->executeQuery()
+                        );
+
+                    int activeCount = 0;
+
+                    if (countResult->next())
+                    {
+                        activeCount =
+                            countResult->getInt("total");
+                    }
+
+                    if (activeCount <= 1)
+                    {
+                        MessageBox::Show(
+                            L"The current academic year cannot be deactivated. "
+                            L"Activate another academic year first.",
+                            L"Academic Years",
+                            MessageBoxButtons::OK,
+                            MessageBoxIcon::Warning
+                        );
+
+                        return;
+                    }
+                }
+
+                con->setAutoCommit(false);
+
+                if (!currentlyActive)
+                {
+                    std::unique_ptr<sql::PreparedStatement>
+                        deactivateStmt(
+                            con->prepareStatement(
+                                "UPDATE academic_years "
+                                "SET status = 'Inactive' "
+                                "WHERE status = 'Active' "
+                                "AND academic_year_id <> ?"
+                            )
+                        );
+
+                    deactivateStmt->setInt(
+                        1,
+                        academicYearId
+                    );
+
+                    deactivateStmt->executeUpdate();
+                }
+
+                std::unique_ptr<sql::PreparedStatement>
+                    stmt(
+                        con->prepareStatement(
+                            "UPDATE academic_years "
+                            "SET status = ? "
+                            "WHERE academic_year_id = ?"
+                        )
+                    );
+
+                String^ newStatus =
+                    currentlyActive
+                    ? L"Inactive"
+                    : L"Active";
 
                 stmt->setString(
                     1,
@@ -1215,15 +1292,16 @@ namespace SchoolCore
                     academicYearId
                 );
 
-
                 stmt->executeUpdate();
 
+                con->commit();
 
                 LoadAcademicYears();
 
-
                 MessageBox::Show(
-                    L"Academic year status updated.",
+                    currentlyActive
+                    ? L"Academic year deactivated."
+                    : L"Academic year activated as the current year.",
                     L"Academic Years",
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Information
@@ -1239,7 +1317,6 @@ namespace SchoolCore
                 );
             }
         }
-
 
         // =========================================================
         // TOGGLE TERM
