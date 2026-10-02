@@ -877,9 +877,12 @@ namespace SchoolCore
                 year.ToString();
 
 
+            std::unique_ptr<sql::Connection> con;
+
+
             try
             {
-                auto con =
+                con =
                     DbConnection::GetConnection();
 
 
