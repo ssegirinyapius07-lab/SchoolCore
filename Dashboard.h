@@ -192,6 +192,7 @@ namespace SchoolCore {
 						"SELECT year_name "
 						"FROM academic_years "
 						"WHERE status = 'Active' "
+						"ORDER BY academic_year_id DESC "
 						"LIMIT 1"
 					)
 				);
@@ -224,7 +225,7 @@ namespace SchoolCore {
 			layout->Controls->Add(CreateDashboardCard(L"Classes", classCount.ToString(),
 				Color::FromArgb(245, 158, 11), true), 2, 1);
 
-			layout->Controls->Add(CreateDashboardCard(L"Active Academic Years", currentAcademicYear,
+			layout->Controls->Add(CreateDashboardCard(L"Academic Year", currentAcademicYear,
 				Color::FromArgb(139, 92, 246), false), 3, 1);
 
 			// Free content area (two panels, ready for real content later)
