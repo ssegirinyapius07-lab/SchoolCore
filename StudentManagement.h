@@ -2,6 +2,8 @@
 #include "StudentRegistration.h"
 #include "DbConnection.h"
 
+#include <msclr/marshal_cppstd.h>
+
 namespace SchoolCore
 {
 	using namespace System;
