@@ -167,7 +167,7 @@ namespace SchoolCore {
 			int studentCount = 0;
 			int teacherCount = 0;
 			int classCount = 0;
-			String^ currentAcademicYear = L"";
+			String^ currentAcademicYear = L"Not set";
 
 			try
 			{
