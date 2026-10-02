@@ -18,6 +18,33 @@ namespace SchoolCore
 		{
 			InitializeComponent();
 
+			this->btnSearch->Click +=
+				gcnew System::EventHandler(
+					this,
+					&StudentManagement::btnSearch_Click
+				);
+
+			this->txtSearch->KeyDown +=
+				gcnew System::Windows::Forms::KeyEventHandler(
+					this,
+					&StudentManagement::txtSearch_KeyDown
+				);
+
+			this->studentsGrid->SelectionChanged +=
+				gcnew System::EventHandler(
+					this,
+					&StudentManagement::studentsGrid_SelectionChanged
+				);
+
+			this->btnViewProfile->Click +=
+				gcnew System::EventHandler(
+					this,
+					&StudentManagement::btnViewProfile_Click
+				);
+
+			this->btnViewProfile->Enabled = false;
+			this->btnEditStudent->Enabled = false;
+
 			LoadStudents();
 		}
 
@@ -88,21 +115,75 @@ namespace SchoolCore
 			{
 				auto con = DbConnection::GetConnection();
 
-				std::unique_ptr<sql::Statement> stmt(
-					con->createStatement()
-				);
+				String^ searchText =
+					this->txtSearch->Text->Trim();
+
+				String^ searchPattern =
+					L"%" + searchText + L"%";
+
+				std::unique_ptr<sql::PreparedStatement> stmt;
+
+				const char* baseSql =
+					"SELECT "
+					"s.student_id, "
+					"s.registration_number, "
+					"s.first_name, "
+					"s.middle_name, "
+					"s.last_name, "
+					"s.status, "
+					"c.class_name, "
+					"st.stream_name "
+					"FROM students s "
+					"LEFT JOIN enrollments e "
+					"ON e.enrollment_id = ("
+						"SELECT e2.enrollment_id "
+						"FROM enrollments e2 "
+						"WHERE e2.student_id = s.student_id "
+						"AND e2.status = 'Active' "
+						"ORDER BY e2.enrollment_date DESC, e2.enrollment_id DESC "
+						"LIMIT 1"
+					") "
+					"LEFT JOIN classes c "
+					"ON c.class_id = e.class_id "
+					"LEFT JOIN streams st "
+					"ON st.stream_id = e.stream_id ";
+
+				if (String::IsNullOrWhiteSpace(searchText))
+				{
+					stmt.reset(
+						con->prepareStatement(
+							(std::string(baseSql) +
+							"ORDER BY s.student_id DESC").c_str()
+						)
+					);
+				}
+				else
+				{
+					stmt.reset(
+						con->prepareStatement(
+							(std::string(baseSql) +
+							"WHERE s.registration_number LIKE ? "
+							"OR s.first_name LIKE ? "
+							"OR s.middle_name LIKE ? "
+							"OR s.last_name LIKE ? "
+							"OR CONCAT_WS(' ', s.first_name, s.middle_name, s.last_name) LIKE ? "
+							"ORDER BY s.student_id DESC").c_str()
+						)
+					);
+
+					std::string pattern =
+						msclr::interop::marshal_as<std::string>(
+							searchPattern
+						);
+
+					for (int i = 1; i <= 5; i++)
+					{
+						stmt->setString(i, pattern);
+					}
+				}
 
 				std::unique_ptr<sql::ResultSet> result(
-					stmt->executeQuery(
-						"SELECT "
-						"registration_number, "
-						"first_name, "
-						"middle_name, "
-						"last_name, "
-						"status "
-						"FROM students "
-						"ORDER BY student_id DESC"
-					)
+					stmt->executeQuery()
 				);
 
 				this->studentsGrid->Rows->Clear();
@@ -113,52 +194,59 @@ namespace SchoolCore
 				{
 					String^ registration =
 						gcnew String(
-							result->getString(
-								"registration_number"
-							).c_str()
+							result->getString("registration_number").c_str()
 						);
 
 					String^ firstName =
 						gcnew String(
-							result->getString(
-								"first_name"
-							).c_str()
+							result->getString("first_name").c_str()
 						);
 
 					String^ lastName =
 						gcnew String(
-							result->getString(
-								"last_name"
-							).c_str()
+							result->getString("last_name").c_str()
 						);
 
-					String^ middleName = "";
+					String^ middleName = L"";
 
 					if (!result->isNull("middle_name"))
 					{
 						middleName =
 							gcnew String(
-								result->getString(
-									"middle_name"
-								).c_str()
+								result->getString("middle_name").c_str()
+							);
+					}
+
+					String^ className = L"-";
+					String^ streamName = L"-";
+
+					if (!result->isNull("class_name"))
+					{
+						className =
+							gcnew String(
+								result->getString("class_name").c_str()
+							);
+					}
+
+					if (!result->isNull("stream_name"))
+					{
+						streamName =
+							gcnew String(
+								result->getString("stream_name").c_str()
 							);
 					}
 
 					String^ status =
 						gcnew String(
-							result->getString(
-								"status"
-							).c_str()
+							result->getString("status").c_str()
 						);
 
 					String^ fullName =
-						firstName + " ";
+						firstName + L" ";
 
-					if (!String::IsNullOrWhiteSpace(
-						middleName))
+					if (!String::IsNullOrWhiteSpace(middleName))
 					{
-						fullName +=
-							middleName + " ";
+						fullName += middleName + L" ";
 					}
 
 					fullName += lastName;
@@ -166,8 +254,8 @@ namespace SchoolCore
 					this->studentsGrid->Rows->Add(
 						registration,
 						fullName,
-						L"-",
-						L"-",
+						className,
+						streamName,
 						status
 					);
 
@@ -175,16 +263,18 @@ namespace SchoolCore
 				}
 
 				this->lblStudentCount->Text =
-					"Students: " +
+					(String::IsNullOrWhiteSpace(searchText)
+						? L"Students: "
+						: L"Matching Students: ") +
 					studentCount.ToString();
+
+				this->btnViewProfile->Enabled =
+					this->studentsGrid->SelectedRows->Count > 0;
 			}
 			catch (sql::SQLException& ex)
 			{
-				String^ message =
-					gcnew String(ex.what());
-
 				MessageBox::Show(
-					message,
+					gcnew String(ex.what()),
 					"Database Error",
 					MessageBoxButtons::OK,
 					MessageBoxIcon::Error
@@ -192,6 +282,199 @@ namespace SchoolCore
 			}
 		}
 
+		System::Void btnSearch_Click(
+			System::Object^ sender,
+			System::EventArgs^ e)
+		{
+			LoadStudents();
+		}
+
+		System::Void txtSearch_KeyDown(
+			System::Object^ sender,
+			System::Windows::Forms::KeyEventArgs^ e)
+		{
+			if (e->KeyCode == Keys::Enter)
+			{
+				LoadStudents();
+				e->SuppressKeyPress = true;
+			}
+		}
+
+		System::Void studentsGrid_SelectionChanged(
+			System::Object^ sender,
+			System::EventArgs^ e)
+		{
+			this->btnViewProfile->Enabled =
+				this->studentsGrid->SelectedRows->Count > 0;
+		}
+
+		System::Void btnViewProfile_Click(
+			System::Object^ sender,
+			System::EventArgs^ e)
+		{
+			if (this->studentsGrid->SelectedRows->Count == 0)
+			{
+				MessageBox::Show(
+					L"Please select a student.",
+					L"Students",
+					MessageBoxButtons::OK,
+					MessageBoxIcon::Warning
+				);
+				return;
+			}
+
+			String^ registration =
+				Convert::ToString(
+					this->studentsGrid
+					->SelectedRows[0]
+					->Cells["RegistrationNumber"]
+					->Value
+				);
+
+			try
+			{
+				auto con = DbConnection::GetConnection();
+
+				std::unique_ptr<sql::PreparedStatement> stmt(
+					con->prepareStatement(
+						"SELECT "
+						"s.registration_number, "
+						"s.first_name, "
+						"s.middle_name, "
+						"s.last_name, "
+						"s.date_of_birth, "
+						"s.gender, "
+						"s.admission_date, "
+						"s.home_address, "
+						"s.status, "
+						"c.class_name, "
+						"st.stream_name, "
+						"e.enrollment_date, "
+						"g.full_name AS guardian_name, "
+						"g.relationship AS guardian_relationship, "
+						"g.phone_number AS guardian_phone, "
+						"g.email AS guardian_email "
+						"FROM students s "
+						"LEFT JOIN enrollments e "
+						"ON e.enrollment_id = ("
+							"SELECT e2.enrollment_id "
+							"FROM enrollments e2 "
+							"WHERE e2.student_id = s.student_id "
+							"AND e2.status = 'Active' "
+							"ORDER BY e2.enrollment_date DESC, e2.enrollment_id DESC "
+							"LIMIT 1"
+						") "
+						"LEFT JOIN classes c ON c.class_id = e.class_id "
+						"LEFT JOIN streams st ON st.stream_id = e.stream_id "
+						"LEFT JOIN student_guardians sg "
+						"ON sg.student_id = s.student_id "
+						"AND sg.is_primary = 1 "
+						"LEFT JOIN guardians g ON g.guardian_id = sg.guardian_id "
+						"WHERE s.registration_number = ? "
+						"LIMIT 1"
+					)
+				);
+
+				stmt->setString(
+					1,
+					msclr::interop::marshal_as<std::string>(
+						registration
+					)
+				);
+
+				std::unique_ptr<sql::ResultSet> result(
+					stmt->executeQuery()
+				);
+
+				if (!result->next())
+				{
+					MessageBox::Show(
+						L"Student record could not be found.",
+						L"Students",
+						MessageBoxButtons::OK,
+						MessageBoxIcon::Warning
+					);
+					return;
+				}
+
+				String^ middleName = L"";
+				if (!result->isNull("middle_name"))
+				{
+					middleName =
+						gcnew String(
+							result->getString("middle_name").c_str()
+						);
+				}
+
+				String^ fullName =
+					gcnew String(result->getString("first_name").c_str()) +
+					L" " +
+					middleName +
+					(middleName->Length > 0 ? L" " : L"") +
+					gcnew String(result->getString("last_name").c_str());
+
+				String^ className =
+					result->isNull("class_name")
+						? L"Not assigned"
+						: gcnew String(result->getString("class_name").c_str());
+
+				String^ streamName =
+					result->isNull("stream_name")
+						? L"Not assigned"
+						: gcnew String(result->getString("stream_name").c_str());
+
+				String^ guardianName =
+					result->isNull("guardian_name")
+						? L"Not recorded"
+						: gcnew String(result->getString("guardian_name").c_str());
+
+				String^ guardianRelationship =
+					result->isNull("guardian_relationship")
+						? L""
+						: gcnew String(result->getString("guardian_relationship").c_str());
+
+				String^ guardianPhone =
+					result->isNull("guardian_phone")
+						? L""
+						: gcnew String(result->getString("guardian_phone").c_str());
+
+				String^ guardianEmail =
+					result->isNull("guardian_email")
+						? L""
+						: gcnew String(result->getString("guardian_email").c_str());
+
+				String^ profile =
+					L"Registration No.: " + registration +
+					L"\nName: " + fullName +
+					L"\nGender: " + gcnew String(result->getString("gender").c_str()) +
+					L"\nDate of Birth: " + gcnew String(result->getString("date_of_birth").c_str()) +
+					L"\nAdmission Date: " + gcnew String(result->getString("admission_date").c_str()) +
+					L"\nClass: " + className +
+					L"\nStream: " + streamName +
+					L"\nStatus: " + gcnew String(result->getString("status").c_str()) +
+					L"\n\nHome Address: " + gcnew String(result->getString("home_address").c_str()) +
+					L"\n\nGuardian: " + guardianName +
+					L"\nRelationship: " + guardianRelationship +
+					L"\nPhone: " + guardianPhone +
+					L"\nEmail: " + guardianEmail;
+
+				MessageBox::Show(
+					profile,
+					L"Student Profile",
+					MessageBoxButtons::OK,
+					MessageBoxIcon::Information
+				);
+			}
+			catch (sql::SQLException& ex)
+			{
+				MessageBox::Show(
+					gcnew String(ex.what()),
+					L"Database Error",
+					MessageBoxButtons::OK,
+					MessageBoxIcon::Error
+				);
+			}
+		}
 
 		void InitializeComponent(void)
 		{
@@ -784,6 +1067,11 @@ namespace SchoolCore
 			// Edit
 			this->btnEditStudent->Text =
 				L"Edit Student";
+
+			// Editing is intentionally disabled until a dedicated
+			// edit form is added, so the interface does not expose
+			// a button that has no implemented action.
+			this->btnEditStudent->Enabled = false;
 
 			this->btnEditStudent->Font =
 				regularFont;
