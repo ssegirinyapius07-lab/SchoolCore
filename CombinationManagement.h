@@ -452,9 +452,11 @@ namespace SchoolCore
                 return false;
             }
 
+            std::unique_ptr<sql::Connection> con;
+
             try
             {
-                auto con = DbConnection::GetConnection();
+                con = DbConnection::GetConnection();
 
                 con->setAutoCommit(false);
 
