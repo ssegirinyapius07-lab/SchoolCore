@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DbConnection.h"
+#include "ThemeManager.h"
 #include "UnebSubjectPaperManagement.h"
 
 #include <mariadb/conncpp.hpp>
@@ -23,6 +24,7 @@ namespace SchoolCore
                 SubjectManagement(void)
                 {
                     InitializeComponent();
+                                        ThemeManager::ApplyToForm(this);
                     if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
                     {
                         LoadSubjects(L"");
