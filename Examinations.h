@@ -1829,14 +1829,7 @@ namespace SchoolCore
                                 result->getString(
                                     "subject_name"
                                 ).c_str()
-                            ) +
-                            L" (" +
-                            gcnew String(
-                                result->getString(
-                                    "subject_code"
-                                ).c_str()
-                            ) +
-                            L")"
+                            )
                         )
                     );
                 }
