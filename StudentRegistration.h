@@ -85,6 +85,12 @@ namespace SchoolCore
         Button^ btnClear;
         Button^ btnCancel;
 
+        // Edit mode
+        bool editMode = false;
+        long long editingStudentId = 0;
+        long long editingGuardianId = 0;
+        int editingEnrollmentId = 0;
+
 
         // =========================================================
         // COMBO ITEM
@@ -1936,6 +1942,756 @@ namespace SchoolCore
 
 
         // =========================================================
+        // SELECT COMBO ITEM BY ID
+        // =========================================================
+
+        bool SelectComboItemById(
+            ComboBox^ combo,
+            int id)
+        {
+            for (int i = 0; i < combo->Items->Count; i++)
+            {
+                ComboItem^ item =
+                    dynamic_cast<ComboItem^>(
+                        combo->Items[i]
+                    );
+
+                if (item != nullptr && item->Id == id)
+                {
+                    combo->SelectedIndex = i;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+
+        // =========================================================
+        // LOAD STUDENT FOR EDIT
+        // =========================================================
+
+        void LoadStudentForEdit(
+            long long studentId)
+        {
+            try
+            {
+                auto con =
+                    DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT "
+                        "s.registration_number, "
+                        "s.first_name, "
+                        "s.middle_name, "
+                        "s.last_name, "
+                        "s.date_of_birth, "
+                        "s.gender, "
+                        "s.admission_date, "
+                        "s.home_address, "
+                        "s.status, "
+                        "e.enrollment_id, "
+                        "e.academic_year_id, "
+                        "e.term_id, "
+                        "e.class_id, "
+                        "e.stream_id, "
+                        "g.guardian_id, "
+                        "g.full_name AS guardian_name, "
+                        "g.relationship AS guardian_relationship, "
+                        "g.phone_number AS guardian_phone, "
+                        "g.alternative_phone AS guardian_alternative_phone, "
+                        "g.email AS guardian_email, "
+                        "g.address AS guardian_address "
+                        "FROM students s "
+                        "LEFT JOIN enrollments e "
+                        "ON e.enrollment_id = ("
+                            "SELECT e2.enrollment_id "
+                            "FROM enrollments e2 "
+                            "WHERE e2.student_id = s.student_id "
+                            "AND e2.status = 'Active' "
+                            "ORDER BY e2.enrollment_date DESC, e2.enrollment_id DESC "
+                            "LIMIT 1"
+                        ") "
+                        "LEFT JOIN student_guardians sg "
+                        "ON sg.student_id = s.student_id "
+                        "AND sg.is_primary = 1 "
+                        "LEFT JOIN guardians g "
+                        "ON g.guardian_id = sg.guardian_id "
+                        "WHERE s.student_id = ? "
+                        "LIMIT 1"
+                    )
+                );
+
+                stmt->setInt64(
+                    1,
+                    studentId
+                );
+
+                std::unique_ptr<sql::ResultSet> result(
+                    stmt->executeQuery()
+                );
+
+                if (!result->next())
+                {
+                    MessageBox::Show(
+                        L"Student record could not be found.",
+                        L"Edit Student",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning
+                    );
+
+                    this->Close();
+                    return;
+                }
+
+                this->editingGuardianId =
+                    result->isNull("guardian_id")
+                    ? 0
+                    : result->getInt64("guardian_id");
+
+                this->editingEnrollmentId =
+                    result->isNull("enrollment_id")
+                    ? 0
+                    : result->getInt("enrollment_id");
+
+                this->txtFirstName->Text =
+                    gcnew String(
+                        result->getString("first_name").c_str()
+                    );
+
+                if (!result->isNull("middle_name"))
+                {
+                    this->txtMiddleName->Text =
+                        gcnew String(
+                            result->getString("middle_name").c_str()
+                        );
+                }
+
+                this->txtLastName->Text =
+                    gcnew String(
+                        result->getString("last_name").c_str()
+                    );
+
+                this->dtpDob->Value =
+                    DateTime::ParseExact(
+                        gcnew String(
+                            result->getString("date_of_birth").c_str()
+                        ),
+                        L"yyyy-MM-dd",
+                        Globalization::CultureInfo::InvariantCulture
+                    );
+
+                String^ gender =
+                    gcnew String(
+                        result->getString("gender").c_str()
+                    );
+
+                for (int i = 0; i < this->cmbGender->Items->Count; i++)
+                {
+                    if (
+                        Convert::ToString(
+                            this->cmbGender->Items[i]
+                        )->Equals(
+                            gender,
+                            StringComparison::OrdinalIgnoreCase
+                        )
+                    )
+                    {
+                        this->cmbGender->SelectedIndex = i;
+                        break;
+                    }
+                }
+
+                this->dtpAdmissionDate->Value =
+                    DateTime::ParseExact(
+                        gcnew String(
+                            result->getString("admission_date").c_str()
+                        ),
+                        L"yyyy-MM-dd",
+                        Globalization::CultureInfo::InvariantCulture
+                    );
+
+                this->txtHomeAddress->Text =
+                    gcnew String(
+                        result->getString("home_address").c_str()
+                    );
+
+                if (!result->isNull("guardian_name"))
+                {
+                    this->txtGuardianName->Text =
+                        gcnew String(
+                            result->getString("guardian_name").c_str()
+                        );
+                }
+
+                if (!result->isNull("guardian_relationship"))
+                {
+                    this->txtGuardianRelationship->Text =
+                        gcnew String(
+                            result->getString("guardian_relationship").c_str()
+                        );
+                }
+
+                if (!result->isNull("guardian_phone"))
+                {
+                    this->txtGuardianPhone->Text =
+                        gcnew String(
+                            result->getString("guardian_phone").c_str()
+                        );
+                }
+
+                if (!result->isNull("guardian_alternative_phone"))
+                {
+                    this->txtGuardianAlternativePhone->Text =
+                        gcnew String(
+                            result->getString("guardian_alternative_phone").c_str()
+                        );
+                }
+
+                if (!result->isNull("guardian_email"))
+                {
+                    this->txtGuardianEmail->Text =
+                        gcnew String(
+                            result->getString("guardian_email").c_str()
+                        );
+                }
+
+                if (!result->isNull("guardian_address"))
+                {
+                    this->txtGuardianAddress->Text =
+                        gcnew String(
+                            result->getString("guardian_address").c_str()
+                        );
+                }
+
+                int classId =
+                    result->isNull("class_id")
+                    ? 0
+                    : result->getInt("class_id");
+
+                int academicYearId =
+                    result->isNull("academic_year_id")
+                    ? 0
+                    : result->getInt("academic_year_id");
+
+                int termId =
+                    result->isNull("term_id")
+                    ? 0
+                    : result->getInt("term_id");
+
+                int streamId =
+                    result->isNull("stream_id")
+                    ? 0
+                    : result->getInt("stream_id");
+
+                // Select the class first.
+                if (classId > 0)
+                {
+                    SelectComboItemById(
+                        this->cmbClass,
+                        classId
+                    );
+                }
+
+                // Selecting the year loads its terms.
+                if (academicYearId > 0)
+                {
+                    SelectComboItemById(
+                        this->cmbAcademicYear,
+                        academicYearId
+                    );
+                }
+
+                // Selecting the term loads the streams for the
+                // already-selected class.
+                if (termId > 0)
+                {
+                    SelectComboItemById(
+                        this->cmbTerm,
+                        termId
+                    );
+                }
+
+                if (streamId > 0)
+                {
+                    SelectComboItemById(
+                        this->cmbStream,
+                        streamId
+                    );
+                }
+
+                String^ registration =
+                    gcnew String(
+                        result->getString("registration_number").c_str()
+                    );
+
+                this->lblSubtitle->Text =
+                    L"Editing student " +
+                    registration +
+                    L". Registration number cannot be changed.";
+
+                this->btnSave->Text =
+                    L"Update Student";
+
+                this->btnClear->Enabled =
+                    false;
+            }
+            catch (sql::SQLException& ex)
+            {
+                MessageBox::Show(
+                    gcnew String(ex.what()),
+                    L"Database Error",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+            catch (System::Exception^ ex)
+            {
+                MessageBox::Show(
+                    ex->Message,
+                    L"Error",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+        }
+
+
+        // =========================================================
+        // UPDATE EXISTING STUDENT
+        // =========================================================
+
+        void UpdateStudent()
+        {
+            ComboItem^ yearItem =
+                safe_cast<ComboItem^>(
+                    this->cmbAcademicYear->SelectedItem
+                );
+
+            ComboItem^ termItem =
+                safe_cast<ComboItem^>(
+                    this->cmbTerm->SelectedItem
+                );
+
+            ComboItem^ classItem =
+                safe_cast<ComboItem^>(
+                    this->cmbClass->SelectedItem
+                );
+
+            ComboItem^ streamItem =
+                safe_cast<ComboItem^>(
+                    this->cmbStream->SelectedItem
+                );
+
+            std::unique_ptr<sql::Connection> con;
+
+            try
+            {
+                con =
+                    DbConnection::GetConnection();
+
+                con->setAutoCommit(false);
+
+                std::unique_ptr<sql::PreparedStatement>
+                    studentStmt(
+                        con->prepareStatement(
+                            "UPDATE students "
+                            "SET first_name = ?, "
+                            "middle_name = ?, "
+                            "last_name = ?, "
+                            "date_of_birth = ?, "
+                            "gender = ?, "
+                            "admission_date = ?, "
+                            "home_address = ? "
+                            "WHERE student_id = ?"
+                        )
+                    );
+
+                studentStmt->setString(
+                    1,
+                    msclr::interop::marshal_as<std::string>(
+                        this->txtFirstName->Text->Trim()
+                    )
+                );
+
+                studentStmt->setString(
+                    2,
+                    msclr::interop::marshal_as<std::string>(
+                        this->txtMiddleName->Text->Trim()
+                    )
+                );
+
+                studentStmt->setString(
+                    3,
+                    msclr::interop::marshal_as<std::string>(
+                        this->txtLastName->Text->Trim()
+                    )
+                );
+
+                studentStmt->setString(
+                    4,
+                    msclr::interop::marshal_as<std::string>(
+                        this->dtpDob->Value.Date.ToString("yyyy-MM-dd")
+                    )
+                );
+
+                studentStmt->setString(
+                    5,
+                    msclr::interop::marshal_as<std::string>(
+                        this->cmbGender->SelectedItem->ToString()
+                    )
+                );
+
+                studentStmt->setString(
+                    6,
+                    msclr::interop::marshal_as<std::string>(
+                        this->dtpAdmissionDate->Value.Date.ToString("yyyy-MM-dd")
+                    )
+                );
+
+                studentStmt->setString(
+                    7,
+                    msclr::interop::marshal_as<std::string>(
+                        this->txtHomeAddress->Text->Trim()
+                    )
+                );
+
+                studentStmt->setInt64(
+                    8,
+                    this->editingStudentId
+                );
+
+                studentStmt->executeUpdate();
+
+
+                if (this->editingGuardianId > 0)
+                {
+                    std::unique_ptr<sql::PreparedStatement>
+                        guardianStmt(
+                            con->prepareStatement(
+                                "UPDATE guardians "
+                                "SET full_name = ?, "
+                                "relationship = ?, "
+                                "phone_number = ?, "
+                                "alternative_phone = ?, "
+                                "email = ?, "
+                                "address = ? "
+                                "WHERE guardian_id = ?"
+                            )
+                        );
+
+                    guardianStmt->setString(
+                        1,
+                        msclr::interop::marshal_as<std::string>(
+                            this->txtGuardianName->Text->Trim()
+                        )
+                    );
+
+                    guardianStmt->setString(
+                        2,
+                        msclr::interop::marshal_as<std::string>(
+                            this->txtGuardianRelationship->Text->Trim()
+                        )
+                    );
+
+                    guardianStmt->setString(
+                        3,
+                        msclr::interop::marshal_as<std::string>(
+                            this->txtGuardianPhone->Text->Trim()
+                        )
+                    );
+
+                    guardianStmt->setString(
+                        4,
+                        msclr::interop::marshal_as<std::string>(
+                            this->txtGuardianAlternativePhone->Text->Trim()
+                        )
+                    );
+
+                    guardianStmt->setString(
+                        5,
+                        msclr::interop::marshal_as<std::string>(
+                            this->txtGuardianEmail->Text->Trim()
+                        )
+                    );
+
+                    guardianStmt->setString(
+                        6,
+                        msclr::interop::marshal_as<std::string>(
+                            this->txtGuardianAddress->Text->Trim()
+                        )
+                    );
+
+                    guardianStmt->setInt64(
+                        7,
+                        this->editingGuardianId
+                    );
+
+                    guardianStmt->executeUpdate();
+                }
+                else
+                {
+                    std::unique_ptr<sql::PreparedStatement>
+                        guardianStmt(
+                            con->prepareStatement(
+                                "INSERT INTO guardians "
+                                "(full_name, relationship, phone_number, alternative_phone, email, address) "
+                                "VALUES (?, ?, ?, ?, ?, ?)"
+                            )
+                        );
+
+                    guardianStmt->setString(
+                        1,
+                        msclr::interop::marshal_as<std::string>(
+                            this->txtGuardianName->Text->Trim()
+                        )
+                    );
+
+                    guardianStmt->setString(
+                        2,
+                        msclr::interop::marshal_as<std::string>(
+                            this->txtGuardianRelationship->Text->Trim()
+                        )
+                    );
+
+                    guardianStmt->setString(
+                        3,
+                        msclr::interop::marshal_as<std::string>(
+                            this->txtGuardianPhone->Text->Trim()
+                        )
+                    );
+
+                    guardianStmt->setString(
+                        4,
+                        msclr::interop::marshal_as<std::string>(
+                            this->txtGuardianAlternativePhone->Text->Trim()
+                        )
+                    );
+
+                    guardianStmt->setString(
+                        5,
+                        msclr::interop::marshal_as<std::string>(
+                            this->txtGuardianEmail->Text->Trim()
+                        )
+                    );
+
+                    guardianStmt->setString(
+                        6,
+                        msclr::interop::marshal_as<std::string>(
+                            this->txtGuardianAddress->Text->Trim()
+                        )
+                    );
+
+                    guardianStmt->executeUpdate();
+
+                    std::unique_ptr<sql::PreparedStatement>
+                        guardianIdStmt(
+                            con->prepareStatement(
+                                "SELECT LAST_INSERT_ID() AS guardian_id"
+                            )
+                        );
+
+                    std::unique_ptr<sql::ResultSet>
+                        guardianIdResult(
+                            guardianIdStmt->executeQuery()
+                        );
+
+                    if (!guardianIdResult->next())
+                    {
+                        throw std::runtime_error(
+                            "Unable to retrieve the guardian ID."
+                        );
+                    }
+
+                    this->editingGuardianId =
+                        guardianIdResult->getInt64(
+                            "guardian_id"
+                        );
+
+                    std::unique_ptr<sql::PreparedStatement>
+                        linkStmt(
+                            con->prepareStatement(
+                                "INSERT INTO student_guardians "
+                                "(student_id, guardian_id, is_primary) "
+                                "VALUES (?, ?, 1)"
+                            )
+                        );
+
+                    linkStmt->setInt64(
+                        1,
+                        this->editingStudentId
+                    );
+
+                    linkStmt->setInt64(
+                        2,
+                        this->editingGuardianId
+                    );
+
+                    linkStmt->executeUpdate();
+                }
+
+
+                if (this->editingEnrollmentId > 0)
+                {
+                    std::unique_ptr<sql::PreparedStatement>
+                        enrollmentStmt(
+                            con->prepareStatement(
+                                "UPDATE enrollments "
+                                "SET academic_year_id = ?, "
+                                "term_id = ?, "
+                                "class_id = ?, "
+                                "stream_id = ?, "
+                                "enrollment_date = ?, "
+                                "status = 'Active' "
+                                "WHERE enrollment_id = ? "
+                                "AND student_id = ?"
+                            )
+                        );
+
+                    enrollmentStmt->setInt(
+                        1,
+                        yearItem->Id
+                    );
+
+                    enrollmentStmt->setInt(
+                        2,
+                        termItem->Id
+                    );
+
+                    enrollmentStmt->setInt(
+                        3,
+                        classItem->Id
+                    );
+
+                    enrollmentStmt->setInt(
+                        4,
+                        streamItem->Id
+                    );
+
+                    enrollmentStmt->setString(
+                        5,
+                        msclr::interop::marshal_as<std::string>(
+                            this->dtpAdmissionDate->Value.Date.ToString("yyyy-MM-dd")
+                        )
+                    );
+
+                    enrollmentStmt->setInt(
+                        6,
+                        this->editingEnrollmentId
+                    );
+
+                    enrollmentStmt->setInt64(
+                        7,
+                        this->editingStudentId
+                    );
+
+                    enrollmentStmt->executeUpdate();
+                }
+                else
+                {
+                    std::unique_ptr<sql::PreparedStatement>
+                        enrollmentStmt(
+                            con->prepareStatement(
+                                "INSERT INTO enrollments "
+                                "(student_id, academic_year_id, term_id, class_id, stream_id, enrollment_date, status) "
+                                "VALUES (?, ?, ?, ?, ?, ?, 'Active')"
+                            )
+                        );
+
+                    enrollmentStmt->setInt64(
+                        1,
+                        this->editingStudentId
+                    );
+
+                    enrollmentStmt->setInt(
+                        2,
+                        yearItem->Id
+                    );
+
+                    enrollmentStmt->setInt(
+                        3,
+                        termItem->Id
+                    );
+
+                    enrollmentStmt->setInt(
+                        4,
+                        classItem->Id
+                    );
+
+                    enrollmentStmt->setInt(
+                        5,
+                        streamItem->Id
+                    );
+
+                    enrollmentStmt->setString(
+                        6,
+                        msclr::interop::marshal_as<std::string>(
+                            this->dtpAdmissionDate->Value.Date.ToString("yyyy-MM-dd")
+                        )
+                    );
+
+                    enrollmentStmt->executeUpdate();
+                }
+
+                con->commit();
+
+                MessageBox::Show(
+                    L"Student details updated successfully.",
+                    L"Edit Student",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Information
+                );
+
+                this->DialogResult =
+                    System::Windows::Forms::DialogResult::OK;
+
+                this->Close();
+            }
+            catch (sql::SQLException& ex)
+            {
+                if (con)
+                {
+                    try
+                    {
+                        con->rollback();
+                    }
+                    catch (...)
+                    {
+                    }
+                }
+
+                MessageBox::Show(
+                    gcnew String(ex.what()),
+                    L"Database Error",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+            catch (std::exception& ex)
+            {
+                if (con)
+                {
+                    try
+                    {
+                        con->rollback();
+                    }
+                    catch (...)
+                    {
+                    }
+                }
+
+                MessageBox::Show(
+                    gcnew String(ex.what()),
+                    L"Error",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+        }
+
+
+        // =========================================================
         // SAVE STUDENT
         // =========================================================
 
@@ -2173,6 +2929,13 @@ namespace SchoolCore
                 safe_cast<ComboItem^>(
                     this->cmbStream->SelectedItem
                     );
+
+
+            if (this->editMode)
+            {
+                UpdateStudent();
+                return;
+            }
 
 
             // -----------------------------------------------------
@@ -2732,23 +3495,19 @@ namespace SchoolCore
         }
 
 
-    public:
+    private:
 
         // =========================================================
-        // CONSTRUCTOR
+        // EVENT WIRING
         // =========================================================
 
-        StudentRegistration()
+        void WireEvents()
         {
-            InitializeComponent();
-
-
             this->btnSave->Click +=
                 gcnew System::EventHandler(
                     this,
                     &StudentRegistration::btnSave_Click
                 );
-
 
             this->btnClear->Click +=
                 gcnew System::EventHandler(
@@ -2756,13 +3515,11 @@ namespace SchoolCore
                     &StudentRegistration::btnClear_Click
                 );
 
-
             this->btnCancel->Click +=
                 gcnew System::EventHandler(
                     this,
                     &StudentRegistration::btnCancel_Click
                 );
-
 
             this->cmbAcademicYear->SelectedIndexChanged +=
                 gcnew System::EventHandler(
@@ -2770,13 +3527,11 @@ namespace SchoolCore
                     &StudentRegistration::cmbAcademicYear_SelectedIndexChanged
                 );
 
-
             this->cmbTerm->SelectedIndexChanged +=
                 gcnew System::EventHandler(
                     this,
                     &StudentRegistration::cmbTerm_SelectedIndexChanged
                 );
-
 
             this->cmbClass->SelectedIndexChanged +=
                 gcnew System::EventHandler(
@@ -2784,16 +3539,54 @@ namespace SchoolCore
                     &StudentRegistration::cmbClass_SelectedIndexChanged
                 );
 
-
             this->cmbStream->SelectedIndexChanged +=
                 gcnew System::EventHandler(
                     this,
                     &StudentRegistration::cmbStream_SelectedIndexChanged
                 );
+        }
 
+
+    public:
+
+        // =========================================================
+        // NEW STUDENT
+        // =========================================================
+
+        StudentRegistration()
+        {
+            InitializeComponent();
+            WireEvents();
 
             LoadAcademicYears();
             LoadClasses();
+        }
+
+
+        // =========================================================
+        // EDIT EXISTING STUDENT
+        // =========================================================
+
+        StudentRegistration(long long studentId)
+        {
+            InitializeComponent();
+            WireEvents();
+
+            this->editMode = true;
+            this->editingStudentId = studentId;
+
+            this->Text =
+                L"Edit Student";
+
+            this->lblTitle->Text =
+                L"Edit Student";
+
+            this->lblSubtitle->Text =
+                L"Loading student information...";
+
+            LoadAcademicYears();
+            LoadClasses();
+            LoadStudentForEdit(studentId);
         }
     };
 }
