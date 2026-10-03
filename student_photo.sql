@@ -1,0 +1,3 @@
+ALTER TABLE students
+ADD COLUMN IF NOT EXISTS photo_path VARCHAR(255) NULL
+AFTER home_address;
