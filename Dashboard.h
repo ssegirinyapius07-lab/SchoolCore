@@ -5,6 +5,7 @@
 #include "TeacherManagement.h"
 #include "AcademicYearsTerms.h"
 #include "ClassesStreams.h"
+#include "SubjectManagement.h"
 
 namespace SchoolCore {
 
@@ -32,6 +33,12 @@ namespace SchoolCore {
 				gcnew System::EventHandler(
 					this,
 					&Dashboard::btnTeachers_Click
+				);
+
+			this->btnSubjects->Click +=
+				gcnew System::EventHandler(
+					this,
+					&Dashboard::btnSubjects_Click
 				);
 
 			ShowDashboardOverview();
@@ -80,6 +87,16 @@ namespace SchoolCore {
 		{
 			TeacherManagement^ form =
 				gcnew TeacherManagement();
+
+			form->ShowDialog(this);
+		}
+
+		System::Void btnSubjects_Click(
+			System::Object^ sender,
+			System::EventArgs^ e)
+		{
+			SubjectManagement^ form =
+				gcnew SubjectManagement();
 
 			form->ShowDialog(this);
 		}
