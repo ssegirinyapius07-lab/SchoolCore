@@ -2025,10 +2025,12 @@ namespace SchoolCore
             this->lblSubtitle->Dock =
                 DockStyle::Fill;
             this->lblSubtitle->Font =
-                gcnew System::Drawing.Font(
+                gcnew Font(
                     L"Segoe UI",
-                    9.5F
+                    9.5F,
+                    FontStyle::Regular
                 );
+
             this->lblSubtitle->ForeColor =
                 Color::Gainsboro;
             this->lblSubtitle->Text =
