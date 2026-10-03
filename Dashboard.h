@@ -6,6 +6,7 @@
 #include "TeacherManagement.h"
 #include "AcademicYearsTerms.h"
 #include "ClassesStreams.h"
+#include "CombinationManagement.h"
 #include "SubjectManagement.h"
 #include "Timetable.h"
 #include "Attendance.h"
@@ -46,6 +47,12 @@ namespace SchoolCore {
 					&Dashboard::btnSubjects_Click
 				);
 
+			this->btnCombinations->Click +=
+				gcnew System::EventHandler(
+					this,
+					&Dashboard::btnCombinations_Click
+				);
+
 			this->btnAttendance->Click +=
 				gcnew System::EventHandler(
 					this,
@@ -74,6 +81,9 @@ namespace SchoolCore {
 				AuthSession::HasPermission(L"teachers.view");
 
 			this->btnClasses->Visible =
+				AuthSession::HasPermission(L"classes.view");
+
+			this->btnCombinations->Visible =
 				AuthSession::HasPermission(L"classes.view");
 
 			this->btnSubjects->Visible =
@@ -135,6 +145,7 @@ namespace SchoolCore {
 		System::Windows::Forms::Button^ btnStudents;
 		System::Windows::Forms::Button^ btnTeachers;
 		System::Windows::Forms::Button^ btnClasses;
+		System::Windows::Forms::Button^ btnCombinations;
 		System::Windows::Forms::Button^ btnSubjects;
 		System::Windows::Forms::Button^ btnAcademic;
 		System::Windows::Forms::Button^ btnTimetable;
@@ -271,6 +282,17 @@ namespace SchoolCore {
 
 			this->contentPanel->Controls->Add(form);
 			form->Show();
+		}
+
+		System::Void btnCombinations_Click(
+			System::Object^ sender,
+			System::EventArgs^ e)
+		{
+			CombinationManagement^ form =
+				gcnew CombinationManagement();
+
+			form->ShowDialog(this);
+			ShowDashboardOverview();
 		}
 
 		System::Void btnAcademic_Click(
@@ -1119,6 +1141,7 @@ namespace SchoolCore {
 			this->btnStudents = (gcnew System::Windows::Forms::Button());
 			this->btnTeachers = (gcnew System::Windows::Forms::Button());
 			this->btnClasses = (gcnew System::Windows::Forms::Button());
+			this->btnCombinations = (gcnew System::Windows::Forms::Button());
 			this->btnSubjects = (gcnew System::Windows::Forms::Button());
 			this->btnAcademic = (gcnew System::Windows::Forms::Button());
 			this->btnTimetable = (gcnew System::Windows::Forms::Button());
@@ -1180,6 +1203,7 @@ namespace SchoolCore {
 			this->sidebarPanel->Controls->Add(this->btnStudents);
 			this->sidebarPanel->Controls->Add(this->btnTeachers);
 			this->sidebarPanel->Controls->Add(this->btnClasses);
+			this->sidebarPanel->Controls->Add(this->btnCombinations);
 			this->sidebarPanel->Controls->Add(this->btnSubjects);
 			this->sidebarPanel->Controls->Add(this->btnAcademic);
 			this->sidebarPanel->Controls->Add(this->btnTimetable);
@@ -1268,6 +1292,28 @@ namespace SchoolCore {
 				);
 
 			// 
+			// btnCombinations
+			// 
+			this->btnCombinations->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(15)), static_cast<System::Int32>(static_cast<System::Byte>(23)),
+				static_cast<System::Int32>(static_cast<System::Byte>(42)));
+			this->btnCombinations->FlatAppearance->BorderSize = 0;
+			this->btnCombinations->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
+			this->btnCombinations->Font = (gcnew System::Drawing::Font(L"Segoe UI", 10));
+			this->btnCombinations->ForeColor = System::Drawing::Color::White;
+			this->btnCombinations->Location = System::Drawing::Point(15, 240);
+			this->btnCombinations->Name = L"btnCombinations";
+			this->btnCombinations->Size = System::Drawing::Size(250, 45);
+			this->btnCombinations->TabIndex = 4;
+			this->btnCombinations->Text = L"A-Level Combinations";
+			this->btnCombinations->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
+			this->btnCombinations->UseVisualStyleBackColor = false;
+			this->btnCombinations->Click +=
+				gcnew System::EventHandler(
+					this,
+					&Dashboard::btnCombinations_Click
+				);
+
+			// 
 			// btnSubjects
 			// 
 			this->btnSubjects->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(15)), static_cast<System::Int32>(static_cast<System::Byte>(23)),
@@ -1276,10 +1322,10 @@ namespace SchoolCore {
 			this->btnSubjects->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
 			this->btnSubjects->Font = (gcnew System::Drawing::Font(L"Segoe UI", 10));
 			this->btnSubjects->ForeColor = System::Drawing::Color::White;
-			this->btnSubjects->Location = System::Drawing::Point(15, 240);
+			this->btnSubjects->Location = System::Drawing::Point(15, 295);
 			this->btnSubjects->Name = L"btnSubjects";
 			this->btnSubjects->Size = System::Drawing::Size(250, 45);
-			this->btnSubjects->TabIndex = 4;
+			this->btnSubjects->TabIndex = 5;
 			this->btnSubjects->Text = L"Subjects";
 			this->btnSubjects->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			this->btnSubjects->UseVisualStyleBackColor = false;
@@ -1292,10 +1338,10 @@ namespace SchoolCore {
 			this->btnAcademic->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
 			this->btnAcademic->Font = (gcnew System::Drawing::Font(L"Segoe UI", 10));
 			this->btnAcademic->ForeColor = System::Drawing::Color::White;
-			this->btnAcademic->Location = System::Drawing::Point(15, 295);
+			this->btnAcademic->Location = System::Drawing::Point(15, 350);
 			this->btnAcademic->Name = L"btnAcademic";
 			this->btnAcademic->Size = System::Drawing::Size(250, 45);
-			this->btnAcademic->TabIndex = 5;
+			this->btnAcademic->TabIndex = 6;
 			this->btnAcademic->Text = L"Academic Years && Terms";
 			this->btnAcademic->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			this->btnAcademic->UseVisualStyleBackColor = false;
@@ -1315,10 +1361,10 @@ namespace SchoolCore {
 			this->btnTimetable->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
 			this->btnTimetable->Font = (gcnew System::Drawing::Font(L"Segoe UI", 10));
 			this->btnTimetable->ForeColor = System::Drawing::Color::White;
-			this->btnTimetable->Location = System::Drawing::Point(15, 350);
+			this->btnTimetable->Location = System::Drawing::Point(15, 405);
 			this->btnTimetable->Name = L"btnTimetable";
 			this->btnTimetable->Size = System::Drawing::Size(250, 45);
-			this->btnTimetable->TabIndex = 6;
+			this->btnTimetable->TabIndex = 7;
 			this->btnTimetable->Text = L"Timetable";
 			this->btnTimetable->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			this->btnTimetable->UseVisualStyleBackColor = false;
@@ -1337,10 +1383,10 @@ namespace SchoolCore {
 			this->btnAttendance->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
 			this->btnAttendance->Font = (gcnew System::Drawing::Font(L"Segoe UI", 10));
 			this->btnAttendance->ForeColor = System::Drawing::Color::White;
-			this->btnAttendance->Location = System::Drawing::Point(15, 405);
+			this->btnAttendance->Location = System::Drawing::Point(15, 460);
 			this->btnAttendance->Name = L"btnAttendance";
 			this->btnAttendance->Size = System::Drawing::Size(250, 45);
-			this->btnAttendance->TabIndex = 7;
+			this->btnAttendance->TabIndex = 8;
 			this->btnAttendance->Text = L"Attendance";
 			this->btnAttendance->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			this->btnAttendance->UseVisualStyleBackColor = false;
@@ -1353,10 +1399,10 @@ namespace SchoolCore {
 			this->btnExaminations->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
 			this->btnExaminations->Font = (gcnew System::Drawing::Font(L"Segoe UI", 10));
 			this->btnExaminations->ForeColor = System::Drawing::Color::White;
-			this->btnExaminations->Location = System::Drawing::Point(15, 460);
+			this->btnExaminations->Location = System::Drawing::Point(15, 515);
 			this->btnExaminations->Name = L"btnExaminations";
 			this->btnExaminations->Size = System::Drawing::Size(250, 45);
-			this->btnExaminations->TabIndex = 8;
+			this->btnExaminations->TabIndex = 9;
 			this->btnExaminations->Text = L"Examinations && Results";
 			this->btnExaminations->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			this->btnExaminations->UseVisualStyleBackColor = false;
@@ -1369,10 +1415,10 @@ namespace SchoolCore {
 			this->btnFees->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
 			this->btnFees->Font = (gcnew System::Drawing::Font(L"Segoe UI", 10));
 			this->btnFees->ForeColor = System::Drawing::Color::White;
-			this->btnFees->Location = System::Drawing::Point(15, 515);
+			this->btnFees->Location = System::Drawing::Point(15, 570);
 			this->btnFees->Name = L"btnFees";
 			this->btnFees->Size = System::Drawing::Size(250, 45);
-			this->btnFees->TabIndex = 9;
+			this->btnFees->TabIndex = 10;
 			this->btnFees->Text = L"Fees && Finance";
 			this->btnFees->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			this->btnFees->UseVisualStyleBackColor = false;
@@ -1385,10 +1431,10 @@ namespace SchoolCore {
 			this->btnDiscipline->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
 			this->btnDiscipline->Font = (gcnew System::Drawing::Font(L"Segoe UI", 10));
 			this->btnDiscipline->ForeColor = System::Drawing::Color::White;
-			this->btnDiscipline->Location = System::Drawing::Point(15, 570);
+			this->btnDiscipline->Location = System::Drawing::Point(15, 625);
 			this->btnDiscipline->Name = L"btnDiscipline";
 			this->btnDiscipline->Size = System::Drawing::Size(250, 45);
-			this->btnDiscipline->TabIndex = 10;
+			this->btnDiscipline->TabIndex = 11;
 			this->btnDiscipline->Text = L"Discipline";
 			this->btnDiscipline->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			this->btnDiscipline->UseVisualStyleBackColor = false;
@@ -1401,10 +1447,10 @@ namespace SchoolCore {
 			this->btnCommunication->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
 			this->btnCommunication->Font = (gcnew System::Drawing::Font(L"Segoe UI", 10));
 			this->btnCommunication->ForeColor = System::Drawing::Color::White;
-			this->btnCommunication->Location = System::Drawing::Point(15, 625);
+			this->btnCommunication->Location = System::Drawing::Point(15, 680);
 			this->btnCommunication->Name = L"btnCommunication";
 			this->btnCommunication->Size = System::Drawing::Size(250, 45);
-			this->btnCommunication->TabIndex = 11;
+			this->btnCommunication->TabIndex = 12;
 			this->btnCommunication->Text = L"Notices";
 			this->btnCommunication->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			this->btnCommunication->UseVisualStyleBackColor = false;
@@ -1417,10 +1463,10 @@ namespace SchoolCore {
 			this->btnReports->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
 			this->btnReports->Font = (gcnew System::Drawing::Font(L"Segoe UI", 10));
 			this->btnReports->ForeColor = System::Drawing::Color::White;
-			this->btnReports->Location = System::Drawing::Point(15, 680);
+			this->btnReports->Location = System::Drawing::Point(15, 735);
 			this->btnReports->Name = L"btnReports";
 			this->btnReports->Size = System::Drawing::Size(250, 45);
-			this->btnReports->TabIndex = 12;
+			this->btnReports->TabIndex = 13;
 			this->btnReports->Text = L"Reports";
 			this->btnReports->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			this->btnReports->UseVisualStyleBackColor = false;
@@ -1433,10 +1479,10 @@ namespace SchoolCore {
 			this->btnUsers->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
 			this->btnUsers->Font = (gcnew System::Drawing::Font(L"Segoe UI", 10));
 			this->btnUsers->ForeColor = System::Drawing::Color::White;
-			this->btnUsers->Location = System::Drawing::Point(15, 735);
+			this->btnUsers->Location = System::Drawing::Point(15, 790);
 			this->btnUsers->Name = L"btnUsers";
 			this->btnUsers->Size = System::Drawing::Size(250, 45);
-			this->btnUsers->TabIndex = 13;
+			this->btnUsers->TabIndex = 14;
 			this->btnUsers->Text = L"Users && Roles";
 			this->btnUsers->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			this->btnUsers->UseVisualStyleBackColor = false;
@@ -1449,10 +1495,10 @@ namespace SchoolCore {
 			this->btnSettings->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
 			this->btnSettings->Font = (gcnew System::Drawing::Font(L"Segoe UI", 10));
 			this->btnSettings->ForeColor = System::Drawing::Color::White;
-			this->btnSettings->Location = System::Drawing::Point(15, 790);
+			this->btnSettings->Location = System::Drawing::Point(15, 845);
 			this->btnSettings->Name = L"btnSettings";
 			this->btnSettings->Size = System::Drawing::Size(250, 45);
-			this->btnSettings->TabIndex = 14;
+			this->btnSettings->TabIndex = 15;
 			this->btnSettings->Text = L"Settings";
 			this->btnSettings->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			this->btnSettings->UseVisualStyleBackColor = false;
