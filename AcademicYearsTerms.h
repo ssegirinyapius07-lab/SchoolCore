@@ -53,6 +53,58 @@ namespace SchoolCore
         Panel^ buttonPanel;
 
 
+
+        void StyleProfessionalGrid(
+            DataGridView^ grid)
+        {
+            grid->BackgroundColor =
+                Color::White;
+
+            grid->BorderStyle =
+                BorderStyle::None;
+
+            grid->EnableHeadersVisualStyles =
+                false;
+
+            grid->ColumnHeadersDefaultCellStyle->BackColor =
+                Color::FromArgb(30, 41, 59);
+
+            grid->ColumnHeadersDefaultCellStyle->ForeColor =
+                Color::White;
+
+            grid->ColumnHeadersDefaultCellStyle->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI Semibold",
+                    9.0F,
+                    FontStyle::Bold
+                );
+
+            grid->ColumnHeadersHeight =
+                36;
+
+            grid->DefaultCellStyle->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI",
+                    9.5F,
+                    FontStyle::Regular
+                );
+
+            grid->DefaultCellStyle->SelectionBackColor =
+                Color::FromArgb(219, 234, 254);
+
+            grid->DefaultCellStyle->SelectionForeColor =
+                Color::FromArgb(30, 41, 59);
+
+            grid->AlternatingRowsDefaultCellStyle->BackColor =
+                Color::FromArgb(248, 250, 252);
+
+            grid->RowTemplate->Height =
+                32;
+
+            grid->RowHeadersVisible =
+                false;
+        }
+
         // =========================================================
         // INITIALIZE COMPONENTS
         // =========================================================
@@ -101,7 +153,7 @@ namespace SchoolCore
             this->mainLayout->RowCount = 3;
 
             this->mainLayout->Padding =
-                System::Windows::Forms::Padding(20);
+                System::Windows::Forms::Padding(18);
 
             this->mainLayout->BackColor =
                 Color::WhiteSmoke;
@@ -226,6 +278,17 @@ namespace SchoolCore
 
             this->yearGroup->Text =
                 L"Academic Years";
+
+            this->yearGroup->BackColor =
+                Color::White;
+
+            this->yearGroup->ForeColor =
+                Color::FromArgb(30, 41, 59);
+
+            this->yearGroup->Margin =
+                System::Windows::Forms::Padding(
+                    0, 0, 0, 10
+                );
 
             this->yearGroup->Padding =
                 System::Windows::Forms::Padding(12);
@@ -409,6 +472,14 @@ namespace SchoolCore
                 L"Status"
             );
 
+            StyleProfessionalGrid(
+                this->yearsGrid
+            );
+
+            this->yearsGrid->Columns[0]->Visible =
+                false;
+
+
 
             yearLayout->Controls->Add(
                 this->lblYearName,
@@ -459,6 +530,17 @@ namespace SchoolCore
 
             this->termGroup->Text =
                 L"Terms";
+
+            this->termGroup->BackColor =
+                Color::White;
+
+            this->termGroup->ForeColor =
+                Color::FromArgb(30, 41, 59);
+
+            this->termGroup->Margin =
+                System::Windows::Forms::Padding(
+                    0
+                );
 
             this->termGroup->Padding =
                 System::Windows::Forms::Padding(12);
@@ -641,6 +723,14 @@ namespace SchoolCore
                 L"status",
                 L"Status"
             );
+
+            StyleProfessionalGrid(
+                this->termsGrid
+            );
+
+            this->termsGrid->Columns[0]->Visible =
+                false;
+
 
 
             termLayout->Controls->Add(
