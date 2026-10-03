@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DbConnection.h"
+#include "SubjectManagement.h"
 
 #include <mariadb/conncpp.hpp>
 #include <msclr/marshal_cppstd.h>
@@ -66,6 +67,12 @@ namespace SchoolCore
         {
             InitializeComponent();
 
+            this->btnManageSubjects->Click +=
+                gcnew EventHandler(
+                    this,
+                    &CombinationManagement::btnManageSubjects_Click
+                );
+
             this->btnNew->Click +=
                 gcnew EventHandler(
                     this,
@@ -121,6 +128,7 @@ namespace SchoolCore
         System::Windows::Forms::Label^ lblSubtitle;
 
         System::Windows::Forms::Panel^ actionPanel;
+        System::Windows::Forms::Button^ btnManageSubjects;
         System::Windows::Forms::Button^ btnNew;
         System::Windows::Forms::Button^ btnEdit;
         System::Windows::Forms::Button^ btnToggle;
@@ -1190,7 +1198,7 @@ namespace SchoolCore
                 gcnew System::Windows::Forms::Label();
 
             note->Text =
-                L"An A-Level combination contains three principal subjects and one subsidiary subject.";
+                L"Subjects come from Subject Management. An A-Level combination contains three principal subjects and one subsidiary subject.";
 
             note->Dock = DockStyle::Fill;
             note->ForeColor =
@@ -1385,6 +1393,16 @@ namespace SchoolCore
             UpdateActionState();
         }
 
+        System::Void btnManageSubjects_Click(
+            Object^ sender,
+            EventArgs^ e)
+        {
+            SubjectManagement^ form =
+                gcnew SubjectManagement();
+
+            form->ShowDialog(this);
+        }
+
         System::Void btnBack_Click(
             Object^ sender,
             EventArgs^ e)
@@ -1413,6 +1431,9 @@ namespace SchoolCore
 
             this->actionPanel =
                 gcnew System::Windows::Forms::FlowLayoutPanel();
+
+            this->btnManageSubjects =
+                gcnew System::Windows::Forms::Button();
 
             this->btnNew =
                 gcnew System::Windows::Forms::Button();
@@ -1582,12 +1603,17 @@ namespace SchoolCore
                 this->actionPanel
             )->AutoScroll = true;
 
+            ConfigureButton(this->btnManageSubjects, L"Manage Subjects");
             ConfigureButton(this->btnNew, L"New Combination");
             ConfigureButton(this->btnEdit, L"Edit");
             ConfigureButton(this->btnToggle, L"Activate / Deactivate");
 
             this->btnEdit->Enabled = false;
             this->btnToggle->Enabled = false;
+
+            this->actionPanel->Controls->Add(
+                this->btnManageSubjects
+            );
 
             this->actionPanel->Controls->Add(
                 this->btnNew
