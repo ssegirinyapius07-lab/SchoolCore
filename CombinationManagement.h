@@ -391,6 +391,113 @@ namespace SchoolCore
             }
         }
 
+        wchar_t GetFirstLetter(String^ value)
+        {
+            if (String::IsNullOrWhiteSpace(value))
+                return L'\0';
+
+            for (int i = 0; i < value->Length; i++)
+            {
+                wchar_t ch = value[i];
+
+                if (!Char::IsWhiteSpace(ch) &&
+                    Char::IsLetter(ch))
+                {
+                    return Char::ToUpper(ch);
+                }
+            }
+
+            return L'\0';
+        }
+
+        String^ BuildCombinationCode()
+        {
+            SubjectItem^ first =
+                dynamic_cast<SubjectItem^>(
+                    this->editorPrincipal1->SelectedItem
+                );
+
+            SubjectItem^ second =
+                dynamic_cast<SubjectItem^>(
+                    this->editorPrincipal2->SelectedItem
+                );
+
+            SubjectItem^ third =
+                dynamic_cast<SubjectItem^>(
+                    this->editorPrincipal3->SelectedItem
+                );
+
+            if (first == nullptr ||
+                second == nullptr ||
+                third == nullptr)
+            {
+                return L"";
+            }
+
+            wchar_t a = GetFirstLetter(first->Name);
+            wchar_t b = GetFirstLetter(second->Name);
+            wchar_t c = GetFirstLetter(third->Name);
+
+            if (a == L'\0' ||
+                b == L'\0' ||
+                c == L'\0')
+            {
+                return L"";
+            }
+
+            return gcnew String(
+                gcnew array<wchar_t>{ a, b, c }
+            );
+        }
+
+        String^ BuildCombinationName()
+        {
+            SubjectItem^ first =
+                dynamic_cast<SubjectItem^>(
+                    this->editorPrincipal1->SelectedItem
+                );
+
+            SubjectItem^ second =
+                dynamic_cast<SubjectItem^>(
+                    this->editorPrincipal2->SelectedItem
+                );
+
+            SubjectItem^ third =
+                dynamic_cast<SubjectItem^>(
+                    this->editorPrincipal3->SelectedItem
+                );
+
+            if (first == nullptr ||
+                second == nullptr ||
+                third == nullptr)
+            {
+                return L"";
+            }
+
+            return
+                first->Name +
+                L", " +
+                second->Name +
+                L" and " +
+                third->Name;
+        }
+
+        void UpdateGeneratedCombination()
+        {
+            this->editorCodeBox->Text =
+                BuildCombinationCode();
+
+            this->editorNameBox->Text =
+                BuildCombinationName();
+        }
+
+        System::Void PrincipalSubjectChanged(
+            Object^ sender,
+            EventArgs^ e)
+        {
+            UpdateGeneratedCombination();
+        }
+
         bool SaveCombination(
             int combinationId,
             bool editMode,
@@ -768,6 +875,41 @@ namespace SchoolCore
                 0
             );
 
+            this->editorCodeBox->ReadOnly = true;
+            this->editorNameBox->ReadOnly = true;
+
+            this->editorCodeBox->BackColor =
+                System::Drawing::Color::FromArgb(
+                    248,
+                    250,
+                    252
+                );
+
+            this->editorNameBox->BackColor =
+                System::Drawing::Color::FromArgb(
+                    248,
+                    250,
+                    252
+                );
+
+            this->editorPrincipal1->SelectedIndexChanged +=
+                gcnew EventHandler(
+                    this,
+                    &CombinationManagement::PrincipalSubjectChanged
+                );
+
+            this->editorPrincipal2->SelectedIndexChanged +=
+                gcnew EventHandler(
+                    this,
+                    &CombinationManagement::PrincipalSubjectChanged
+                );
+
+            this->editorPrincipal3->SelectedIndexChanged +=
+                gcnew EventHandler(
+                    this,
+                    &CombinationManagement::PrincipalSubjectChanged
+                );
+
             if (this->editorEditMode)
             {
                 try
@@ -903,8 +1045,10 @@ namespace SchoolCore
                 }
             }
 
+            UpdateGeneratedCombination();
+
             layout->Controls->Add(
-                CreateFormLabel(L"Combination Code"),
+                CreateFormLabel(L"Combination Code (Automatic)"),
                 0,
                 0
             );
@@ -915,7 +1059,7 @@ namespace SchoolCore
             );
 
             layout->Controls->Add(
-                CreateFormLabel(L"Combination Name"),
+                CreateFormLabel(L"Combination Name (Automatic)"),
                 0,
                 1
             );
