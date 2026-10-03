@@ -300,7 +300,7 @@ namespace SchoolCore
 
             this->Text = L"Student Registration";
             this->StartPosition = FormStartPosition::CenterParent;
-            this->WindowState = FormWindowState::Normal;
+            this->WindowState = FormWindowState::Maximized;
             this->ClientSize = System::Drawing::Size(1100, 760);
             this->MinimumSize = System::Drawing::Size(900, 650);
 
@@ -328,7 +328,7 @@ namespace SchoolCore
             this->scrollPanel->AutoScrollMinSize =
                 System::Drawing::Size(
                     0,
-                    850
+                    900
                 );
 
 
@@ -549,26 +549,15 @@ namespace SchoolCore
             );
 
 
-            studentLayout->RowStyles->Add(
-                gcnew RowStyle(
-                    SizeType::Absolute,
-                    40.0F
-                )
-            );
-
-            studentLayout->RowStyles->Add(
-                gcnew RowStyle(
-                    SizeType::Absolute,
-                    40.0F
-                )
-            );
-
-            studentLayout->RowStyles->Add(
-                gcnew RowStyle(
-                    SizeType::Absolute,
-                    40.0F
-                )
-            );
+            for (int i = 0; i < 3; i++)
+            {
+                studentLayout->RowStyles->Add(
+                    gcnew RowStyle(
+                        SizeType::Absolute,
+                        40.0F
+                    )
+                );
+            }
 
             studentLayout->RowStyles->Add(
                 gcnew RowStyle(
@@ -593,6 +582,9 @@ namespace SchoolCore
 
             this->lblFirstName->TextAlign =
                 ContentAlignment::MiddleLeft;
+
+            this->lblFirstName->Margin =
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
 
             this->txtFirstName =
@@ -621,6 +613,9 @@ namespace SchoolCore
             this->lblLastName->TextAlign =
                 ContentAlignment::MiddleLeft;
 
+            this->lblLastName->Margin =
+                System::Windows::Forms::Padding(3, 4, 3, 4);
+
 
             this->txtLastName =
                 gcnew TextBox();
@@ -648,6 +643,9 @@ namespace SchoolCore
             this->lblMiddleName->TextAlign =
                 ContentAlignment::MiddleLeft;
 
+            this->lblMiddleName->Margin =
+                System::Windows::Forms::Padding(3, 4, 3, 4);
+
 
             this->txtMiddleName =
                 gcnew TextBox();
@@ -674,6 +672,9 @@ namespace SchoolCore
 
             this->lblGender->TextAlign =
                 ContentAlignment::MiddleLeft;
+
+            this->lblGender->Margin =
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
 
             this->cmbGender =
@@ -718,6 +719,9 @@ namespace SchoolCore
 
             this->lblDob->TextAlign =
                 ContentAlignment::MiddleLeft;
+
+            this->lblDob->Margin =
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
 
             this->dtpDob =
@@ -767,6 +771,9 @@ namespace SchoolCore
             this->lblAdmissionDate->TextAlign =
                 ContentAlignment::MiddleLeft;
 
+            this->lblAdmissionDate->Margin =
+                System::Windows::Forms::Padding(3, 4, 3, 4);
+
 
             this->dtpAdmissionDate =
                 gcnew DateTimePicker();
@@ -814,6 +821,9 @@ namespace SchoolCore
 
             this->lblHomeAddress->TextAlign =
                 ContentAlignment::MiddleLeft;
+
+            this->lblHomeAddress->Margin =
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
 
             this->txtHomeAddress =
@@ -1200,6 +1210,9 @@ namespace SchoolCore
             this->lblAcademicYear->TextAlign =
                 ContentAlignment::MiddleLeft;
 
+            this->lblAcademicYear->Margin =
+                System::Windows::Forms::Padding(3, 4, 3, 4);
+
 
             this->cmbAcademicYear =
                 gcnew ComboBox();
@@ -1227,6 +1240,9 @@ namespace SchoolCore
 
             this->lblTerm->TextAlign =
                 ContentAlignment::MiddleLeft;
+
+            this->lblTerm->Margin =
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
 
             this->cmbTerm =
@@ -1259,6 +1275,9 @@ namespace SchoolCore
             this->lblClass->TextAlign =
                 ContentAlignment::MiddleLeft;
 
+            this->lblClass->Margin =
+                System::Windows::Forms::Padding(3, 4, 3, 4);
+
 
             this->cmbClass =
                 gcnew ComboBox();
@@ -1286,6 +1305,9 @@ namespace SchoolCore
 
             this->lblStream->TextAlign =
                 ContentAlignment::MiddleLeft;
+
+            this->lblStream->Margin =
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
 
             this->cmbStream =
@@ -1487,6 +1509,9 @@ namespace SchoolCore
             this->lblGuardianName->TextAlign =
                 ContentAlignment::MiddleLeft;
 
+            this->lblGuardianName->Margin =
+                System::Windows::Forms::Padding(3, 4, 3, 4);
+
 
             this->txtGuardianName =
                 gcnew TextBox();
@@ -1511,6 +1536,9 @@ namespace SchoolCore
 
             this->lblGuardianRelationship->TextAlign =
                 ContentAlignment::MiddleLeft;
+
+            this->lblGuardianRelationship->Margin =
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
 
             this->txtGuardianRelationship =
@@ -1537,6 +1565,9 @@ namespace SchoolCore
             this->lblGuardianPhone->TextAlign =
                 ContentAlignment::MiddleLeft;
 
+            this->lblGuardianPhone->Margin =
+                System::Windows::Forms::Padding(3, 4, 3, 4);
+
 
             this->txtGuardianPhone =
                 gcnew TextBox();
@@ -1561,6 +1592,9 @@ namespace SchoolCore
 
             this->lblGuardianAlternativePhone->TextAlign =
                 ContentAlignment::MiddleLeft;
+
+            this->lblGuardianAlternativePhone->Margin =
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
 
             this->txtGuardianAlternativePhone =
@@ -1587,6 +1621,9 @@ namespace SchoolCore
             this->lblGuardianEmail->TextAlign =
                 ContentAlignment::MiddleLeft;
 
+            this->lblGuardianEmail->Margin =
+                System::Windows::Forms::Padding(3, 4, 3, 4);
+
 
             this->txtGuardianEmail =
                 gcnew TextBox();
@@ -1611,6 +1648,9 @@ namespace SchoolCore
 
             this->lblGuardianAddress->TextAlign =
                 ContentAlignment::MiddleLeft;
+
+            this->lblGuardianAddress->Margin =
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
 
             this->txtGuardianAddress =
@@ -1780,10 +1820,10 @@ namespace SchoolCore
             // Put buttons next to each other
 
             this->btnCancel->Location =
-                Point(0, 14);
+                Point(0, 12);
 
             this->btnClear->Location =
-                Point(155, 14);
+                Point(155, 12);
 
 
             this->buttonPanel->Controls->Add(
@@ -1846,7 +1886,7 @@ namespace SchoolCore
             this->mainLayout->MinimumSize =
                 System::Drawing::Size(
                     0,
-                    850
+                    900
                 );
 
             this->scrollPanel->Controls->Add(
