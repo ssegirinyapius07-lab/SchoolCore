@@ -80,27 +80,39 @@ namespace SchoolCore
                     }
                 }
 
+        System::ComponentModel::Container^ components;
+
+
+    protected:
+        ~ClassesStreams()
+        {
+            if (this->components)
+            {
+                delete this->components;
+            }
+        }
+
     private:
 
         // =========================================================
         // CONTROLS
         // =========================================================
 
-        TableLayoutPanel^ mainLayout;
+        System::Windows::Forms::TableLayoutPanel^ mainLayout;
 
-        Panel^ headerPanel;
+        System::Windows::Forms::Panel^ headerPanel;
         System::Windows::Forms::Label^ lblTitle;
         System::Windows::Forms::Label^ lblSubtitle;
 
-        GroupBox^ classGroup;
-        GroupBox^ streamGroup;
+        System::Windows::Forms::GroupBox^ classGroup;
+        System::Windows::Forms::GroupBox^ streamGroup;
 
         // Classes
         System::Windows::Forms::Label^ lblClassName;
-        ComboBox^ cmbClassName;
-        Button^ btnAddClass;
-        Button^ btnToggleClass;
-        DataGridView^ classesGrid;
+        System::Windows::Forms::ComboBox^ cmbClassName;
+        System::Windows::Forms::Button^ btnAddClass;
+        System::Windows::Forms::Button^ btnToggleClass;
+        System::Windows::Forms::DataGridView^ classesGrid;
 
         // Streams
         System::Windows::Forms::Label^ lblSelectedClass;
@@ -109,18 +121,18 @@ namespace SchoolCore
         System::Windows::Forms::Label^ lblTerm;
         System::Windows::Forms::Label^ lblStreamName;
 
-        ComboBox^ cmbAcademicYear;
-        ComboBox^ cmbTerm;
+        System::Windows::Forms::ComboBox^ cmbAcademicYear;
+        System::Windows::Forms::ComboBox^ cmbTerm;
 
-        TextBox^ txtStreamName;
+        System::Windows::Forms::TextBox^ txtStreamName;
 
-        Button^ btnAddStream;
-        Button^ btnToggleStream;
+        System::Windows::Forms::Button^ btnAddStream;
+        System::Windows::Forms::Button^ btnToggleStream;
 
-        DataGridView^ streamsGrid;
+        System::Windows::Forms::DataGridView^ streamsGrid;
 
         // Bottom
-        Panel^ buttonPanel;
+        System::Windows::Forms::Panel^ buttonPanel;
 
 
         // =========================================================
@@ -147,7 +159,7 @@ namespace SchoolCore
 
 
         void StyleProfessionalGrid(
-            DataGridView^ grid)
+            System::Windows::Forms::DataGridView^ grid)
         {
             grid->BackgroundColor =
                 Color::White;
@@ -205,6 +217,7 @@ namespace SchoolCore
 
 void InitializeComponent()
         {
+            this->components = gcnew System::ComponentModel::Container();
             this->SuspendLayout();
 
             // =====================================================
@@ -214,9 +227,9 @@ void InitializeComponent()
             this->Text = L"Classes & Streams";
 
             this->StartPosition =
-                FormStartPosition::CenterParent;
+                System::Windows::Forms::FormStartPosition::CenterParent;
             this->WindowState =
-                FormWindowState::Normal;
+                System::Windows::Forms::FormWindowState::Normal;
 
             this->ClientSize =
                 System::Drawing::Size(1000, 620);
@@ -225,13 +238,13 @@ void InitializeComponent()
                 System::Drawing::Size(900, 600);
 
             this->BackColor =
-                Color::WhiteSmoke;
+                System::Drawing::Color::WhiteSmoke;
 
             this->Font =
                 gcnew System::Drawing::Font(
                     L"Segoe UI",
                     9.5F,
-                    FontStyle::Regular
+                    System::Drawing::FontStyle::Regular
                 );
 
 
@@ -240,10 +253,10 @@ void InitializeComponent()
             // =====================================================
 
             this->mainLayout =
-                gcnew TableLayoutPanel();
+                gcnew System::Windows::Forms::TableLayoutPanel();
 
             this->mainLayout->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->mainLayout->AutoScroll = true;
 
@@ -254,33 +267,33 @@ void InitializeComponent()
                 System::Windows::Forms::Padding(18);
 
             this->mainLayout->BackColor =
-                Color::WhiteSmoke;
+                System::Drawing::Color::WhiteSmoke;
 
 
             this->mainLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     100.0F
                 )
             );
 
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     78.0F
                 )
             );
 
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     50.0F
                 )
             );
 
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     50.0F
                 )
             );
@@ -293,13 +306,13 @@ void InitializeComponent()
             // =====================================================
 
             this->headerPanel =
-                gcnew Panel();
+                gcnew System::Windows::Forms::Panel();
 
             this->headerPanel->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->headerPanel->BackColor =
-                Color::FromArgb(
+                System::Drawing::Color::FromArgb(
                     35, 47, 62
                 );
 
@@ -310,7 +323,7 @@ void InitializeComponent()
 
 
             this->lblTitle =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblTitle->AutoSize = true;
 
@@ -318,21 +331,21 @@ void InitializeComponent()
                 L"Classes & Streams";
 
             this->lblTitle->ForeColor =
-                Color::White;
+                System::Drawing::Color::White;
 
             this->lblTitle->Font =
                 gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
                     18.0F,
-                    FontStyle::Bold
+                    System::Drawing::FontStyle::Bold
                 );
 
             this->lblTitle->Location =
-                Point(18, 10);
+                System::Drawing::Point(18, 10);
 
 
             this->lblSubtitle =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblSubtitle->AutoSize = true;
 
@@ -340,7 +353,7 @@ void InitializeComponent()
                 L"Manage the Senior 1–Senior 6 classes and monitor live student enrollment.";
 
             this->lblSubtitle->ForeColor =
-                Color::FromArgb(
+                System::Drawing::Color::FromArgb(
                     220, 225, 230
                 );
 
@@ -348,11 +361,11 @@ void InitializeComponent()
                 gcnew System::Drawing::Font(
                     L"Segoe UI",
                     9.5F,
-                    FontStyle::Regular
+                    System::Drawing::FontStyle::Regular
                 );
 
             this->lblSubtitle->Location =
-                Point(20, 45);
+                System::Drawing::Point(20, 45);
 
 
             this->headerPanel->Controls->Add(
@@ -369,19 +382,19 @@ void InitializeComponent()
             // =====================================================
 
             this->classGroup =
-                gcnew GroupBox();
+                gcnew System::Windows::Forms::GroupBox();
 
             this->classGroup->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->classGroup->Text =
                 L"Classes";
 
             this->classGroup->BackColor =
-                Color::White;
+                System::Drawing::Color::White;
 
             this->classGroup->ForeColor =
-                Color::FromArgb(30, 41, 59);
+                System::Drawing::Color::FromArgb(30, 41, 59);
 
             this->classGroup->Margin =
                 System::Windows::Forms::Padding(
@@ -395,15 +408,15 @@ void InitializeComponent()
                 gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
                     10.0F,
-                    FontStyle::Bold
+                    System::Drawing::FontStyle::Bold
                 );
 
 
-            TableLayoutPanel^ classLayout =
-                gcnew TableLayoutPanel();
+            System::Windows::Forms::TableLayoutPanel^ classLayout =
+                gcnew System::Windows::Forms::TableLayoutPanel();
 
             classLayout->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             classLayout->ColumnCount = 4;
             classLayout->RowCount = 2;
@@ -414,28 +427,28 @@ void InitializeComponent()
 
             classLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     110.0F
                 )
             );
 
             classLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     55.0F
                 )
             );
 
             classLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     150.0F
                 )
             );
 
             classLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     45.0F
                 )
             );
@@ -443,14 +456,14 @@ void InitializeComponent()
 
             classLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     45.0F
                 )
             );
 
             classLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     100.0F
                 )
             );
@@ -459,28 +472,28 @@ void InitializeComponent()
             // Class label
 
             this->lblClassName =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblClassName->Text =
                 L"Class Name";
 
             this->lblClassName->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblClassName->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
 
             // Class input
 
             this->cmbClassName =
-                gcnew ComboBox();
+                gcnew System::Windows::Forms::ComboBox();
 
             this->cmbClassName->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->cmbClassName->DropDownStyle =
-                ComboBoxStyle::DropDownList;
+                System::Windows::Forms::ComboBoxStyle::DropDownList;
 
             this->cmbClassName->Items->Add(
                 L"Senior 1"
@@ -515,34 +528,34 @@ void InitializeComponent()
             // Add class
 
             this->btnAddClass =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->btnAddClass->Text =
                 L"+ Add Class";
 
             this->btnAddClass->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
 
             // Toggle class
 
             this->btnToggleClass =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->btnToggleClass->Text =
                 L"Activate / Deactivate";
 
             this->btnToggleClass->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
 
             // Classes grid
 
             this->classesGrid =
-                gcnew DataGridView();
+                gcnew System::Windows::Forms::DataGridView();
 
             this->classesGrid->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->classesGrid->AllowUserToAddRows =
                 false;
@@ -554,13 +567,13 @@ void InitializeComponent()
                 true;
 
             this->classesGrid->SelectionMode =
-                DataGridViewSelectionMode::FullRowSelect;
+                System::Windows::Forms::DataGridViewSelectionMode::FullRowSelect;
 
             this->classesGrid->MultiSelect =
                 false;
 
             this->classesGrid->AutoSizeColumnsMode =
-                DataGridViewAutoSizeColumnsMode::Fill;
+                System::Windows::Forms::DataGridViewAutoSizeColumnsMode::Fill;
 
             this->classesGrid->RowHeadersVisible =
                 false;
@@ -638,19 +651,19 @@ void InitializeComponent()
             // =====================================================
 
             this->streamGroup =
-                gcnew GroupBox();
+                gcnew System::Windows::Forms::GroupBox();
 
             this->streamGroup->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->streamGroup->Text =
                 L"Streams";
 
             this->streamGroup->BackColor =
-                Color::White;
+                System::Drawing::Color::White;
 
             this->streamGroup->ForeColor =
-                Color::FromArgb(30, 41, 59);
+                System::Drawing::Color::FromArgb(30, 41, 59);
 
             this->streamGroup->Margin =
                 System::Windows::Forms::Padding(
@@ -664,15 +677,15 @@ void InitializeComponent()
                 gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
                     10.0F,
-                    FontStyle::Bold
+                    System::Drawing::FontStyle::Bold
                 );
 
 
-            TableLayoutPanel^ streamLayout =
-                gcnew TableLayoutPanel();
+            System::Windows::Forms::TableLayoutPanel^ streamLayout =
+                gcnew System::Windows::Forms::TableLayoutPanel();
 
             streamLayout->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             streamLayout->ColumnCount = 6;
             streamLayout->RowCount = 3;
@@ -683,42 +696,42 @@ void InitializeComponent()
 
             streamLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     105.0F
                 )
             );
 
             streamLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     30.0F
                 )
             );
 
             streamLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     105.0F
                 )
             );
 
             streamLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     25.0F
                 )
             );
 
             streamLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     90.0F
                 )
             );
 
             streamLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     45.0F
                 )
             );
@@ -726,21 +739,21 @@ void InitializeComponent()
 
             streamLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     40.0F
                 )
             );
 
             streamLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     40.0F
                 )
             );
 
             streamLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     100.0F
                 )
             );
@@ -749,82 +762,82 @@ void InitializeComponent()
             // Selected class
 
             this->lblSelectedClass =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblSelectedClass->Text =
                 L"Class";
 
             this->lblSelectedClass->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblSelectedClass->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
 
             this->lblSelectedClassValue =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblSelectedClassValue->Text =
                 L"No class selected.";
 
             this->lblSelectedClassValue->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblSelectedClassValue->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
             this->lblSelectedClassValue->ForeColor =
-                Color::DimGray;
+                System::Drawing::Color::DimGray;
 
 
             // Academic year
 
             this->lblAcademicYear =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblAcademicYear->Text =
                 L"Academic Year";
 
             this->lblAcademicYear->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblAcademicYear->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
 
             this->cmbAcademicYear =
-                gcnew ComboBox();
+                gcnew System::Windows::Forms::ComboBox();
 
             this->cmbAcademicYear->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->cmbAcademicYear->DropDownStyle =
-                ComboBoxStyle::DropDownList;
+                System::Windows::Forms::ComboBoxStyle::DropDownList;
 
 
             // Term
 
             this->lblTerm =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblTerm->Text =
                 L"Term";
 
             this->lblTerm->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblTerm->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
 
             this->cmbTerm =
-                gcnew ComboBox();
+                gcnew System::Windows::Forms::ComboBox();
 
             this->cmbTerm->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->cmbTerm->DropDownStyle =
-                ComboBoxStyle::DropDownList;
+                System::Windows::Forms::ComboBoxStyle::DropDownList;
 
             this->cmbTerm->Enabled =
                 false;
@@ -833,23 +846,23 @@ void InitializeComponent()
             // Stream name
 
             this->lblStreamName =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblStreamName->Text =
                 L"Stream";
 
             this->lblStreamName->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblStreamName->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
 
             this->txtStreamName =
-                gcnew TextBox();
+                gcnew System::Windows::Forms::TextBox();
 
             this->txtStreamName->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->txtStreamName->Margin =
                 System::Windows::Forms::Padding(3);
@@ -858,13 +871,13 @@ void InitializeComponent()
             // Add stream
 
             this->btnAddStream =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->btnAddStream->Text =
                 L"+ Add Stream";
 
             this->btnAddStream->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->btnAddStream->Enabled =
                 false;
@@ -873,13 +886,13 @@ void InitializeComponent()
             // Toggle stream
 
             this->btnToggleStream =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->btnToggleStream->Text =
                 L"Activate / Deactivate";
 
             this->btnToggleStream->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->btnToggleStream->Enabled =
                 false;
@@ -888,10 +901,10 @@ void InitializeComponent()
             // Stream grid
 
             this->streamsGrid =
-                gcnew DataGridView();
+                gcnew System::Windows::Forms::DataGridView();
 
             this->streamsGrid->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->streamsGrid->AllowUserToAddRows =
                 false;
@@ -903,13 +916,13 @@ void InitializeComponent()
                 true;
 
             this->streamsGrid->SelectionMode =
-                DataGridViewSelectionMode::FullRowSelect;
+                System::Windows::Forms::DataGridViewSelectionMode::FullRowSelect;
 
             this->streamsGrid->MultiSelect =
                 false;
 
             this->streamsGrid->AutoSizeColumnsMode =
-                DataGridViewAutoSizeColumnsMode::Fill;
+                System::Windows::Forms::DataGridViewAutoSizeColumnsMode::Fill;
 
             this->streamsGrid->RowHeadersVisible =
                 false;
