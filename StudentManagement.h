@@ -1,5 +1,6 @@
 #pragma once
 #include "StudentRegistration.h"
+#include "PromotionManagement.h"
 #include "ThemeManager.h"
 #include "DbConnection.h"
 
@@ -330,6 +331,9 @@ namespace SchoolCore
 				this->studentsGrid->SelectedRows->Count > 0;
 
 			this->btnEditStudent->Enabled =
+				this->studentsGrid->SelectedRows->Count > 0;
+
+			this->btnPromoteStudent->Enabled =
 				this->studentsGrid->SelectedRows->Count > 0;
 		}
 
@@ -919,6 +923,43 @@ namespace SchoolCore
 		}
 
 
+		System::Void btnPromoteStudent_Click(
+			System::Object^ sender,
+			System::EventArgs^ e)
+		{
+			if (this->studentsGrid->SelectedRows->Count == 0)
+			{
+				MessageBox::Show(
+					L"Please select a student to promote.",
+					L"Students",
+					MessageBoxButtons::OK,
+					MessageBoxIcon::Warning
+				);
+				return;
+			}
+
+			long long studentId =
+				Convert::ToInt64(
+					this->studentsGrid
+					->SelectedRows[0]
+					->Cells["StudentId"]
+					->Value
+				);
+
+			PromotionManagement^ form =
+				gcnew PromotionManagement(studentId);
+
+			if (
+				form->ShowDialog(this) ==
+				System::Windows::Forms::DialogResult::OK
+			)
+			{
+				LoadStudents();
+			}
+		}
+
+
+
 		void InitializeComponent(void)
 		{
 			this->components =
@@ -973,6 +1014,9 @@ namespace SchoolCore
 				gcnew System::Windows::Forms::Button();
 
 			this->btnEditStudent =
+				gcnew System::Windows::Forms::Button();
+
+			this->btnPromoteStudent =
 				gcnew System::Windows::Forms::Button();
 
 			this->btnBack =
@@ -1546,6 +1590,22 @@ namespace SchoolCore
 				);
 
 
+			// Promote
+			this->btnPromoteStudent->Text =
+				L"Promote Student";
+
+			this->btnPromoteStudent->Font =
+				regularFont;
+
+			this->btnPromoteStudent->Size =
+				System::Drawing::Size(130, 40);
+
+			this->btnPromoteStudent->Margin =
+				System::Windows::Forms::Padding(
+					8, 0, 0, 0
+				);
+
+
 			// Back
 			this->btnBack->Text =
 				L"Back to Dashboard";
@@ -1574,6 +1634,11 @@ namespace SchoolCore
 
 			this->buttonPanel->Controls->Add(
 				this->btnEditStudent
+			);
+
+
+			this->buttonPanel->Controls->Add(
+				this->btnPromoteStudent
 			);
 
 			this->buttonPanel->Controls->Add(
