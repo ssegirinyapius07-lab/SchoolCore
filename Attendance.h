@@ -19,7 +19,7 @@ namespace SchoolCore
     public ref class Attendance : public System::Windows::Forms::Form
     {
     public:
-                Attendance()
+                Attendance(void)
                 {
                     InitializeComponent();
         
@@ -88,7 +88,7 @@ namespace SchoolCore
 
 
     protected:
-        ~Attendance()
+        ~Attendance(void)
         {
             if (this->components)
             {
@@ -149,7 +149,7 @@ namespace SchoolCore
 
         #pragma region Windows Form Designer generated code
 
-void InitializeComponent()
+void InitializeComponent(void)
         {
             this->components = gcnew System::ComponentModel::Container();
             this->SuspendLayout();
