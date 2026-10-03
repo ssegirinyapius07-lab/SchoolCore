@@ -1202,7 +1202,7 @@ namespace SchoolCore
             this->timetableGrid->SelectionMode =
                 DataGridViewSelectionMode::FullRowSelect;
             this->timetableGrid->AutoSizeColumnsMode =
-                DataGridViewAutoSizeColumnsMode::Fill;
+                DataGridViewAutoSizeColumnsMode::None;
             this->timetableGrid->AutoGenerateColumns = false;
 
             this->timetableGrid->Columns->Add(
@@ -1233,18 +1233,18 @@ namespace SchoolCore
                 L"Status", L"Status");
 
             this->timetableGrid->Columns[L"EntryId"]->Visible = false;
-            this->timetableGrid->Columns[L"Year"]->Width = 90;
-            this->timetableGrid->Columns[L"Term"]->Width = 75;
-            this->timetableGrid->Columns[L"Class"]->Width = 90;
-            this->timetableGrid->Columns[L"Stream"]->Width = 90;
-            this->timetableGrid->Columns[L"SubjectCode"]->Width = 70;
-            this->timetableGrid->Columns[L"Subject"]->Width = 120;
-            this->timetableGrid->Columns[L"Teacher"]->Width = 140;
-            this->timetableGrid->Columns[L"Day"]->Width = 85;
-            this->timetableGrid->Columns[L"Start"]->Width = 65;
-            this->timetableGrid->Columns[L"End"]->Width = 65;
-            this->timetableGrid->Columns[L"Room"]->Width = 85;
-            this->timetableGrid->Columns[L"Status"]->Width = 80;
+            this->timetableGrid->Columns[L"Year"]->Width = 105;
+            this->timetableGrid->Columns[L"Term"]->Width = 105;
+            this->timetableGrid->Columns[L"Class"]->Width = 105;
+            this->timetableGrid->Columns[L"Stream"]->Width = 105;
+            this->timetableGrid->Columns[L"SubjectCode"]->Width = 95;
+            this->timetableGrid->Columns[L"Subject"]->Width = 145;
+            this->timetableGrid->Columns[L"Teacher"]->Width = 155;
+            this->timetableGrid->Columns[L"Day"]->Width = 90;
+            this->timetableGrid->Columns[L"Start"]->Width = 75;
+            this->timetableGrid->Columns[L"End"]->Width = 75;
+            this->timetableGrid->Columns[L"Room"]->Width = 95;
+            this->timetableGrid->Columns[L"Status"]->Width = 90;
 
             StyleGrid();
 
