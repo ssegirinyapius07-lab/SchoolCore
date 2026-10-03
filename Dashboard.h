@@ -450,11 +450,12 @@ namespace SchoolCore {
 
 			// Layout: title / stat cards / content area / footer
 			TableLayoutPanel^ layout = gcnew TableLayoutPanel();
-			layout->Dock = DockStyle::Fill;
-			layout->Padding = System::Windows::Forms::Padding(30, 20, 30, 10);
+			layout->Dock = DockStyle::Top;
+			layout->AutoSize = true;
+			layout->Padding = System::Windows::Forms::Padding(30, 20, 30, 20);
 			layout->ColumnCount = 4;
 			layout->RowCount = 4;
-			layout->BackColor = Color::White;
+			layout->BackColor = Color::FromArgb(248, 250, 252);
 
 			for (int i = 0; i < 4; i++)
 			{
@@ -463,12 +464,12 @@ namespace SchoolCore {
 
 			layout->RowStyles->Add(gcnew RowStyle(SizeType::Absolute, 60.0F));   // title
 			layout->RowStyles->Add(gcnew RowStyle(SizeType::Absolute, 120.0F));  // stat cards
-			layout->RowStyles->Add(gcnew RowStyle(SizeType::Percent, 100.0F));   // free content area
+			layout->RowStyles->Add(gcnew RowStyle(SizeType::Absolute, 430.0F));  // main content area
 			layout->RowStyles->Add(gcnew RowStyle(SizeType::Absolute, 40.0F));   // footer
 
 			// Title
 			System::Windows::Forms::Label^ title = gcnew Label();
-			title->Text = L"Dashboard";
+			title->Text = L"Dashboard  •  " +\n\t\t\t\t(String::IsNullOrWhiteSpace(AuthSession::RoleName)\n\t\t\t\t\t? L"User"\n\t\t\t\t\t: AuthSession::RoleName);
 			title->Dock = DockStyle::Fill;
 			title->Font = gcnew System::Drawing::Font(L"Segoe UI Semibold", 22.0F, FontStyle::Bold);
 			title->ForeColor = Color::FromArgb(30, 41, 59);
@@ -1245,6 +1246,7 @@ namespace SchoolCore {
 			this->sidebarPanel->Controls->Add(this->btnUsers);
 			this->sidebarPanel->Controls->Add(this->btnSettings);
 			this->sidebarPanel->Dock = System::Windows::Forms::DockStyle::Left;
+			this->sidebarPanel->AutoScroll = true;
 			this->sidebarPanel->Location = System::Drawing::Point(0, 100);
 			this->sidebarPanel->Name = L"sidebarPanel";
 			this->sidebarPanel->Size = System::Drawing::Size(280, 700);
