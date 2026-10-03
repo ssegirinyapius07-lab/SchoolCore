@@ -1420,7 +1420,7 @@ namespace SchoolCore
                 profileForm->MinimizeBox = false;
                 profileForm->ShowInTaskbar = false;
                 profileForm->ClientSize =
-                    System::Drawing::Size(680, 610);
+                    System::Drawing::Size(700, 700);
 
                 profileForm->BackColor =
                     Color::FromArgb(
@@ -1586,7 +1586,7 @@ namespace SchoolCore
                     DockStyle::Top;
 
                 info->Height =
-                    330;
+                    420;
 
                 info->Padding =
                     System::Windows::Forms::Padding(
@@ -1633,10 +1633,15 @@ namespace SchoolCore
 
                 for (int i = 0; i < 9; i++)
                 {
+                    float rowHeight =
+                        (i == 5)
+                        ? 60.0F
+                        : 40.0F;
+
                     infoLayout->RowStyles->Add(
                         gcnew RowStyle(
                             SizeType::Absolute,
-                            34.0F
+                            rowHeight
                         )
                     );
                 }
