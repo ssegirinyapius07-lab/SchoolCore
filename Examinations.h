@@ -25,7 +25,9 @@ namespace SchoolCore
             int Id;
             String^ Text;
 
-            FilterItem(int id, String^ text)
+            FilterItem(
+                int id,
+                String^ text)
             {
                 Id = id;
                 Text = text;
@@ -37,6 +39,10 @@ namespace SchoolCore
             }
         };
 
+
+        // =========================================================
+        // MAIN FORM
+        // =========================================================
 
         TableLayoutPanel^ mainLayout;
         Panel^ headerPanel;
@@ -64,9 +70,44 @@ namespace SchoolCore
         bool loadingFilters = false;
 
 
-        int GetSelectedId(ComboBox^ combo)
+        // =========================================================
+        // EXAMINATION EDITOR
+        // =========================================================
+
+        Form^ editorForm;
+        TextBox^ editorName;
+        ComboBox^ editorType;
+        ComboBox^ editorYear;
+        ComboBox^ editorTerm;
+        ComboBox^ editorClass;
+        DateTimePicker^ editorStart;
+        DateTimePicker^ editorEnd;
+        ComboBox^ editorStatus;
+        bool editorEditMode = false;
+        int editingExaminationId = 0;
+
+
+        // =========================================================
+        // SUBJECT ASSIGNMENT DIALOG
+        // =========================================================
+
+        Form^ subjectsDialog;
+        ComboBox^ subjectCombo;
+        NumericUpDown^ subjectMaxScore;
+        NumericUpDown^ subjectPassMark;
+        DataGridView^ assignedSubjectsGrid;
+        int subjectAssignmentExaminationId = 0;
+
+
+        // =========================================================
+        // HELPERS
+        // =========================================================
+
+        int GetSelectedId(
+            ComboBox^ combo)
         {
-            if (combo == nullptr ||
+            if (
+                combo == nullptr ||
                 combo->SelectedItem == nullptr)
             {
                 return 0;
@@ -77,7 +118,10 @@ namespace SchoolCore
                     combo->SelectedItem
                 );
 
-            return item == nullptr ? 0 : item->Id;
+            return
+                item == nullptr
+                ? 0
+                : item->Id;
         }
 
 
@@ -95,44 +139,103 @@ namespace SchoolCore
         }
 
 
+        void AddFormLabel(
+            TableLayoutPanel^ layout,
+            String^ text,
+            int column,
+            int row)
+        {
+            Label^ label =
+                gcnew Label();
+
+            label->Text = text;
+            label->Dock = DockStyle::Fill;
+            label->TextAlign =
+                ContentAlignment::MiddleLeft;
+            label->Margin =
+                System::Windows::Forms::Padding(
+                    3,
+                    0,
+                    3,
+                    0
+                );
+            label->AutoSize = false;
+
+            layout->Controls->Add(
+                label,
+                column,
+                row
+            );
+        }
+
+
+        void ApplyEditorStyle(
+            Control^ control)
+        {
+            control->Dock =
+                DockStyle::Fill;
+
+            control->Margin =
+                System::Windows::Forms::Padding(
+                    3,
+                    4,
+                    3,
+                    4
+                );
+        }
+
+
+        // =========================================================
+        // FILTER LOADING
+        // =========================================================
+
         void LoadAcademicYears()
         {
-            auto con = DbConnection::GetConnection();
-
-            std::unique_ptr<sql::PreparedStatement> stmt(
-                con->prepareStatement(
-                    "SELECT academic_year_id, year_name "
-                    "FROM academic_years "
-                    "WHERE status = 'Active' "
-                    "ORDER BY academic_year_id DESC"
-                )
-            );
-
-            std::unique_ptr<sql::ResultSet> result(
-                stmt->executeQuery()
-            );
-
-            this->cmbAcademicYear->Items->Clear();
-            this->cmbAcademicYear->Items->Add(
-                L"All Academic Years"
-            );
-
-            while (result->next())
+            try
             {
-                AddFilterItem(
-                    this->cmbAcademicYear,
-                    result->getInt(
-                        "academic_year_id"
-                    ),
-                    gcnew String(
-                        result->getString(
-                            "year_name"
-                        ).c_str()
+                auto con =
+                    DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT academic_year_id, year_name "
+                        "FROM academic_years "
+                        "WHERE status = 'Active' "
+                        "ORDER BY academic_year_id DESC"
                     )
                 );
-            }
 
-            this->cmbAcademicYear->SelectedIndex = 0;
+                std::unique_ptr<sql::ResultSet> result(
+                    stmt->executeQuery()
+                );
+
+                this->cmbAcademicYear->Items->Clear();
+
+                this->cmbAcademicYear->Items->Add(
+                    L"All Academic Years"
+                );
+
+                while (result->next())
+                {
+                    AddFilterItem(
+                        this->cmbAcademicYear,
+                        result->getInt(
+                            "academic_year_id"
+                        ),
+                        gcnew String(
+                            result->getString(
+                                "year_name"
+                            ).c_str()
+                        )
+                    );
+                }
+
+                this->cmbAcademicYear->SelectedIndex = 0;
+            }
+            catch (sql::SQLException& ex)
+            {
+                ShowDatabaseError(ex);
+            }
         }
 
 
@@ -156,86 +259,107 @@ namespace SchoolCore
                 return;
             }
 
-            auto con = DbConnection::GetConnection();
-
-            std::unique_ptr<sql::PreparedStatement> stmt(
-                con->prepareStatement(
-                    "SELECT term_id, term_name "
-                    "FROM terms "
-                    "WHERE academic_year_id = ? "
-                    "ORDER BY term_id ASC"
-                )
-            );
-
-            stmt->setInt(
-                1,
-                yearId
-            );
-
-            std::unique_ptr<sql::ResultSet> result(
-                stmt->executeQuery()
-            );
-
-            while (result->next())
+            try
             {
-                AddFilterItem(
-                    this->cmbTerm,
-                    result->getInt(
-                        "term_id"
-                    ),
-                    gcnew String(
-                        result->getString(
-                            "term_name"
-                        ).c_str()
+                auto con =
+                    DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT term_id, term_name "
+                        "FROM terms "
+                        "WHERE academic_year_id = ? "
+                        "ORDER BY term_id ASC"
                     )
                 );
-            }
 
-            this->cmbTerm->SelectedIndex = 0;
-            this->cmbTerm->Enabled = true;
+                stmt->setInt(
+                    1,
+                    yearId
+                );
+
+                std::unique_ptr<sql::ResultSet> result(
+                    stmt->executeQuery()
+                );
+
+                while (result->next())
+                {
+                    AddFilterItem(
+                        this->cmbTerm,
+                        result->getInt(
+                            "term_id"
+                        ),
+                        gcnew String(
+                            result->getString(
+                                "term_name"
+                            ).c_str()
+                        )
+                    );
+                }
+
+                this->cmbTerm->SelectedIndex = 0;
+                this->cmbTerm->Enabled = true;
+            }
+            catch (sql::SQLException& ex)
+            {
+                ShowDatabaseError(ex);
+            }
         }
 
 
         void LoadClasses()
         {
-            auto con = DbConnection::GetConnection();
-
-            std::unique_ptr<sql::PreparedStatement> stmt(
-                con->prepareStatement(
-                    "SELECT class_id, class_name "
-                    "FROM classes "
-                    "WHERE status = 'Active' "
-                    "ORDER BY class_id ASC"
-                )
-            );
-
-            std::unique_ptr<sql::ResultSet> result(
-                stmt->executeQuery()
-            );
-
-            this->cmbClass->Items->Clear();
-            this->cmbClass->Items->Add(
-                L"All Classes"
-            );
-
-            while (result->next())
+            try
             {
-                AddFilterItem(
-                    this->cmbClass,
-                    result->getInt(
-                        "class_id"
-                    ),
-                    gcnew String(
-                        result->getString(
-                            "class_name"
-                        ).c_str()
+                auto con =
+                    DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT class_id, class_name "
+                        "FROM classes "
+                        "WHERE status = 'Active' "
+                        "ORDER BY class_id ASC"
                     )
                 );
-            }
 
-            this->cmbClass->SelectedIndex = 0;
+                std::unique_ptr<sql::ResultSet> result(
+                    stmt->executeQuery()
+                );
+
+                this->cmbClass->Items->Clear();
+
+                this->cmbClass->Items->Add(
+                    L"All Classes"
+                );
+
+                while (result->next())
+                {
+                    AddFilterItem(
+                        this->cmbClass,
+                        result->getInt(
+                            "class_id"
+                        ),
+                        gcnew String(
+                            result->getString(
+                                "class_name"
+                            ).c_str()
+                        )
+                    );
+                }
+
+                this->cmbClass->SelectedIndex = 0;
+            }
+            catch (sql::SQLException& ex)
+            {
+                ShowDatabaseError(ex);
+            }
         }
 
+
+        // =========================================================
+        // EXAMINATION LIST
+        // =========================================================
 
         void LoadExaminations()
         {
@@ -285,24 +409,28 @@ namespace SchoolCore
                     "WHERE 1 = 1 ";
 
                 if (yearId > 0)
-                    sqlText += "AND e.academic_year_id = ? ";
+                    sqlText +=
+                        "AND e.academic_year_id = ? ";
 
                 if (termId > 0)
-                    sqlText += "AND e.term_id = ? ";
+                    sqlText +=
+                        "AND e.term_id = ? ";
 
                 if (classId > 0)
-                    sqlText += "AND e.class_id = ? ";
+                    sqlText +=
+                        "AND e.class_id = ? ";
 
-                if (!status->Equals(
+                if (
+                    !status->Equals(
                         L"All Statuses",
                         StringComparison::OrdinalIgnoreCase))
                 {
-                    sqlText += "AND e.status = ? ";
+                    sqlText +=
+                        "AND e.status = ? ";
                 }
 
                 sqlText +=
-                    "ORDER BY "
-                    "e.examination_id DESC";
+                    "ORDER BY e.examination_id DESC";
 
                 std::unique_ptr<sql::PreparedStatement> stmt(
                     con->prepareStatement(
@@ -313,15 +441,25 @@ namespace SchoolCore
                 int index = 1;
 
                 if (yearId > 0)
-                    stmt->setInt(index++, yearId);
+                    stmt->setInt(
+                        index++,
+                        yearId
+                    );
 
                 if (termId > 0)
-                    stmt->setInt(index++, termId);
+                    stmt->setInt(
+                        index++,
+                        termId
+                    );
 
                 if (classId > 0)
-                    stmt->setInt(index++, classId);
+                    stmt->setInt(
+                        index++,
+                        classId
+                    );
 
-                if (!status->Equals(
+                if (
+                    !status->Equals(
                         L"All Statuses",
                         StringComparison::OrdinalIgnoreCase))
                 {
@@ -404,14 +542,7 @@ namespace SchoolCore
             }
             catch (sql::SQLException& ex)
             {
-                MessageBox::Show(
-                    gcnew String(
-                        ex.what()
-                    ),
-                    L"Database Error",
-                    MessageBoxButtons::OK,
-                    MessageBoxIcon::Error
-                );
+                ShowDatabaseError(ex);
             }
         }
 
@@ -421,8 +552,13 @@ namespace SchoolCore
             bool selected =
                 this->examinationsGrid->SelectedRows->Count > 0;
 
-            this->btnEdit->Enabled = selected;
-            this->btnSubjects->Enabled = selected;
+            this->btnEdit->Enabled =
+                selected;
+
+            this->btnSubjects->Enabled =
+                selected;
+
+            // These remain disabled until their real workflow is implemented.
             this->btnMarks->Enabled = false;
             this->btnResults->Enabled = false;
         }
@@ -431,8 +567,7 @@ namespace SchoolCore
         int GetSelectedExaminationId()
         {
             if (
-                this->examinationsGrid->SelectedRows->Count == 0
-            )
+                this->examinationsGrid->SelectedRows->Count == 0)
             {
                 return 0;
             }
@@ -446,205 +581,630 @@ namespace SchoolCore
         }
 
 
-        void LoadExaminationFormData(
-            ComboBox^ yearCombo,
-            ComboBox^ termCombo,
-            ComboBox^ classCombo,
-            int selectedYearId,
-            int selectedTermId,
-            int selectedClassId)
+        void ShowDatabaseError(
+            sql::SQLException& ex)
         {
-            auto con = DbConnection::GetConnection();
+            MessageBox::Show(
+                gcnew String(
+                    ex.what()
+                ),
+                L"Database Error",
+                MessageBoxButtons::OK,
+                MessageBoxIcon::Error
+            );
+        }
 
-            yearCombo->Items->Clear();
-            yearCombo->Items->Add(
+
+        // =========================================================
+        // EDITOR DATA
+        // =========================================================
+
+        void LoadEditorYears(
+            int selectedYearId)
+        {
+            this->editorYear->Items->Clear();
+
+            this->editorYear->Items->Add(
                 L"Select Academic Year"
             );
 
-            std::unique_ptr<sql::PreparedStatement> years(
-                con->prepareStatement(
-                    "SELECT academic_year_id, year_name "
-                    "FROM academic_years "
-                    "WHERE status = 'Active' "
-                    "ORDER BY academic_year_id DESC"
-                )
-            );
-
-            std::unique_ptr<sql::ResultSet> yearResult(
-                years->executeQuery()
-            );
-
-            int yearIndex = 0;
-            int currentIndex = 0;
-
-            while (yearResult->next())
+            try
             {
-                int id =
-                    yearResult->getInt(
-                        "academic_year_id"
-                    );
+                auto con =
+                    DbConnection::GetConnection();
 
-                AddFilterItem(
-                    yearCombo,
-                    id,
-                    gcnew String(
-                        yearResult->getString(
-                            "year_name"
-                        ).c_str()
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT academic_year_id, year_name "
+                        "FROM academic_years "
+                        "WHERE status = 'Active' "
+                        "ORDER BY academic_year_id DESC"
                     )
                 );
 
-                currentIndex++;
+                std::unique_ptr<sql::ResultSet> result(
+                    stmt->executeQuery()
+                );
 
-                if (id == selectedYearId)
-                    yearIndex = currentIndex;
+                int index = 0;
+                int selectedIndex = 0;
+
+                while (result->next())
+                {
+                    index++;
+
+                    int id =
+                        result->getInt(
+                            "academic_year_id"
+                        );
+
+                    AddFilterItem(
+                        this->editorYear,
+                        id,
+                        gcnew String(
+                            result->getString(
+                                "year_name"
+                            ).c_str()
+                        )
+                    );
+
+                    if (id == selectedYearId)
+                        selectedIndex = index;
+                }
+
+                this->editorYear->SelectedIndex =
+                    selectedIndex;
             }
+            catch (sql::SQLException& ex)
+            {
+                ShowDatabaseError(ex);
+            }
+        }
 
-            yearCombo->SelectedIndex =
-                yearIndex;
 
-            termCombo->Items->Clear();
-            termCombo->Items->Add(
+        void LoadEditorTerms(
+            int selectedTermId)
+        {
+            int yearId =
+                GetSelectedId(
+                    this->editorYear
+                );
+
+            this->editorTerm->Items->Clear();
+
+            this->editorTerm->Items->Add(
                 L"Select Term"
             );
 
-            std::unique_ptr<sql::PreparedStatement> termsStmt(
-                con->prepareStatement(
-                    "SELECT term_id, term_name "
-                    "FROM terms "
-                    "WHERE academic_year_id = ? "
-                    "ORDER BY term_id ASC"
-                )
-            );
+            this->editorTerm->Enabled =
+                yearId > 0;
 
-            termsStmt->setInt(
-                1,
-                selectedYearId
-            );
-
-            std::unique_ptr<sql::ResultSet> termResult(
-                termsStmt->executeQuery()
-            );
-
-            int termIndex = 0;
-            currentIndex = 0;
-
-            while (termResult->next())
+            if (yearId == 0)
             {
-                int id =
-                    termResult->getInt(
-                        "term_id"
-                    );
+                this->editorTerm->SelectedIndex = 0;
+                return;
+            }
 
-                AddFilterItem(
-                    termCombo,
-                    id,
-                    gcnew String(
-                        termResult->getString(
-                            "term_name"
-                        ).c_str()
+            try
+            {
+                auto con =
+                    DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT term_id, term_name "
+                        "FROM terms "
+                        "WHERE academic_year_id = ? "
+                        "ORDER BY term_id ASC"
                     )
                 );
 
-                currentIndex++;
+                stmt->setInt(
+                    1,
+                    yearId
+                );
 
-                if (id == selectedTermId)
-                    termIndex = currentIndex;
+                std::unique_ptr<sql::ResultSet> result(
+                    stmt->executeQuery()
+                );
+
+                int index = 0;
+                int selectedIndex = 0;
+
+                while (result->next())
+                {
+                    index++;
+
+                    int id =
+                        result->getInt(
+                            "term_id"
+                        );
+
+                    AddFilterItem(
+                        this->editorTerm,
+                        id,
+                        gcnew String(
+                            result->getString(
+                                "term_name"
+                            ).c_str()
+                        )
+                    );
+
+                    if (id == selectedTermId)
+                        selectedIndex = index;
+                }
+
+                this->editorTerm->SelectedIndex =
+                    selectedIndex;
             }
+            catch (sql::SQLException& ex)
+            {
+                ShowDatabaseError(ex);
+            }
+        }
 
-            termCombo->SelectedIndex =
-                termIndex;
 
-            classCombo->Items->Clear();
-            classCombo->Items->Add(
+        void LoadEditorClasses(
+            int selectedClassId)
+        {
+            this->editorClass->Items->Clear();
+
+            this->editorClass->Items->Add(
                 L"Select Class"
             );
 
-            std::unique_ptr<sql::PreparedStatement> classesStmt(
-                con->prepareStatement(
-                    "SELECT class_id, class_name "
-                    "FROM classes "
-                    "WHERE status = 'Active' "
-                    "ORDER BY class_id ASC"
-                )
-            );
-
-            std::unique_ptr<sql::ResultSet> classResult(
-                classesStmt->executeQuery()
-            );
-
-            int classIndex = 0;
-            currentIndex = 0;
-
-            while (classResult->next())
+            try
             {
-                int id =
-                    classResult->getInt(
-                        "class_id"
-                    );
+                auto con =
+                    DbConnection::GetConnection();
 
-                AddFilterItem(
-                    classCombo,
-                    id,
-                    gcnew String(
-                        classResult->getString(
-                            "class_name"
-                        ).c_str()
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT class_id, class_name "
+                        "FROM classes "
+                        "WHERE status = 'Active' "
+                        "ORDER BY class_id ASC"
                     )
                 );
 
-                currentIndex++;
+                std::unique_ptr<sql::ResultSet> result(
+                    stmt->executeQuery()
+                );
 
-                if (id == selectedClassId)
-                    classIndex = currentIndex;
+                int index = 0;
+                int selectedIndex = 0;
+
+                while (result->next())
+                {
+                    index++;
+
+                    int id =
+                        result->getInt(
+                            "class_id"
+                        );
+
+                    AddFilterItem(
+                        this->editorClass,
+                        id,
+                        gcnew String(
+                            result->getString(
+                                "class_name"
+                            ).c_str()
+                        )
+                    );
+
+                    if (id == selectedClassId)
+                        selectedIndex = index;
+                }
+
+                this->editorClass->SelectedIndex =
+                    selectedIndex;
+            }
+            catch (sql::SQLException& ex)
+            {
+                ShowDatabaseError(ex);
+            }
+        }
+
+
+        void LoadEditorForEdit()
+        {
+            if (!this->editorEditMode ||
+                this->editingExaminationId == 0)
+            {
+                return;
             }
 
-            classCombo->SelectedIndex =
-                classIndex;
+            try
+            {
+                auto con =
+                    DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT "
+                        "examination_name, "
+                        "examination_type, "
+                        "academic_year_id, "
+                        "term_id, "
+                        "class_id, "
+                        "start_date, "
+                        "end_date, "
+                        "status "
+                        "FROM examinations "
+                        "WHERE examination_id = ? "
+                        "LIMIT 1"
+                    )
+                );
+
+                stmt->setInt(
+                    1,
+                    this->editingExaminationId
+                );
+
+                std::unique_ptr<sql::ResultSet> result(
+                    stmt->executeQuery()
+                );
+
+                if (!result->next())
+                    return;
+
+                this->editorName->Text =
+                    gcnew String(
+                        result->getString(
+                            "examination_name"
+                        ).c_str()
+                    );
+
+                String^ type =
+                    result->isNull(
+                        "examination_type")
+                    ? L""
+                    : gcnew String(
+                        result->getString(
+                            "examination_type"
+                        ).c_str()
+                    );
+
+                int typeIndex =
+                    this->editorType->Items->IndexOf(
+                        type
+                    );
+
+                if (typeIndex >= 0)
+                    this->editorType->SelectedIndex =
+                        typeIndex;
+
+                int yearId =
+                    result->getInt(
+                        "academic_year_id"
+                    );
+
+                int termId =
+                    result->getInt(
+                        "term_id"
+                    );
+
+                int classId =
+                    result->getInt(
+                        "class_id"
+                    );
+
+                this->editorYear->SelectedIndex = 0;
+                LoadEditorYears(yearId);
+                LoadEditorTerms(termId);
+                LoadEditorClasses(classId);
+
+                if (!result->isNull("start_date"))
+                {
+                    this->editorStart->Value =
+                        DateTime::Parse(
+                            gcnew String(
+                                result->getString(
+                                    "start_date"
+                                ).c_str()
+                            )
+                        );
+                }
+
+                if (!result->isNull("end_date"))
+                {
+                    this->editorEnd->Value =
+                        DateTime::Parse(
+                            gcnew String(
+                                result->getString(
+                                    "end_date"
+                                ).c_str()
+                            )
+                        );
+                }
+
+                String^ status =
+                    gcnew String(
+                        result->getString(
+                            "status"
+                        ).c_str()
+                    );
+
+                int statusIndex =
+                    this->editorStatus->Items->IndexOf(
+                        status
+                    );
+
+                if (statusIndex >= 0)
+                    this->editorStatus->SelectedIndex =
+                        statusIndex;
+            }
+            catch (sql::SQLException& ex)
+            {
+                ShowDatabaseError(ex);
+            }
+        }
+
+
+        // =========================================================
+        // EDITOR EVENTS
+        // =========================================================
+
+        System::Void EditorYearChanged(
+            Object^ sender,
+            EventArgs^ e)
+        {
+            if (this->editorYear == nullptr ||
+                this->editorTerm == nullptr)
+            {
+                return;
+            }
+
+            LoadEditorTerms(0);
+        }
+
+
+        System::Void EditorCancelClicked(
+            Object^ sender,
+            EventArgs^ e)
+        {
+            if (this->editorForm != nullptr)
+                this->editorForm->Close();
+        }
+
+
+        System::Void EditorSaveClicked(
+            Object^ sender,
+            EventArgs^ e)
+        {
+            if (
+                String::IsNullOrWhiteSpace(
+                    this->editorName->Text
+                )
+            )
+            {
+                MessageBox::Show(
+                    L"Enter an examination name.",
+                    L"Validation",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+
+                this->editorName->Focus();
+                return;
+            }
+
+            int yearId =
+                GetSelectedId(
+                    this->editorYear
+                );
+
+            int termId =
+                GetSelectedId(
+                    this->editorTerm
+                );
+
+            int classId =
+                GetSelectedId(
+                    this->editorClass
+                );
+
+            if (
+                yearId == 0 ||
+                termId == 0 ||
+                classId == 0
+            )
+            {
+                MessageBox::Show(
+                    L"Select an academic year, term and class.",
+                    L"Validation",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+
+                return;
+            }
+
+            if (
+                this->editorEnd->Value.Date <
+                this->editorStart->Value.Date
+            )
+            {
+                MessageBox::Show(
+                    L"The end date cannot be before the start date.",
+                    L"Validation",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+
+                return;
+            }
+
+            try
+            {
+                auto con =
+                    DbConnection::GetConnection();
+
+                std::string name =
+                    msclr::interop::marshal_as<std::string>(
+                        this->editorName->Text->Trim()
+                    );
+
+                std::string type =
+                    msclr::interop::marshal_as<std::string>(
+                        this->editorType->SelectedItem == nullptr
+                        ? L""
+                        : this->editorType->SelectedItem->ToString()
+                    );
+
+                std::string startDate =
+                    msclr::interop::marshal_as<std::string>(
+                        this->editorStart->Value.ToString(
+                            L"yyyy-MM-dd"
+                        )
+                    );
+
+                std::string endDate =
+                    msclr::interop::marshal_as<std::string>(
+                        this->editorEnd->Value.ToString(
+                            L"yyyy-MM-dd"
+                        )
+                    );
+
+                std::string status =
+                    msclr::interop::marshal_as<std::string>(
+                        this->editorStatus->SelectedItem == nullptr
+                        ? L"Draft"
+                        : this->editorStatus->SelectedItem->ToString()
+                    );
+
+                if (this->editorEditMode)
+                {
+                    std::unique_ptr<sql::PreparedStatement> stmt(
+                        con->prepareStatement(
+                            "UPDATE examinations "
+                            "SET examination_name = ?, "
+                            "examination_type = ?, "
+                            "academic_year_id = ?, "
+                            "term_id = ?, "
+                            "class_id = ?, "
+                            "start_date = ?, "
+                            "end_date = ?, "
+                            "status = ? "
+                            "WHERE examination_id = ?"
+                        )
+                    );
+
+                    stmt->setString(1, name);
+                    stmt->setString(2, type);
+                    stmt->setInt(3, yearId);
+                    stmt->setInt(4, termId);
+                    stmt->setInt(5, classId);
+                    stmt->setString(6, startDate);
+                    stmt->setString(7, endDate);
+                    stmt->setString(8, status);
+                    stmt->setInt(
+                        9,
+                        this->editingExaminationId
+                    );
+
+                    stmt->executeUpdate();
+
+                    MessageBox::Show(
+                        L"Examination updated successfully.",
+                        L"Examinations",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Information
+                    );
+                }
+                else
+                {
+                    std::unique_ptr<sql::PreparedStatement> stmt(
+                        con->prepareStatement(
+                            "INSERT INTO examinations "
+                            "("
+                            "academic_year_id, "
+                            "term_id, "
+                            "class_id, "
+                            "examination_name, "
+                            "examination_type, "
+                            "start_date, "
+                            "end_date, "
+                            "status"
+                            ") "
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+                        )
+                    );
+
+                    stmt->setInt(1, yearId);
+                    stmt->setInt(2, termId);
+                    stmt->setInt(3, classId);
+                    stmt->setString(4, name);
+                    stmt->setString(5, type);
+                    stmt->setString(6, startDate);
+                    stmt->setString(7, endDate);
+                    stmt->setString(8, status);
+
+                    stmt->executeUpdate();
+
+                    MessageBox::Show(
+                        L"Examination created successfully.",
+                        L"Examinations",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Information
+                    );
+                }
+
+                if (this->editorForm != nullptr)
+                {
+                    this->editorForm->DialogResult =
+                        System::Windows::Forms::DialogResult::OK;
+
+                    this->editorForm->Close();
+                }
+
+                LoadExaminations();
+            }
+            catch (sql::SQLException& ex)
+            {
+                ShowDatabaseError(ex);
+            }
         }
 
 
         void OpenExaminationEditor(
             int examinationId)
         {
-            bool editMode =
+            this->editorEditMode =
                 examinationId > 0;
 
-            Form^ editor =
+            this->editingExaminationId =
+                examinationId;
+
+            this->editorForm =
                 gcnew Form();
 
-            editor->Text =
-                editMode
+            this->editorForm->Text =
+                this->editorEditMode
                 ? L"Edit Examination"
                 : L"New Examination";
 
-            editor->StartPosition =
+            this->editorForm->StartPosition =
                 FormStartPosition::CenterParent;
 
-            editor->FormBorderStyle =
-                FormBorderStyle::FixedSingle;
+            this->editorForm->FormBorderStyle =
+                System::Windows::Forms::FormBorderStyle::FixedSingle;
 
-            editor->MaximizeBox = false;
-            editor->MinimizeBox = false;
-            editor->ShowInTaskbar = false;
+            this->editorForm->MaximizeBox = false;
+            this->editorForm->MinimizeBox = false;
+            this->editorForm->ShowInTaskbar = false;
 
-            editor->ClientSize =
+            this->editorForm->ClientSize =
                 System::Drawing::Size(
                     760,
                     560
                 );
 
-            editor->MinimumSize =
+            this->editorForm->MinimumSize =
                 System::Drawing::Size(
                     760,
                     560
-                );
-
-            editor->BackColor =
-                Color::FromArgb(
-                    248,
-                    250,
-                    252
                 );
 
             Panel^ header =
@@ -663,7 +1223,7 @@ namespace SchoolCore
                 );
 
             header->Padding =
-                Padding(
+                System::Windows::Forms::Padding(
                     20,
                     10,
                     20,
@@ -679,7 +1239,7 @@ namespace SchoolCore
             title->Height = 34;
 
             title->Text =
-                editMode
+                this->editorEditMode
                 ? L"Edit Examination"
                 : L"New Examination";
 
@@ -711,13 +1271,8 @@ namespace SchoolCore
                     9.5F
                 );
 
-            header->Controls->Add(
-                subtitle
-            );
-
-            header->Controls->Add(
-                title
-            );
+            header->Controls->Add(subtitle);
+            header->Controls->Add(title);
 
 
             TableLayoutPanel^ formLayout =
@@ -727,7 +1282,7 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             formLayout->Padding =
-                Padding(
+                System::Windows::Forms::Padding(
                     24,
                     18,
                     24,
@@ -765,854 +1320,697 @@ namespace SchoolCore
                 )
             );
 
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 5; i++)
             {
                 formLayout->RowStyles->Add(
                     gcnew RowStyle(
                         SizeType::Absolute,
-                        46.0F
+                        i == 4 ? 62.0F : 46.0F
                     )
                 );
             }
 
-            formLayout->RowStyles->Add(
-                gcnew RowStyle(
-                    SizeType::Absolute,
-                    70.0F
-                )
-            );
 
-
-            Label^ lblName =
-                gcnew Label();
-
-            lblName->Text =
-                L"Examination Name";
-
-            lblName->Dock =
-                DockStyle::Fill;
-
-            lblName->TextAlign =
-                ContentAlignment::MiddleLeft;
-
-            TextBox^ txtName =
+            this->editorName =
                 gcnew TextBox();
 
-            txtName->Dock =
-                DockStyle::Fill;
-
-            txtName->Margin =
-                Padding(
-                    3,
-                    5,
-                    3,
-                    5
-                );
-
-
-            Label^ lblType =
-                gcnew Label();
-
-            lblType->Text =
-                L"Examination Type";
-
-            lblType->Dock =
-                DockStyle::Fill;
-
-            lblType->TextAlign =
-                ContentAlignment::MiddleLeft;
-
-            ComboBox^ cmbType =
+            this->editorType =
                 gcnew ComboBox();
 
-            cmbType->Dock =
-                DockStyle::Fill;
+            this->editorYear =
+                gcnew ComboBox();
 
-            cmbType->DropDownStyle =
+            this->editorTerm =
+                gcnew ComboBox();
+
+            this->editorClass =
+                gcnew ComboBox();
+
+            this->editorStart =
+                gcnew DateTimePicker();
+
+            this->editorEnd =
+                gcnew DateTimePicker();
+
+            this->editorStatus =
+                gcnew ComboBox();
+
+
+            this->editorType->DropDownStyle =
                 ComboBoxStyle::DropDownList;
 
-            array<String^>^ types = gcnew array<String^>
-            {
-                L"Beginning of Term",
-                L"Mid-Term",
-                L"End of Term",
-                L"Mock Examination",
-                L"Pre-UCE",
-                L"Pre-UACE",
+            this->editorType->Items->Add(
+                L"Beginning / Mid"
+            );
+            this->editorType->Items->Add(
+                L"End of Term"
+            );
+            this->editorType->Items->Add(
+                L"Mock Examination"
+            );
+            this->editorType->Items->Add(
+                L"Pre-UCE"
+            );
+            this->editorType->Items->Add(
+                L"Pre-UACE"
+            );
+            this->editorType->Items->Add(
                 L"Other"
-            };
+            );
+            this->editorType->SelectedIndex = 0;
 
-            for each (String^ type in types)
-            {
-                cmbType->Items->Add(type);
-            }
 
-            cmbType->SelectedIndex = 0;
-
-            Label^ lblYear =
-                gcnew Label();
-
-            lblYear->Text =
-                L"Academic Year";
-
-            lblYear->Dock =
-                DockStyle::Fill;
-
-            lblYear->TextAlign =
-                ContentAlignment::MiddleLeft;
-
-            ComboBox^ cmbYear =
-                gcnew ComboBox();
-
-            cmbYear->Dock =
-                DockStyle::Fill;
-
-            cmbYear->DropDownStyle =
+            this->editorYear->DropDownStyle =
                 ComboBoxStyle::DropDownList;
 
-            ComboBox^ cmbTerm =
-                gcnew ComboBox();
-
-            cmbTerm->Dock =
-                DockStyle::Fill;
-
-            cmbTerm->DropDownStyle =
+            this->editorTerm->DropDownStyle =
                 ComboBoxStyle::DropDownList;
 
-            cmbTerm->Items->Add(
-                L"Select Term"
+            this->editorClass->DropDownStyle =
+                ComboBoxStyle::DropDownList;
+
+
+            this->editorStart->Format =
+                DateTimePickerFormat::Custom;
+
+            this->editorStart->CustomFormat =
+                L"dd/MM/yyyy";
+
+            this->editorStart->Value =
+                DateTime::Today;
+
+
+            this->editorEnd->Format =
+                DateTimePickerFormat::Custom;
+
+            this->editorEnd->CustomFormat =
+                L"dd/MM/yyyy";
+
+            this->editorEnd->Value =
+                DateTime::Today;
+
+
+            this->editorStatus->DropDownStyle =
+                ComboBoxStyle::DropDownList;
+
+            this->editorStatus->Items->Add(
+                L"Draft"
+            );
+            this->editorStatus->Items->Add(
+                L"Published"
+            );
+            this->editorStatus->Items->Add(
+                L"Completed"
+            );
+            this->editorStatus->SelectedIndex = 0;
+
+
+            ApplyEditorStyle(this->editorName);
+            ApplyEditorStyle(this->editorType);
+            ApplyEditorStyle(this->editorYear);
+            ApplyEditorStyle(this->editorTerm);
+            ApplyEditorStyle(this->editorClass);
+            ApplyEditorStyle(this->editorStart);
+            ApplyEditorStyle(this->editorEnd);
+            ApplyEditorStyle(this->editorStatus);
+
+
+            AddFormLabel(
+                formLayout,
+                L"Examination Name",
+                0,
+                0
             );
 
-            cmbTerm->SelectedIndex = 0;
-            cmbTerm->Enabled = false;
+            formLayout->Controls->Add(
+                this->editorName,
+                1,
+                0
+            );
+
+            AddFormLabel(
+                formLayout,
+                L"Examination Type",
+                2,
+                0
+            );
+
+            formLayout->Controls->Add(
+                this->editorType,
+                3,
+                0
+            );
 
 
-            Label^ lblTerm =
-                gcnew Label();
+            AddFormLabel(
+                formLayout,
+                L"Academic Year",
+                0,
+                1
+            );
 
-            lblTerm->Text =
-                L"Term";
+            formLayout->Controls->Add(
+                this->editorYear,
+                1,
+                1
+            );
 
-            lblTerm->Dock =
-                DockStyle::Fill;
+            AddFormLabel(
+                formLayout,
+                L"Term",
+                2,
+                1
+            );
 
-            lblTerm->TextAlign =
-                ContentAlignment::MiddleLeft;
-
-
-            Label^ lblClass =
-                gcnew Label();
-
-            lblClass->Text =
-                L"Class";
-
-            lblClass->Dock =
-                DockStyle::Fill;
-
-            lblClass->TextAlign =
-                ContentAlignment::MiddleLeft;
-
-            ComboBox^ cmbClass =
-                gcnew ComboBox();
-
-            cmbClass->Dock =
-                DockStyle::Fill;
-
-            cmbClass->DropDownStyle =
-                ComboBoxStyle::DropDownList;
+            formLayout->Controls->Add(
+                this->editorTerm,
+                3,
+                1
+            );
 
 
-            Label^ lblStart =
-                gcnew Label();
+            AddFormLabel(
+                formLayout,
+                L"Class",
+                0,
+                2
+            );
 
-            lblStart->Text =
-                L"Start Date";
+            formLayout->Controls->Add(
+                this->editorClass,
+                1,
+                2
+            );
 
-            lblStart->Dock =
-                DockStyle::Fill;
+            AddFormLabel(
+                formLayout,
+                L"Start Date",
+                2,
+                2
+            );
 
-            lblStart->TextAlign =
-                ContentAlignment::MiddleLeft;
-
-            DateTimePicker^ dtpStart =
-                gcnew DateTimePicker();
-
-            dtpStart->Dock =
-                DockStyle::Fill;
-
-            dtpStart->Format =
-                DateTimePickerFormat::Custom;
-
-            dtpStart->CustomFormat =
-                L"dd/MM/yyyy";
-
-            dtpStart->ShowUpDown = false;
-
-
-            Label^ lblEnd =
-                gcnew Label();
-
-            lblEnd->Text =
-                L"End Date";
-
-            lblEnd->Dock =
-                DockStyle::Fill;
-
-            lblEnd->TextAlign =
-                ContentAlignment::MiddleLeft;
-
-            DateTimePicker^ dtpEnd =
-                gcnew DateTimePicker();
-
-            dtpEnd->Dock =
-                DockStyle::Fill;
-
-            dtpEnd->Format =
-                DateTimePickerFormat::Custom;
-
-            dtpEnd->CustomFormat =
-                L"dd/MM/yyyy";
+            formLayout->Controls->Add(
+                this->editorStart,
+                3,
+                2
+            );
 
 
-            Label^ lblStatus =
-                gcnew Label();
+            AddFormLabel(
+                formLayout,
+                L"End Date",
+                0,
+                3
+            );
 
-            lblStatus->Text =
-                L"Status";
+            formLayout->Controls->Add(
+                this->editorEnd,
+                1,
+                3
+            );
 
-            lblStatus->Dock =
-                DockStyle::Fill;
+            AddFormLabel(
+                formLayout,
+                L"Status",
+                2,
+                3
+            );
 
-            lblStatus->TextAlign =
-                ContentAlignment::MiddleLeft;
-
-            ComboBox^ cmbStatus =
-                gcnew ComboBox();
-
-            cmbStatus->Dock =
-                DockStyle::Fill;
-
-            cmbStatus->DropDownStyle =
-                ComboBoxStyle::DropDownList;
-
-            cmbStatus->Items->Add(L"Draft");
-            cmbStatus->Items->Add(L"Published");
-            cmbStatus->Items->Add(L"Completed");
-            cmbStatus->SelectedIndex = 0;
-
-
-            formLayout->Controls->Add(lblName, 0, 0);
-            formLayout->Controls->Add(txtName, 1, 0);
-            formLayout->Controls->Add(lblType, 2, 0);
-            formLayout->Controls->Add(cmbType, 3, 0);
-
-            formLayout->Controls->Add(lblYear, 0, 1);
-            formLayout->Controls->Add(cmbYear, 1, 1);
-            formLayout->Controls->Add(lblTerm, 2, 1);
-            formLayout->Controls->Add(cmbTerm, 3, 1);
-
-            formLayout->Controls->Add(lblClass, 0, 2);
-            formLayout->Controls->Add(cmbClass, 1, 2);
-            formLayout->Controls->Add(lblStart, 2, 2);
-            formLayout->Controls->Add(dtpStart, 3, 2);
-
-            formLayout->Controls->Add(lblEnd, 0, 3);
-            formLayout->Controls->Add(dtpEnd, 1, 3);
-            formLayout->Controls->Add(lblStatus, 2, 3);
-            formLayout->Controls->Add(cmbStatus, 3, 3);
+            formLayout->Controls->Add(
+                this->editorStatus,
+                3,
+                3
+            );
 
 
-            Button^ btnCancel =
+            Button^ cancel =
                 gcnew Button();
 
-            btnCancel->Text = L"Cancel";
-            btnCancel->Size =
+            cancel->Text =
+                L"Cancel";
+
+            cancel->Size =
                 System::Drawing::Size(
                     110,
                     38
                 );
 
-            btnCancel->Anchor =
-                AnchorStyles::Right |
-                AnchorStyles::Bottom;
-
-
-            Button^ btnSave =
+            Button^ save =
                 gcnew Button();
 
-            btnSave->Text =
-                editMode
+            save->Text =
+                this->editorEditMode
                 ? L"Save Changes"
                 : L"Create Examination";
 
-            btnSave->Size =
+            save->Size =
                 System::Drawing::Size(
                     160,
                     38
                 );
 
-            btnSave->BackColor =
+            save->BackColor =
                 Color::FromArgb(
                     38,
                     117,
                     92
                 );
 
-            btnSave->ForeColor =
+            save->ForeColor =
                 Color::White;
 
-            btnSave->FlatStyle =
+            save->FlatStyle =
                 FlatStyle::Flat;
 
-            btnSave->FlatAppearance->BorderSize = 0;
-
-            btnSave->Anchor =
-                AnchorStyles::Right |
-                AnchorStyles::Bottom;
+            save->FlatAppearance->BorderSize =
+                0;
 
 
             formLayout->Controls->Add(
-                btnCancel,
+                cancel,
                 2,
                 4
             );
 
             formLayout->Controls->Add(
-                btnSave,
+                save,
                 3,
                 4
             );
 
 
-            LoadExaminationFormData(
-                cmbYear,
-                cmbTerm,
-                cmbClass,
-                0,
-                0,
+            this->editorYear->SelectedIndexChanged +=
+                gcnew EventHandler(
+                    this,
+                    &Examinations::EditorYearChanged
+                );
+
+            cancel->Click +=
+                gcnew EventHandler(
+                    this,
+                    &Examinations::EditorCancelClicked
+                );
+
+            save->Click +=
+                gcnew EventHandler(
+                    this,
+                    &Examinations::EditorSaveClicked
+                );
+
+
+            this->LoadEditorYears(
                 0
             );
 
+            if (this->editorEditMode)
+                this->LoadEditorForEdit();
 
-            // Load existing record if editing.
-            if (editMode)
-            {
-                try
-                {
-                    auto con = DbConnection::GetConnection();
 
-                    std::unique_ptr<sql::PreparedStatement> stmt(
-                        con->prepareStatement(
-                            "SELECT "
-                            "examination_name, "
-                            "examination_type, "
-                            "academic_year_id, "
-                            "term_id, "
-                            "class_id, "
-                            "start_date, "
-                            "end_date, "
-                            "status "
-                            "FROM examinations "
-                            "WHERE examination_id = ? "
-                            "LIMIT 1"
-                        )
-                    );
-
-                    stmt->setInt(
-                        1,
-                        examinationId
-                    );
-
-                    std::unique_ptr<sql::ResultSet> result(
-                        stmt->executeQuery()
-                    );
-
-                    if (result->next())
-                    {
-                        txtName->Text =
-                            gcnew String(
-                                result->getString(
-                                    "examination_name"
-                                ).c_str()
-                            );
-
-                        String^ type =
-                            result->isNull(
-                                "examination_type"
-                            )
-                            ? L""
-                            : gcnew String(
-                                result->getString(
-                                    "examination_type"
-                                ).c_str()
-                            );
-
-                        int typeIndex =
-                            cmbType->Items->IndexOf(
-                                type
-                            );
-
-                        if (typeIndex >= 0)
-                            cmbType->SelectedIndex = typeIndex;
-
-                        int yearId =
-                            result->getInt(
-                                "academic_year_id"
-                            );
-
-                        int termId =
-                            result->getInt(
-                                "term_id"
-                            );
-
-                        int classId =
-                            result->getInt(
-                                "class_id"
-                            );
-
-                        LoadExaminationFormData(
-                            cmbYear,
-                            cmbTerm,
-                            cmbClass,
-                            yearId,
-                            termId,
-                            classId
-                        );
-
-                        if (!result->isNull("start_date"))
-                            dtpStart->Value =
-                                DateTime::Parse(
-                                    gcnew String(
-                                        result->getString(
-                                            "start_date"
-                                        ).c_str()
-                                    )
-                                );
-
-                        if (!result->isNull("end_date"))
-                            dtpEnd->Value =
-                                DateTime::Parse(
-                                    gcnew String(
-                                        result->getString(
-                                            "end_date"
-                                        ).c_str()
-                                    )
-                                );
-
-                        String^ dbStatus =
-                            gcnew String(
-                                result->getString(
-                                    "status"
-                                ).c_str()
-                            );
-
-                        int statusIndex =
-                            cmbStatus->Items->IndexOf(
-                                dbStatus
-                            );
-
-                        if (statusIndex >= 0)
-                            cmbStatus->SelectedIndex =
-                                statusIndex;
-                    }
-                }
-                catch (sql::SQLException& ex)
-                {
-                    MessageBox::Show(
-                        gcnew String(
-                            ex.what()
-                        ),
-                        L"Database Error",
-                        MessageBoxButtons::OK,
-                        MessageBoxIcon::Error
-                    );
-                }
-            }
-
-
-            cmbYear->SelectedIndexChanged +=
-                gcnew EventHandler(
-                    [cmbYear, cmbTerm](Object^, EventArgs^)
-                    {
-                        int yearId = 0;
-
-                        FilterItem^ item =
-                            dynamic_cast<FilterItem^>(
-                                cmbYear->SelectedItem
-                            );
-
-                        if (item != nullptr)
-                            yearId = item->Id;
-
-                        cmbTerm->Items->Clear();
-                        cmbTerm->Items->Add(
-                            L"Select Term"
-                        );
-
-                        if (yearId == 0)
-                        {
-                            cmbTerm->SelectedIndex = 0;
-                            cmbTerm->Enabled = false;
-                            return;
-                        }
-
-                        try
-                        {
-                            auto con =
-                                DbConnection::GetConnection();
-
-                            std::unique_ptr<sql::PreparedStatement> stmt(
-                                con->prepareStatement(
-                                    "SELECT term_id, term_name "
-                                    "FROM terms "
-                                    "WHERE academic_year_id = ? "
-                                    "ORDER BY term_id ASC"
-                                )
-                            );
-
-                            stmt->setInt(
-                                1,
-                                yearId
-                            );
-
-                            std::unique_ptr<sql::ResultSet> result(
-                                stmt->executeQuery()
-                            );
-
-                            while (result->next())
-                            {
-                                FilterItem^ newItem =
-                                    gcnew FilterItem(
-                                        result->getInt(
-                                            "term_id"
-                                        ),
-                                        gcnew String(
-                                            result->getString(
-                                                "term_name"
-                                            ).c_str()
-                                        )
-                                    );
-
-                                cmbTerm->Items->Add(
-                                    newItem
-                                );
-                            }
-
-                            cmbTerm->SelectedIndex = 0;
-                            cmbTerm->Enabled = true;
-                        }
-                        catch (sql::SQLException& ex)
-                        {
-                            MessageBox::Show(
-                                gcnew String(
-                                    ex.what()
-                                ),
-                                L"Database Error",
-                                MessageBoxButtons::OK,
-                                MessageBoxIcon::Error
-                            );
-                        }
-                    }
-                );
-
-
-            btnCancel->Click +=
-                gcnew EventHandler(
-                    [editor](Object^, EventArgs^)
-                    {
-                        editor->Close();
-                    }
-                );
-
-
-            btnSave->Click +=
-                gcnew EventHandler(
-                    [this,
-                     editor,
-                     editMode,
-                     examinationId,
-                     txtName,
-                     cmbType,
-                     cmbYear,
-                     cmbTerm,
-                     cmbClass,
-                     dtpStart,
-                     dtpEnd,
-                     cmbStatus](Object^, EventArgs^)
-                    {
-                        if (
-                            String::IsNullOrWhiteSpace(
-                                txtName->Text
-                            )
-                        )
-                        {
-                            MessageBox::Show(
-                                L"Enter an examination name.",
-                                L"Validation",
-                                MessageBoxButtons::OK,
-                                MessageBoxIcon::Warning
-                            );
-
-                            txtName->Focus();
-                            return;
-                        }
-
-                        int yearId =
-                            GetSelectedId(
-                                cmbYear
-                            );
-
-                        int termId =
-                            GetSelectedId(
-                                cmbTerm
-                            );
-
-                        int classId =
-                            GetSelectedId(
-                                cmbClass
-                            );
-
-                        if (yearId == 0 ||
-                            termId == 0 ||
-                            classId == 0)
-                        {
-                            MessageBox::Show(
-                                L"Select an academic year, term and class.",
-                                L"Validation",
-                                MessageBoxButtons::OK,
-                                MessageBoxIcon::Warning
-                            );
-
-                            return;
-                        }
-
-                        if (dtpEnd->Value.Date < dtpStart->Value.Date)
-                        {
-                            MessageBox::Show(
-                                L"The end date cannot be before the start date.",
-                                L"Validation",
-                                MessageBoxButtons::OK,
-                                MessageBoxIcon::Warning
-                            );
-
-                            return;
-                        }
-
-                        try
-                        {
-                            auto con =
-                                DbConnection::GetConnection();
-
-                            if (editMode)
-                            {
-                                std::unique_ptr<sql::PreparedStatement> stmt(
-                                    con->prepareStatement(
-                                        "UPDATE examinations "
-                                        "SET examination_name = ?, "
-                                        "examination_type = ?, "
-                                        "academic_year_id = ?, "
-                                        "term_id = ?, "
-                                        "class_id = ?, "
-                                        "start_date = ?, "
-                                        "end_date = ?, "
-                                        "status = ? "
-                                        "WHERE examination_id = ?"
-                                    )
-                                );
-
-                                stmt->setString(
-                                    1,
-                                    msclr::interop::marshal_as<std::string>(
-                                        txtName->Text->Trim()
-                                    )
-                                );
-
-                                stmt->setString(
-                                    2,
-                                    msclr::interop::marshal_as<std::string>(
-                                        cmbType->SelectedItem == nullptr
-                                        ? L""
-                                        : cmbType->SelectedItem->ToString()
-                                    )
-                                );
-
-                                stmt->setInt(3, yearId);
-                                stmt->setInt(4, termId);
-                                stmt->setInt(5, classId);
-
-                                stmt->setString(
-                                    6,
-                                    msclr::interop::marshal_as<std::string>(
-                                        dtpStart->Value.ToString("yyyy-MM-dd")
-                                    )
-                                );
-
-                                stmt->setString(
-                                    7,
-                                    msclr::interop::marshal_as<std::string>(
-                                        dtpEnd->Value.ToString("yyyy-MM-dd")
-                                    )
-                                );
-
-                                stmt->setString(
-                                    8,
-                                    msclr::interop::marshal_as<std::string>(
-                                        cmbStatus->SelectedItem->ToString()
-                                    )
-                                );
-
-                                stmt->setInt(
-                                    9,
-                                    examinationId
-                                );
-
-                                stmt->executeUpdate();
-
-                                MessageBox::Show(
-                                    L"Examination updated successfully.",
-                                    L"Examinations",
-                                    MessageBoxButtons::OK,
-                                    MessageBoxIcon::Information
-                                );
-                            }
-                            else
-                            {
-                                std::unique_ptr<sql::PreparedStatement> stmt(
-                                    con->prepareStatement(
-                                        "INSERT INTO examinations "
-                                        "("
-                                        "academic_year_id, "
-                                        "term_id, "
-                                        "class_id, "
-                                        "examination_name, "
-                                        "examination_type, "
-                                        "start_date, "
-                                        "end_date, "
-                                        "status"
-                                        ") "
-                                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-                                    )
-                                );
-
-                                stmt->setInt(1, yearId);
-                                stmt->setInt(2, termId);
-                                stmt->setInt(3, classId);
-
-                                stmt->setString(
-                                    4,
-                                    msclr::interop::marshal_as<std::string>(
-                                        txtName->Text->Trim()
-                                    )
-                                );
-
-                                stmt->setString(
-                                    5,
-                                    msclr::interop::marshal_as<std::string>(
-                                        cmbType->SelectedItem == nullptr
-                                        ? L""
-                                        : cmbType->SelectedItem->ToString()
-                                    )
-                                );
-
-                                stmt->setString(
-                                    6,
-                                    msclr::interop::marshal_as<std::string>(
-                                        dtpStart->Value.ToString("yyyy-MM-dd")
-                                    )
-                                );
-
-                                stmt->setString(
-                                    7,
-                                    msclr::interop::marshal_as<std::string>(
-                                        dtpEnd->Value.ToString("yyyy-MM-dd")
-                                    )
-                                );
-
-                                stmt->setString(
-                                    8,
-                                    msclr::interop::marshal_as<std::string>(
-                                        cmbStatus->SelectedItem->ToString()
-                                    )
-                                );
-
-                                stmt->executeUpdate();
-
-                                MessageBox::Show(
-                                    L"Examination created successfully.",
-                                    L"Examinations",
-                                    MessageBoxButtons::OK,
-                                    MessageBoxIcon::Information
-                                );
-                            }
-
-                            editor->DialogResult =
-                                DialogResult::OK;
-
-                            editor->Close();
-
-                            this->LoadExaminations();
-                        }
-                        catch (sql::SQLException& ex)
-                        {
-                            MessageBox::Show(
-                                gcnew String(
-                                    ex.what()
-                                ),
-                                L"Database Error",
-                                MessageBoxButtons::OK,
-                                MessageBoxIcon::Error
-                            );
-                        }
-                    }
-                );
-
-
-            editor->Controls->Add(
+            this->editorForm->Controls->Add(
                 formLayout
             );
 
-            editor->Controls->Add(
+            this->editorForm->Controls->Add(
                 header
             );
 
-            editor->ShowDialog(
+            this->editorForm->ShowDialog(
                 this
             );
+        }
+
+
+        // =========================================================
+        // SUBJECT ASSIGNMENT
+        // =========================================================
+
+        void LoadAssignedSubjects()
+        {
+            if (
+                this->assignedSubjectsGrid == nullptr ||
+                this->subjectAssignmentExaminationId == 0)
+            {
+                return;
+            }
+
+            try
+            {
+                auto con =
+                    DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT "
+                        "es.examination_subject_id, "
+                        "s.subject_name, "
+                        "s.subject_code, "
+                        "es.max_score, "
+                        "es.pass_mark "
+                        "FROM examination_subjects es "
+                        "INNER JOIN subjects s "
+                        "ON s.subject_id = es.subject_id "
+                        "WHERE es.examination_id = ? "
+                        "ORDER BY s.subject_name ASC"
+                    )
+                );
+
+                stmt->setInt(
+                    1,
+                    this->subjectAssignmentExaminationId
+                );
+
+                std::unique_ptr<sql::ResultSet> result(
+                    stmt->executeQuery()
+                );
+
+                this->assignedSubjectsGrid->Rows->Clear();
+
+                while (result->next())
+                {
+                    this->assignedSubjectsGrid->Rows->Add(
+                        result->getInt(
+                            "examination_subject_id"
+                        ),
+                        gcnew String(
+                            result->getString(
+                                "subject_code"
+                            ).c_str()
+                        ),
+                        gcnew String(
+                            result->getString(
+                                "subject_name"
+                            ).c_str()
+                        ),
+                        result->getDouble(
+                            "max_score"
+                        ).ToString(
+                            "0.##"
+                        ),
+                        result->isNull("pass_mark")
+                        ? L""
+                        : result->getDouble(
+                            "pass_mark"
+                        ).ToString(
+                            "0.##"
+                        )
+                    );
+                }
+            }
+            catch (sql::SQLException& ex)
+            {
+                ShowDatabaseError(ex);
+            }
+        }
+
+
+        void LoadCombinationAwareSubjects()
+        {
+            this->subjectCombo->Items->Clear();
+
+            int classId = 0;
+
+            try
+            {
+                auto con =
+                    DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> classStmt(
+                    con->prepareStatement(
+                        "SELECT "
+                        "e.class_id "
+                        "FROM examinations e "
+                        "WHERE e.examination_id = ?"
+                    )
+                );
+
+                classStmt->setInt(
+                    1,
+                    this->subjectAssignmentExaminationId
+                );
+
+                std::unique_ptr<sql::ResultSet> classResult(
+                    classStmt->executeQuery()
+                );
+
+                if (classResult->next())
+                {
+                    classId =
+                        classResult->getInt(
+                            "class_id"
+                        );
+                }
+
+                std::unique_ptr<sql::PreparedStatement> subjectStmt(
+                    con->prepareStatement(
+                        "SELECT DISTINCT "
+                        "s.subject_id, "
+                        "s.subject_code, "
+                        "s.subject_name "
+                        "FROM class_subjects cs "
+                        "INNER JOIN subjects s "
+                        "ON s.subject_id = cs.subject_id "
+                        "WHERE cs.class_id = ? "
+                        "AND cs.status = 'Active' "
+                        "AND s.status = 'Active' "
+                        "ORDER BY s.subject_name ASC"
+                    )
+                );
+
+                subjectStmt->setInt(
+                    1,
+                    classId
+                );
+
+                std::unique_ptr<sql::ResultSet> result(
+                    subjectStmt->executeQuery()
+                );
+
+                while (result->next())
+                {
+                    this->subjectCombo->Items->Add(
+                        gcnew FilterItem(
+                            result->getInt(
+                                "subject_id"
+                            ),
+                            gcnew String(
+                                result->getString(
+                                    "subject_name"
+                                ).c_str()
+                            ) +
+                            L" (" +
+                            gcnew String(
+                                result->getString(
+                                    "subject_code"
+                                ).c_str()
+                            ) +
+                            L")"
+                        )
+                    );
+                }
+
+                if (this->subjectCombo->Items->Count > 0)
+                    this->subjectCombo->SelectedIndex = 0;
+            }
+            catch (sql::SQLException& ex)
+            {
+                ShowDatabaseError(ex);
+            }
+        }
+
+
+        System::Void AddExamSubjectClicked(
+            Object^ sender,
+            EventArgs^ e)
+        {
+            FilterItem^ subject =
+                dynamic_cast<FilterItem^>(
+                    this->subjectCombo->SelectedItem
+                );
+
+            if (subject == nullptr)
+            {
+                MessageBox::Show(
+                    L"Select a subject first.",
+                    L"Examination Subjects",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+
+                return;
+            }
+
+            if (
+                this->subjectPassMark->Value >
+                this->subjectMaxScore->Value
+            )
+            {
+                MessageBox::Show(
+                    L"Pass mark cannot be greater than the maximum score.",
+                    L"Validation",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+
+                return;
+            }
+
+            try
+            {
+                auto con =
+                    DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "INSERT INTO examination_subjects "
+                        "("
+                        "examination_id, "
+                        "subject_id, "
+                        "max_score, "
+                        "pass_mark"
+                        ") "
+                        "VALUES (?, ?, ?, ?)"
+                    )
+                );
+
+                stmt->setInt(
+                    1,
+                    this->subjectAssignmentExaminationId
+                );
+
+                stmt->setInt(
+                    2,
+                    subject->Id
+                );
+
+                stmt->setDouble(
+                    3,
+                    Convert::ToDouble(
+                        this->subjectMaxScore->Value
+                    )
+                );
+
+                stmt->setDouble(
+                    4,
+                    Convert::ToDouble(
+                        this->subjectPassMark->Value
+                    )
+                );
+
+                stmt->executeUpdate();
+
+                LoadAssignedSubjects();
+
+                MessageBox::Show(
+                    L"Subject added to examination.",
+                    L"Examination Subjects",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Information
+                );
+            }
+            catch (sql::SQLException& ex)
+            {
+                ShowDatabaseError(ex);
+            }
+        }
+
+
+        System::Void RemoveExamSubjectClicked(
+            Object^ sender,
+            EventArgs^ e)
+        {
+            if (
+                this->assignedSubjectsGrid->SelectedRows->Count == 0)
+            {
+                MessageBox::Show(
+                    L"Select a subject to remove.",
+                    L"Examination Subjects",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+
+                return;
+            }
+
+            int id =
+                Convert::ToInt32(
+                    this->assignedSubjectsGrid
+                        ->SelectedRows[0]
+                        ->Cells["ExaminationSubjectId"]
+                        ->Value
+                );
+
+            try
+            {
+                auto con =
+                    DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "DELETE FROM examination_subjects "
+                        "WHERE examination_subject_id = ?"
+                    )
+                );
+
+                stmt->setInt(
+                    1,
+                    id
+                );
+
+                stmt->executeUpdate();
+
+                LoadAssignedSubjects();
+            }
+            catch (sql::SQLException& ex)
+            {
+                ShowDatabaseError(ex);
+            }
+        }
+
+
+        System::Void CloseSubjectsDialogClicked(
+            Object^ sender,
+            EventArgs^ e)
+        {
+            if (this->subjectsDialog != nullptr)
+                this->subjectsDialog->Close();
         }
 
 
         void OpenSubjectAssignment(
             int examinationId)
         {
-            Form^ dialog =
+            this->subjectAssignmentExaminationId =
+                examinationId;
+
+            this->subjectsDialog =
                 gcnew Form();
 
-            dialog->Text =
+            this->subjectsDialog->Text =
                 L"Examination Subjects";
 
-            dialog->StartPosition =
+            this->subjectsDialog->StartPosition =
                 FormStartPosition::CenterParent;
 
-            dialog->FormBorderStyle =
-                FormBorderStyle::Sizable;
+            this->subjectsDialog->FormBorderStyle =
+                System::Windows::Forms::FormBorderStyle::Sizable;
 
-            dialog->MaximizeBox = true;
-            dialog->MinimizeBox = true;
-            dialog->ShowInTaskbar = false;
-            dialog->ClientSize =
+            this->subjectsDialog->MaximizeBox = true;
+            this->subjectsDialog->MinimizeBox = true;
+            this->subjectsDialog->ShowInTaskbar = false;
+
+            this->subjectsDialog->ClientSize =
                 System::Drawing::Size(
-                    950,
-                    620
+                    1000,
+                    650
                 );
 
-            dialog->MinimumSize =
+            this->subjectsDialog->MinimumSize =
                 System::Drawing::Size(
-                    850,
+                    900,
                     560
                 );
 
-            dialog->BackColor =
-                Color::WhiteSmoke;
+            this->subjectsDialog->AutoScroll = true;
 
             TableLayoutPanel^ layout =
                 gcnew TableLayoutPanel();
@@ -1621,7 +2019,7 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             layout->Padding =
-                Padding(
+                System::Windows::Forms::Padding(
                     20
                 );
 
@@ -1638,7 +2036,7 @@ namespace SchoolCore
             layout->RowStyles->Add(
                 gcnew RowStyle(
                     SizeType::Absolute,
-                    90.0F
+                    80.0F
                 )
             );
 
@@ -1655,6 +2053,7 @@ namespace SchoolCore
                     60.0F
                 )
             );
+
 
             Label^ title =
                 gcnew Label();
@@ -1698,7 +2097,16 @@ namespace SchoolCore
             entry->ColumnCount = 6;
             entry->RowCount = 1;
 
-            float[] widths = { 95, 250, 90, 120, 90, 120 };
+            array<float>^ widths =
+                gcnew array<float>
+                {
+                    95.0F,
+                    250.0F,
+                    90.0F,
+                    120.0F,
+                    90.0F,
+                    120.0F
+                };
 
             for (int i = 0; i < 6; i++)
             {
@@ -1710,87 +2118,117 @@ namespace SchoolCore
                 );
             }
 
-            Label^ lblSubject =
+
+            Label^ subjectLabel =
                 gcnew Label();
 
-            lblSubject->Text = L"Subject";
-            lblSubject->Dock = DockStyle::Fill;
-            lblSubject->TextAlign =
+            subjectLabel->Text = L"Subject";
+            subjectLabel->Dock = DockStyle::Fill;
+            subjectLabel->TextAlign =
                 ContentAlignment::MiddleLeft;
 
-            ComboBox^ cmbSubject =
+            this->subjectCombo =
                 gcnew ComboBox();
 
-            cmbSubject->Dock = DockStyle::Fill;
-            cmbSubject->DropDownStyle =
+            this->subjectCombo->Dock =
+                DockStyle::Fill;
+
+            this->subjectCombo->DropDownStyle =
                 ComboBoxStyle::DropDownList;
 
-            Label^ lblMax =
+            Label^ maxLabel =
                 gcnew Label();
 
-            lblMax->Text = L"Max Score";
-            lblMax->Dock = DockStyle::Fill;
-            lblMax->TextAlign =
+            maxLabel->Text =
+                L"Max Score";
+
+            maxLabel->Dock =
+                DockStyle::Fill;
+
+            maxLabel->TextAlign =
                 ContentAlignment::MiddleLeft;
 
-            NumericUpDown^ numMax =
+            this->subjectMaxScore =
                 gcnew NumericUpDown();
 
-            numMax->Minimum = 1;
-            numMax->Maximum = 1000;
-            numMax->Value = 100;
-            numMax->Dock = DockStyle::Fill;
-            numMax->DecimalPlaces = 2;
+            this->subjectMaxScore->Minimum =
+                1;
 
-            Label^ lblPass =
+            this->subjectMaxScore->Maximum =
+                1000;
+
+            this->subjectMaxScore->Value =
+                100;
+
+            this->subjectMaxScore->DecimalPlaces =
+                2;
+
+            this->subjectMaxScore->Dock =
+                DockStyle::Fill;
+
+            Label^ passLabel =
                 gcnew Label();
 
-            lblPass->Text = L"Pass Mark";
-            lblPass->Dock = DockStyle::Fill;
-            lblPass->TextAlign =
+            passLabel->Text =
+                L"Pass Mark";
+
+            passLabel->Dock =
+                DockStyle::Fill;
+
+            passLabel->TextAlign =
                 ContentAlignment::MiddleLeft;
 
-            NumericUpDown^ numPass =
+            this->subjectPassMark =
                 gcnew NumericUpDown();
 
-            numPass->Minimum = 0;
-            numPass->Maximum = 1000;
-            numPass->Value = 40;
-            numPass->Dock = DockStyle::Fill;
-            numPass->DecimalPlaces = 2;
+            this->subjectPassMark->Minimum =
+                0;
+
+            this->subjectPassMark->Maximum =
+                1000;
+
+            this->subjectPassMark->Value =
+                40;
+
+            this->subjectPassMark->DecimalPlaces =
+                2;
+
+            this->subjectPassMark->Dock =
+                DockStyle::Fill;
+
 
             entry->Controls->Add(
-                lblSubject,
+                subjectLabel,
                 0,
                 0
             );
 
             entry->Controls->Add(
-                cmbSubject,
+                this->subjectCombo,
                 1,
                 0
             );
 
             entry->Controls->Add(
-                lblMax,
+                maxLabel,
                 2,
                 0
             );
 
             entry->Controls->Add(
-                numMax,
+                this->subjectMaxScore,
                 3,
                 0
             );
 
             entry->Controls->Add(
-                lblPass,
+                passLabel,
                 4,
                 0
             );
 
             entry->Controls->Add(
-                numPass,
+                this->subjectPassMark,
                 5,
                 0
             );
@@ -1802,191 +2240,109 @@ namespace SchoolCore
             );
 
 
-            DataGridView^ grid =
+            this->assignedSubjectsGrid =
                 gcnew DataGridView();
 
-            grid->Dock =
+            this->assignedSubjectsGrid->Dock =
                 DockStyle::Fill;
 
-            grid->AllowUserToAddRows = false;
-            grid->AllowUserToDeleteRows = false;
-            grid->ReadOnly = true;
-            grid->MultiSelect = false;
-            grid->SelectionMode =
-                DataGridViewSelectionMode::FullRowSelect;
-            grid->RowHeadersVisible = false;
+            this->assignedSubjectsGrid->AllowUserToAddRows = false;
+            this->assignedSubjectsGrid->AllowUserToDeleteRows = false;
+            this->assignedSubjectsGrid->ReadOnly = true;
+            this->assignedSubjectsGrid->MultiSelect = false;
 
-            grid->AutoGenerateColumns = false;
+            this->assignedSubjectsGrid->SelectionMode =
+                DataGridViewSelectionMode::FullRowSelect;
+
+            this->assignedSubjectsGrid->RowHeadersVisible = false;
+            this->assignedSubjectsGrid->AutoGenerateColumns = false;
 
             DataGridViewTextBoxColumn^ idColumn =
                 gcnew DataGridViewTextBoxColumn();
 
-            idColumn->Name = L"ExaminationSubjectId";
+            idColumn->Name =
+                L"ExaminationSubjectId";
+
             idColumn->Visible = false;
 
-            DataGridViewTextBoxColumn^ subjectColumn =
+
+            DataGridViewTextBoxColumn^ codeColumn =
                 gcnew DataGridViewTextBoxColumn();
 
-            subjectColumn->Name = L"Subject";
-            subjectColumn->HeaderText = L"Subject";
-            subjectColumn->AutoSizeMode =
+            codeColumn->Name =
+                L"SubjectCode";
+
+            codeColumn->HeaderText =
+                L"Code";
+
+            codeColumn->Width =
+                130;
+
+
+            DataGridViewTextBoxColumn^ nameColumn =
+                gcnew DataGridViewTextBoxColumn();
+
+            nameColumn->Name =
+                L"SubjectName";
+
+            nameColumn->HeaderText =
+                L"Subject";
+
+            nameColumn->AutoSizeMode =
                 DataGridViewAutoSizeColumnMode::Fill;
+
 
             DataGridViewTextBoxColumn^ maxColumn =
                 gcnew DataGridViewTextBoxColumn();
 
-            maxColumn->Name = L"MaxScore";
-            maxColumn->HeaderText = L"Max Score";
-            maxColumn->Width = 110;
+            maxColumn->Name =
+                L"MaxScore";
+
+            maxColumn->HeaderText =
+                L"Max Score";
+
+            maxColumn->Width =
+                110;
+
 
             DataGridViewTextBoxColumn^ passColumn =
                 gcnew DataGridViewTextBoxColumn();
 
-            passColumn->Name = L"PassMark";
-            passColumn->HeaderText = L"Pass Mark";
-            passColumn->Width = 110;
+            passColumn->Name =
+                L"PassMark";
 
-            grid->Columns->Add(idColumn);
-            grid->Columns->Add(subjectColumn);
-            grid->Columns->Add(maxColumn);
-            grid->Columns->Add(passColumn);
+            passColumn->HeaderText =
+                L"Pass Mark";
 
-
-            // NOTE: Load the source subject list.
-            try
-            {
-                auto con = DbConnection::GetConnection();
-
-                int classId = 0;
-
-                std::unique_ptr<sql::PreparedStatement> classStmt(
-                    con->prepareStatement(
-                        "SELECT class_id "
-                        "FROM examinations "
-                        "WHERE examination_id = ?"
-                    )
-                );
-
-                classStmt->setInt(
-                    1,
-                    examinationId
-                );
-
-                std::unique_ptr<sql::ResultSet> classResult(
-                    classStmt->executeQuery()
-                );
-
-                if (classResult->next())
-                {
-                    classId =
-                        classResult->getInt(
-                            "class_id"
-                        );
-                }
-
-                std::unique_ptr<sql::PreparedStatement> subjectStmt(
-                    con->prepareStatement(
-                        "SELECT DISTINCT "
-                        "s.subject_id, "
-                        "s.subject_code, "
-                        "s.subject_name "
-                        "FROM class_subjects cs "
-                        "INNER JOIN subjects s "
-                        "ON s.subject_id = cs.subject_id "
-                        "WHERE cs.class_id = ? "
-                        "AND cs.status = 'Active' "
-                        "AND s.status = 'Active' "
-                        "ORDER BY s.subject_name ASC"
-                    )
-                );
-
-                subjectStmt->setInt(
-                    1,
-                    classId
-                );
-
-                std::unique_ptr<sql::ResultSet> subjectResult(
-                    subjectStmt->executeQuery()
-                );
-
-                cmbSubject->Items->Clear();
-
-                while (subjectResult->next())
-                {
-                    cmbSubject->Items->Add(
-                        gcnew FilterItem(
-                            subjectResult->getInt(
-                                "subject_id"
-                            ),
-                            gcnew String(
-                                subjectResult->getString(
-                                    "subject_name"
-                                ).c_str()
-                            ) +
-                            L" (" +
-                            gcnew String(
-                                subjectResult->getString(
-                                    "subject_code"
-                                ).c_str()
-                            ) +
-                            L")"
-                        )
-                    );
-                }
-
-                if (cmbSubject->Items->Count > 0)
-                    cmbSubject->SelectedIndex = 0;
-            }
-            catch (sql::SQLException& ex)
-            {
-                MessageBox::Show(
-                    gcnew String(
-                        ex.what()
-                    ),
-                    L"Database Error",
-                    MessageBoxButtons::OK,
-                    MessageBoxIcon::Error
-                );
-            }
+            passColumn->Width =
+                110;
 
 
-            Button^ btnAdd =
-                gcnew Button();
+            this->assignedSubjectsGrid->Columns->Add(
+                idColumn
+            );
 
-            btnAdd->Text =
-                L"Add Subject";
+            this->assignedSubjectsGrid->Columns->Add(
+                codeColumn
+            );
 
-            btnAdd->Size =
-                System::Drawing::Size(
-                    130,
-                    38
-                );
+            this->assignedSubjectsGrid->Columns->Add(
+                nameColumn
+            );
 
+            this->assignedSubjectsGrid->Columns->Add(
+                maxColumn
+            );
 
-            Button^ btnRemove =
-                gcnew Button();
+            this->assignedSubjectsGrid->Columns->Add(
+                passColumn
+            );
 
-            btnRemove->Text =
-                L"Remove Subject";
-
-            btnRemove->Size =
-                System::Drawing::Size(
-                    130,
-                    38
-                );
-
-
-            Button^ btnClose =
-                gcnew Button();
-
-            btnClose->Text =
-                L"Close";
-
-            btnClose->Size =
-                System::Drawing::Size(
-                    110,
-                    38
-                );
+            layout->Controls->Add(
+                this->assignedSubjectsGrid,
+                0,
+                2
+            );
 
 
             FlowLayoutPanel^ buttons =
@@ -2001,16 +2357,64 @@ namespace SchoolCore
             buttons->WrapContents = false;
 
             buttons->Padding =
-                Padding(
+                System::Windows::Forms::Padding(
                     0,
                     8,
                     0,
                     0
                 );
 
-            buttons->Controls->Add(btnClose);
-            buttons->Controls->Add(btnRemove);
-            buttons->Controls->Add(btnAdd);
+
+            Button^ closeButton =
+                gcnew Button();
+
+            closeButton->Text =
+                L"Close";
+
+            closeButton->Size =
+                System::Drawing::Size(
+                    110,
+                    38
+                );
+
+
+            Button^ removeButton =
+                gcnew Button();
+
+            removeButton->Text =
+                L"Remove Subject";
+
+            removeButton->Size =
+                System::Drawing::Size(
+                    135,
+                    38
+                );
+
+
+            Button^ addButton =
+                gcnew Button();
+
+            addButton->Text =
+                L"Add Subject";
+
+            addButton->Size =
+                System::Drawing::Size(
+                    125,
+                    38
+                );
+
+
+            buttons->Controls->Add(
+                closeButton
+            );
+
+            buttons->Controls->Add(
+                removeButton
+            );
+
+            buttons->Controls->Add(
+                addButton
+            );
 
             layout->Controls->Add(
                 buttons,
@@ -2018,218 +2422,58 @@ namespace SchoolCore
                 3
             );
 
-            btnAdd->Click +=
+
+            addButton->Click +=
                 gcnew EventHandler(
-                    [cmbSubject, numMax, numPass, examinationId, grid, this](Object^, EventArgs^)
-                    {
-                        FilterItem^ subject =
-                            dynamic_cast<FilterItem^>(
-                                cmbSubject->SelectedItem
-                            );
+                    this,
+                    &Examinations::AddExamSubjectClicked
+                );
 
-                        if (subject == nullptr)
-                        {
-                            MessageBox::Show(
-                                L"Select a subject first.",
-                                L"Examination Subjects",
-                                MessageBoxButtons::OK,
-                                MessageBoxIcon::Warning
-                            );
-                            return;
-                        }
+            removeButton->Click +=
+                gcnew EventHandler(
+                    this,
+                    &Examinations::RemoveExamSubjectClicked
+                );
 
-                        if (numPass->Value > numMax->Value)
-                        {
-                            MessageBox::Show(
-                                L"Pass mark cannot be greater than the maximum score.",
-                                L"Validation",
-                                MessageBoxButtons::OK,
-                                MessageBoxIcon::Warning
-                            );
-                            return;
-                        }
-
-                        try
-                        {
-                            auto con =
-                                DbConnection::GetConnection();
-
-                            std::unique_ptr<sql::PreparedStatement> stmt(
-                                con->prepareStatement(
-                                    "INSERT INTO examination_subjects "
-                                    "(examination_id, subject_id, max_score, pass_mark) "
-                                    "VALUES (?, ?, ?, ?)"
-                                )
-                            );
-
-                            stmt->setInt(
-                                1,
-                                examinationId
-                            );
-
-                            stmt->setInt(
-                                2,
-                                subject->Id
-                            );
-
-                            stmt->setDouble(
-                                3,
-                                Convert::ToDouble(
-                                    numMax->Value
-                                )
-                            );
-
-                            stmt->setDouble(
-                                4,
-                                Convert::ToDouble(
-                                    numPass->Value
-                                )
-                            );
-
-                            stmt->executeUpdate();
-
-                            grid->Rows->Add(
-                                subject->Id,
-                                subject->Text,
-                                numMax->Value.ToString("0.##"),
-                                numPass->Value.ToString("0.##")
-                            );
-
-                            MessageBox::Show(
-                                L"Subject added to examination.",
-                                L"Examination Subjects",
-                                MessageBoxButtons::OK,
-                                MessageBoxIcon::Information
-                            );
-
-                            this->LoadExaminations();
-                        }
-                        catch (sql::SQLException& ex)
-                        {
-                            MessageBox::Show(
-                                gcnew String(
-                                    ex.what()
-                                ),
-                                L"Database Error",
-                                MessageBoxButtons::OK,
-                                MessageBoxIcon::Error
-                            );
-                        }
-                    }
+            closeButton->Click +=
+                gcnew EventHandler(
+                    this,
+                    &Examinations::CloseSubjectsDialogClicked
                 );
 
 
-            btnRemove->Click +=
-                gcnew EventHandler(
-                    [grid, examinationId, this](Object^, EventArgs^)
-                    {
-                        if (grid->SelectedRows->Count == 0)
-                        {
-                            MessageBox::Show(
-                                L"Select a subject to remove.",
-                                L"Examination Subjects",
-                                MessageBoxButtons::OK,
-                                MessageBoxIcon::Warning
-                            );
-                            return;
-                        }
-
-                        int examinationSubjectId =
-                            Convert::ToInt32(
-                                grid
-                                    ->SelectedRows[0]
-                                    ->Cells["ExaminationSubjectId"]
-                                    ->Value
-                            );
-
-                        try
-                        {
-                            auto con =
-                                DbConnection::GetConnection();
-
-                            std::unique_ptr<sql::PreparedStatement> stmt(
-                                con->prepareStatement(
-                                    "DELETE FROM examination_subjects "
-                                    "WHERE examination_subject_id = ?"
-                                )
-                            );
-
-                            stmt->setInt(
-                                1,
-                                examinationSubjectId
-                            );
-
-                            int rowIndex =
-                                grid->SelectedRows[0]->Index;
-
-                            stmt->executeUpdate();
-
-                            grid->Rows->RemoveAt(
-                                rowIndex
-                            );
-
-                            MessageBox::Show(
-                                L"Subject removed from examination.",
-                                L"Examination Subjects",
-                                MessageBoxButtons::OK,
-                                MessageBoxIcon::Information
-                            );
-                        }
-                        catch (sql::SQLException& ex)
-                        {
-                            MessageBox::Show(
-                                gcnew String(
-                                    ex.what()
-                                ),
-                                L"Database Error",
-                                MessageBoxButtons::OK,
-                                MessageBoxIcon::Error
-                            );
-                        }
-                    }
-                );
+            this->LoadCombinationAwareSubjects();
+            this->LoadAssignedSubjects();
 
 
-            btnClose->Click +=
-                gcnew EventHandler(
-                    [dialog](Object^, EventArgs^)
-                    {
-                        dialog->Close();
-                    }
-                );
-
-
-            layout->Controls->Add(
-                grid,
-                0,
-                2
-            );
-
-            dialog->Controls->Add(
+            this->subjectsDialog->Controls->Add(
                 layout
             );
 
-            dialog->ShowDialog(
+            this->subjectsDialog->ShowDialog(
                 this
             );
         }
 
 
-        System::Void btnNew_Click(
+        // =========================================================
+        // MAIN EVENTS
+        // =========================================================
+
+        System::Void NewClicked(
             Object^ sender,
             EventArgs^ e)
         {
-            OpenExaminationEditor(
-                0
-            );
+            OpenExaminationEditor(0);
         }
 
 
-        System::Void btnEdit_Click(
+        System::Void EditClicked(
             Object^ sender,
             EventArgs^ e)
         {
-            int id = GetSelectedExaminationId();
+            int id =
+                GetSelectedExaminationId();
 
             if (id == 0)
             {
@@ -2239,65 +2483,56 @@ namespace SchoolCore
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Warning
                 );
+
                 return;
             }
 
-            OpenExaminationEditor(
-                id
-            );
+            OpenExaminationEditor(id);
         }
 
 
-        System::Void btnSubjects_Click(
+        System::Void SubjectsClicked(
             Object^ sender,
             EventArgs^ e)
         {
-            int id = GetSelectedExaminationId();
+            int id =
+                GetSelectedExaminationId();
 
-            if (id == 0)
-                return;
-
-            OpenSubjectAssignment(
-                id
-            );
+            if (id != 0)
+                OpenSubjectAssignment(id);
         }
 
 
-        System::Void btnMarks_Click(
+        System::Void RefreshClicked(
             Object^ sender,
             EventArgs^ e)
         {
-            // Marks entry will be enabled when the results workflow is added.
+            LoadExaminations();
         }
 
 
-        System::Void btnResults_Click(
+        System::Void GridSelectionChanged(
             Object^ sender,
             EventArgs^ e)
         {
-            // Results view will be enabled when the results workflow is added.
+            UpdateActionState();
         }
 
 
-        System::Void cmbAcademicYear_SelectedIndexChanged(
+        System::Void AcademicYearChanged(
             Object^ sender,
             EventArgs^ e)
         {
             if (this->loadingFilters)
                 return;
 
-            try
-            {
-                this->loadingFilters = true;
-                LoadTerms();
-                this->loadingFilters = false;
-                LoadExaminations();
-            }
-            catch (...)
-            {
-                this->loadingFilters = false;
-                throw;
-            }
+            this->loadingFilters = true;
+
+            LoadTerms();
+
+            this->loadingFilters = false;
+
+            LoadExaminations();
         }
 
 
@@ -2310,7 +2545,7 @@ namespace SchoolCore
         }
 
 
-        System::Void btnBack_Click(
+        System::Void BackClicked(
             Object^ sender,
             EventArgs^ e)
         {
@@ -2318,9 +2553,18 @@ namespace SchoolCore
         }
 
 
+        // =========================================================
+        // INITIALIZE
+        // =========================================================
+
         void InitializeComponent()
         {
             this->SuspendLayout();
+
+
+            // ---------------------------------------------------------
+            // FORM
+            // ---------------------------------------------------------
 
             this->Text =
                 L"Examinations & Results";
@@ -2332,7 +2576,7 @@ namespace SchoolCore
                 FormWindowState::Maximized;
 
             this->FormBorderStyle =
-                FormBorderStyle::Sizable;
+                System::Windows::Forms::FormBorderStyle::Sizable;
 
             this->MaximizeBox = true;
             this->MinimizeBox = true;
@@ -2350,6 +2594,7 @@ namespace SchoolCore
                 );
 
             this->AutoScroll = true;
+
             this->BackColor =
                 Color::FromArgb(
                     248,
@@ -2358,6 +2603,10 @@ namespace SchoolCore
                 );
 
 
+            // ---------------------------------------------------------
+            // MAIN LAYOUT
+            // ---------------------------------------------------------
+
             this->mainLayout =
                 gcnew TableLayoutPanel();
 
@@ -2365,7 +2614,7 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             this->mainLayout->Padding =
-                Padding(
+                System::Windows::Forms::Padding(
                     20
                 );
 
@@ -2415,7 +2664,10 @@ namespace SchoolCore
             );
 
 
-            // Header
+            // ---------------------------------------------------------
+            // HEADER
+            // ---------------------------------------------------------
+
             this->headerPanel =
                 gcnew Panel();
 
@@ -2430,7 +2682,7 @@ namespace SchoolCore
                 );
 
             this->headerPanel->Padding =
-                Padding(
+                System::Windows::Forms::Padding(
                     20,
                     9,
                     20,
@@ -2471,7 +2723,7 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             this->lblSubtitle->Text =
-                L"Create examinations, configure their subjects and manage results.";
+                L"Create examinations, configure subjects and prepare results.";
 
             this->lblSubtitle->Font =
                 gcnew System::Drawing::Font(
@@ -2495,7 +2747,10 @@ namespace SchoolCore
             );
 
 
-            // Filters
+            // ---------------------------------------------------------
+            // FILTERS
+            // ---------------------------------------------------------
+
             this->filterPanel =
                 gcnew Panel();
 
@@ -2506,7 +2761,7 @@ namespace SchoolCore
                 Color::White;
 
             this->filterPanel->Padding =
-                Padding(
+                System::Windows::Forms::Padding(
                     15,
                     10,
                     15,
@@ -2520,87 +2775,152 @@ namespace SchoolCore
             filterLayout->Dock =
                 DockStyle::Fill;
 
-            filterLayout->ColumnCount = 10;
-            filterLayout->RowCount = 1;
+            filterLayout->ColumnCount = 8;
+            filterLayout->RowCount = 2;
 
-            float filterWidths[10] =
-                {
-                    115, 170,
-                    70, 150,
-                    65, 150,
-                    65, 135,
-                    90, 100
-                };
+            filterLayout->ColumnStyles->Add(
+                gcnew ColumnStyle(
+                    SizeType::Absolute,
+                    110.0F
+                )
+            );
 
-            for (int i = 0; i < 10; i++)
-            {
-                filterLayout->ColumnStyles->Add(
-                    gcnew ColumnStyle(
-                        SizeType::Absolute,
-                        filterWidths[i]
-                    )
-                );
-            }
+            filterLayout->ColumnStyles->Add(
+                gcnew ColumnStyle(
+                    SizeType::Percent,
+                    25.0F
+                )
+            );
+
+            filterLayout->ColumnStyles->Add(
+                gcnew ColumnStyle(
+                    SizeType::Absolute,
+                    55.0F
+                )
+            );
+
+            filterLayout->ColumnStyles->Add(
+                gcnew ColumnStyle(
+                    SizeType::Percent,
+                    25.0F
+                )
+            );
+
+            filterLayout->ColumnStyles->Add(
+                gcnew ColumnStyle(
+                    SizeType::Absolute,
+                    55.0F
+                )
+            );
+
+            filterLayout->ColumnStyles->Add(
+                gcnew ColumnStyle(
+                    SizeType::Percent,
+                    25.0F
+                )
+            );
+
+            filterLayout->ColumnStyles->Add(
+                gcnew ColumnStyle(
+                    SizeType::Absolute,
+                    55.0F
+                )
+            );
+
+            filterLayout->ColumnStyles->Add(
+                gcnew ColumnStyle(
+                    SizeType::Percent,
+                    25.0F
+                )
+            );
+
+            filterLayout->RowStyles->Add(
+                gcnew RowStyle(
+                    SizeType::Percent,
+                    100.0F
+                )
+            );
+
+            filterLayout->RowStyles->Add(
+                gcnew RowStyle(
+                    SizeType::Absolute,
+                    1.0F
+                )
+            );
 
 
-            Label^ lblYear =
+            Label^ yearLabel =
                 gcnew Label();
-            lblYear->Text = L"Academic Year";
-            lblYear->Dock = DockStyle::Fill;
-            lblYear->TextAlign =
+
+            yearLabel->Text =
+                L"Academic Year";
+
+            yearLabel->Dock = DockStyle::Fill;
+            yearLabel->TextAlign =
                 ContentAlignment::MiddleLeft;
+
+
+            Label^ termLabel =
+                gcnew Label();
+
+            termLabel->Text =
+                L"Term";
+
+            termLabel->Dock = DockStyle::Fill;
+            termLabel->TextAlign =
+                ContentAlignment::MiddleLeft;
+
+
+            Label^ classLabel =
+                gcnew Label();
+
+            classLabel->Text =
+                L"Class";
+
+            classLabel->Dock = DockStyle::Fill;
+            classLabel->TextAlign =
+                ContentAlignment::MiddleLeft;
+
+
+            Label^ statusLabel =
+                gcnew Label();
+
+            statusLabel->Text =
+                L"Status";
+
+            statusLabel->Dock = DockStyle::Fill;
+            statusLabel->TextAlign =
+                ContentAlignment::MiddleLeft;
+
 
             this->cmbAcademicYear =
                 gcnew ComboBox();
-            this->cmbAcademicYear->Dock =
-                DockStyle::Fill;
-            this->cmbAcademicYear->DropDownStyle =
-                ComboBoxStyle::DropDownList;
-
-
-            Label^ lblTerm =
-                gcnew Label();
-            lblTerm->Text = L"Term";
-            lblTerm->Dock = DockStyle::Fill;
-            lblTerm->TextAlign =
-                ContentAlignment::MiddleLeft;
 
             this->cmbTerm =
                 gcnew ComboBox();
-            this->cmbTerm->Dock =
-                DockStyle::Fill;
-            this->cmbTerm->DropDownStyle =
-                ComboBoxStyle::DropDownList;
-
-
-            Label^ lblClass =
-                gcnew Label();
-            lblClass->Text = L"Class";
-            lblClass->Dock = DockStyle::Fill;
-            lblClass->TextAlign =
-                ContentAlignment::MiddleLeft;
 
             this->cmbClass =
                 gcnew ComboBox();
-            this->cmbClass->Dock =
-                DockStyle::Fill;
-            this->cmbClass->DropDownStyle =
-                ComboBoxStyle::DropDownList;
-
-
-            Label^ lblStatus =
-                gcnew Label();
-            lblStatus->Text = L"Status";
-            lblStatus->Dock = DockStyle::Fill;
-            lblStatus->TextAlign =
-                ContentAlignment::MiddleLeft;
 
             this->cmbStatus =
                 gcnew ComboBox();
-            this->cmbStatus->Dock =
-                DockStyle::Fill;
-            this->cmbStatus->DropDownStyle =
-                ComboBoxStyle::DropDownList;
+
+
+            for each (ComboBox^ combo in gcnew array<ComboBox^>
+            {
+                this->cmbAcademicYear,
+                this->cmbTerm,
+                this->cmbClass,
+                this->cmbStatus
+            })
+            {
+                combo->Dock =
+                    DockStyle::Fill;
+
+                combo->DropDownStyle =
+                    ComboBoxStyle::DropDownList;
+            }
+
 
             this->cmbStatus->Items->Add(
                 L"All Statuses"
@@ -2614,7 +2934,6 @@ namespace SchoolCore
             this->cmbStatus->Items->Add(
                 L"Completed"
             );
-
             this->cmbStatus->SelectedIndex = 0;
 
 
@@ -2624,69 +2943,73 @@ namespace SchoolCore
             this->btnRefresh->Text =
                 L"Refresh";
 
-            this->btnRefresh->Size =
+            this->btnRefresh->Dock =
+                DockStyle::Fill;
+
+            this->btnRefresh->MinimumSize =
                 System::Drawing::Size(
-                    90,
+                    85,
                     34
                 );
 
-            this->btnRefresh->Anchor =
-                AnchorStyles::Right;
-
 
             filterLayout->Controls->Add(
-                lblYear,
+                yearLabel,
                 0,
                 0
             );
+
             filterLayout->Controls->Add(
                 this->cmbAcademicYear,
                 1,
                 0
             );
+
             filterLayout->Controls->Add(
-                lblTerm,
+                termLabel,
                 2,
                 0
             );
+
             filterLayout->Controls->Add(
                 this->cmbTerm,
                 3,
                 0
             );
+
             filterLayout->Controls->Add(
-                lblClass,
+                classLabel,
                 4,
                 0
             );
+
             filterLayout->Controls->Add(
                 this->cmbClass,
                 5,
                 0
             );
+
             filterLayout->Controls->Add(
-                lblStatus,
+                statusLabel,
                 6,
                 0
             );
+
             filterLayout->Controls->Add(
                 this->cmbStatus,
                 7,
                 0
             );
-            filterLayout->Controls->Add(
-                this->btnRefresh,
-                9,
-                0
-            );
-
 
             this->filterPanel->Controls->Add(
                 filterLayout
             );
 
 
-            // Count
+            // ---------------------------------------------------------
+            // COUNT
+            // ---------------------------------------------------------
+
             this->lblExamCount =
                 gcnew Label();
 
@@ -2703,24 +3026,21 @@ namespace SchoolCore
                 ContentAlignment::MiddleLeft;
 
 
-            // Grid
+            // ---------------------------------------------------------
+            // GRID
+            // ---------------------------------------------------------
+
             this->examinationsGrid =
                 gcnew DataGridView();
 
             this->examinationsGrid->Dock =
                 DockStyle::Fill;
 
-            this->examinationsGrid->ReadOnly =
-                true;
+            this->examinationsGrid->ReadOnly = true;
 
-            this->examinationsGrid->AllowUserToAddRows =
-                false;
-
-            this->examinationsGrid->AllowUserToDeleteRows =
-                false;
-
-            this->examinationsGrid->AllowUserToResizeRows =
-                false;
+            this->examinationsGrid->AllowUserToAddRows = false;
+            this->examinationsGrid->AllowUserToDeleteRows = false;
+            this->examinationsGrid->AllowUserToResizeRows = false;
 
             this->examinationsGrid->AutoGenerateColumns =
                 false;
@@ -2742,6 +3062,9 @@ namespace SchoolCore
 
             this->examinationsGrid->ColumnHeadersHeight =
                 42;
+
+            this->examinationsGrid->RowTemplate->Height =
+                34;
 
             this->examinationsGrid->EnableHeadersVisualStyles =
                 false;
@@ -2769,9 +3092,6 @@ namespace SchoolCore
                     FontStyle::Bold
                 );
 
-            this->examinationsGrid->RowTemplate->Height =
-                34;
-
 
             DataGridViewTextBoxColumn^ id =
                 gcnew DataGridViewTextBoxColumn();
@@ -2779,7 +3099,8 @@ namespace SchoolCore
             id->Name =
                 L"ExaminationId";
 
-            id->Visible = false;
+            id->Visible =
+                false;
 
 
             DataGridViewTextBoxColumn^ name =
@@ -2897,7 +3218,10 @@ namespace SchoolCore
             this->examinationsGrid->Columns->Add(status);
 
 
-            // Actions
+            // ---------------------------------------------------------
+            // ACTIONS
+            // ---------------------------------------------------------
+
             this->actionPanel =
                 gcnew FlowLayoutPanel();
 
@@ -2910,8 +3234,11 @@ namespace SchoolCore
             this->actionPanel->WrapContents =
                 false;
 
+            this->actionPanel->AutoScroll =
+                true;
+
             this->actionPanel->Padding =
-                Padding(
+                System::Windows::Forms::Padding(
                     0,
                     8,
                     0,
@@ -3034,6 +3361,10 @@ namespace SchoolCore
             );
 
 
+            // ---------------------------------------------------------
+            // ADD TO MAIN LAYOUT
+            // ---------------------------------------------------------
+
             this->mainLayout->Controls->Add(
                 this->headerPanel,
                 0,
@@ -3064,15 +3395,20 @@ namespace SchoolCore
                 4
             );
 
+
             this->Controls->Add(
                 this->mainLayout
             );
 
 
+            // ---------------------------------------------------------
+            // EVENTS
+            // ---------------------------------------------------------
+
             this->cmbAcademicYear->SelectedIndexChanged +=
                 gcnew EventHandler(
                     this,
-                    &Examinations::cmbAcademicYear_SelectedIndexChanged
+                    &Examinations::AcademicYearChanged
                 );
 
             this->cmbTerm->SelectedIndexChanged +=
@@ -3095,55 +3431,40 @@ namespace SchoolCore
 
             this->btnRefresh->Click +=
                 gcnew EventHandler(
-                    [this](Object^, EventArgs^)
-                    {
-                        LoadExaminations();
-                    }
+                    this,
+                    &Examinations::RefreshClicked
                 );
 
             this->examinationsGrid->SelectionChanged +=
                 gcnew EventHandler(
-                    [this](Object^, EventArgs^)
-                    {
-                        UpdateActionState();
-                    }
+                    this,
+                    &Examinations::GridSelectionChanged
                 );
 
             this->btnNew->Click +=
                 gcnew EventHandler(
                     this,
-                    &Examinations::btnNew_Click
+                    &Examinations::NewClicked
                 );
 
             this->btnEdit->Click +=
                 gcnew EventHandler(
                     this,
-                    &Examinations::btnEdit_Click
+                    &Examinations::EditClicked
                 );
 
             this->btnSubjects->Click +=
                 gcnew EventHandler(
                     this,
-                    &Examinations::btnSubjects_Click
-                );
-
-            this->btnMarks->Click +=
-                gcnew EventHandler(
-                    this,
-                    &Examinations::btnMarks_Click
-                );
-
-            this->btnResults->Click +=
-                gcnew EventHandler(
-                    this,
-                    &Examinations::btnResults_Click
+                    &Examinations::SubjectsClicked
                 );
 
             this->btnBack->Click +=
                 gcnew EventHandler(
                     this,
-                    &Examinations::btnBack_Click
+                    &Examinations::BackClicked
                 );
+
 
             this->ResumeLayout(false);
         }
@@ -3155,31 +3476,15 @@ namespace SchoolCore
         {
             InitializeComponent();
 
-            try
-            {
-                loadingFilters = true;
+            this->loadingFilters = true;
 
-                LoadAcademicYears();
-                LoadClasses();
-                LoadTerms();
+            LoadAcademicYears();
+            LoadClasses();
+            LoadTerms();
 
-                loadingFilters = false;
+            this->loadingFilters = false;
 
-                LoadExaminations();
-            }
-            catch (sql::SQLException& ex)
-            {
-                loadingFilters = false;
-
-                MessageBox::Show(
-                    gcnew String(
-                        ex.what()
-                    ),
-                    L"Database Error",
-                    MessageBoxButtons::OK,
-                    MessageBoxIcon::Error
-                );
-            }
+            LoadExaminations();
         }
     };
 }
