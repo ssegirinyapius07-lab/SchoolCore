@@ -117,7 +117,6 @@ namespace SchoolCore
             lblCurrent->TextAlign = ContentAlignment::MiddleLeft;
             lblCurrent->Padding = System::Windows::Forms::Padding(0, 10, 0, 0);
 
-            appearance->Controls->Add(lblCurrent);
             appearance->Controls->Add(choices);
             appearance->Controls->Add(lblTheme);
 
@@ -126,7 +125,7 @@ namespace SchoolCore
 
             btnClose = gcnew Button();
             btnClose->Text = L"Close";
-            btnClose->DialogResult = DialogResult::Cancel;
+            btnClose->DialogResult = System::Windows::Forms::DialogResult::Cancel;
             btnClose->Dock = DockStyle::Right;
             btnClose->Width = 110;
             btnClose->Margin = System::Windows::Forms::Padding(8);
