@@ -141,6 +141,9 @@
     <ClInclude Include="ClassesStreams.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="CombinationManagement.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
     <ClInclude Include="Dashboard.h">
       <FileType>CppForm</FileType>
     </ClInclude>
