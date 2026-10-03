@@ -47,6 +47,9 @@ namespace SchoolCore
         Button^ btnEditSubject;
         Button^ btnManagePapers;
         Button^ btnToggleSubject;
+        Label^ lblSearch;
+        TextBox^ txtSearch;
+        Button^ btnSearch;
 
         DataGridView^ subjectGrid;
         FlowLayoutPanel^ bottomPanel;
@@ -60,6 +63,8 @@ namespace SchoolCore
 
         Form^ papersForm;
         DataGridView^ papersGrid;
+        TextBox^ txtPaperSearch;
+        Button^ btnPaperSearch;
         int selectedCurriculumSubjectId = 0;
 
         bool editSubjectMode = false;
@@ -215,9 +220,10 @@ namespace SchoolCore
             }
         }
 
-        void LoadSubjectRecords()
+        void LoadSubjectRecords(String^ searchText)
         {
             subjectGrid->Rows->Clear();
+            searchText = String::IsNullOrWhiteSpace(searchText) ? L"" : searchText->Trim();
 
             try
             {
@@ -244,9 +250,20 @@ namespace SchoolCore
                         "ON al.academic_level_id = c.academic_level_id "
                         "INNER JOIN subjects s "
                         "ON s.subject_id = cs.subject_id "
+                        "WHERE (? = '' OR c.curriculum_name LIKE ? OR al.level_name LIKE ? "
+                        "OR s.subject_name LIKE ? OR cs.uneb_subject_code LIKE ? OR cs.subject_group LIKE ?) "
                         "ORDER BY al.level_name, s.subject_name"
                     )
                 );
+
+                std::string rawSearch = msclr::interop::marshal_as<std::string>(searchText);
+                std::string pattern = msclr::interop::marshal_as<std::string>(L"%" + searchText + L"%");
+                stmt->setString(1, rawSearch);
+                stmt->setString(2, pattern);
+                stmt->setString(3, pattern);
+                stmt->setString(4, pattern);
+                stmt->setString(5, pattern);
+                stmt->setString(6, pattern);
 
                 std::unique_ptr<sql::ResultSet> result(stmt->executeQuery());
 
@@ -279,6 +296,20 @@ namespace SchoolCore
             btnEditSubject->Enabled = selected;
             btnManagePapers->Enabled = selected;
             btnToggleSubject->Enabled = selected;
+        }
+
+        System::Void SubjectSearchClicked(Object^ sender, EventArgs^ e)
+        {
+            LoadSubjectRecords(txtSearch == nullptr ? L"" : txtSearch->Text);
+        }
+
+        System::Void SubjectSearchKeyDown(Object^ sender, KeyEventArgs^ e)
+        {
+            if (e->KeyCode == Keys::Enter)
+            {
+                SubjectSearchClicked(sender, e);
+                e->SuppressKeyPress = true;
+            }
         }
 
         void LoadSubjectEditorForEdit(int recordId)
@@ -457,7 +488,7 @@ namespace SchoolCore
                 }
 
                 editorForm->Close();
-                LoadSubjectRecords();
+                LoadSubjectRecords(txtSearch == nullptr ? L"" : txtSearch->Text);
             }
             catch (sql::SQLException& ex)
             {
@@ -563,9 +594,10 @@ namespace SchoolCore
             editorForm->ShowDialog(this);
         }
 
-        void LoadPapers()
+        void LoadPapers(String^ searchText)
         {
             papersGrid->Rows->Clear();
+            searchText = String::IsNullOrWhiteSpace(searchText) ? L"" : searchText->Trim();
 
             try
             {
@@ -576,12 +608,21 @@ namespace SchoolCore
                         "SELECT "
                         "paper_id, paper_code, paper_number, paper_name, paper_type, status "
                         "FROM subject_papers "
-                        "WHERE curriculum_subject_id = ? "
+                        "WHERE curriculum_subject_id = ? AND (? = '' OR paper_code LIKE ? "
+                        "OR paper_number LIKE ? OR paper_name LIKE ? OR paper_type LIKE ? OR status LIKE ?) "
                         "ORDER BY paper_code"
                     )
                 );
 
                 stmt->setInt(1, selectedCurriculumSubjectId);
+                std::string paperSearch = msclr::interop::marshal_as<std::string>(searchText);
+                std::string paperPattern = msclr::interop::marshal_as<std::string>(L"%" + searchText + L"%");
+                stmt->setString(2, paperSearch);
+                stmt->setString(3, paperPattern);
+                stmt->setString(4, paperPattern);
+                stmt->setString(5, paperPattern);
+                stmt->setString(6, paperPattern);
+                stmt->setString(7, paperPattern);
 
                 std::unique_ptr<sql::ResultSet> result(stmt->executeQuery());
 
@@ -629,8 +670,9 @@ namespace SchoolCore
             layout->Dock = DockStyle::Fill;
             layout->Padding = System::Windows::Forms::Padding(20);
             layout->ColumnCount = 1;
-            layout->RowCount = 3;
+            layout->RowCount = 4;
             layout->RowStyles->Add(gcnew RowStyle(SizeType::Absolute, 62.0F));
+            layout->RowStyles->Add(gcnew RowStyle(SizeType::Absolute, 48.0F));
             layout->RowStyles->Add(gcnew RowStyle(SizeType::Percent, 100.0F));
             layout->RowStyles->Add(gcnew RowStyle(SizeType::Absolute, 52.0F));
 
@@ -641,6 +683,23 @@ namespace SchoolCore
             heading->ForeColor = Color::FromArgb(30, 41, 59);
             heading->TextAlign = ContentAlignment::MiddleLeft;
             layout->Controls->Add(heading, 0, 0);
+
+            FlowLayoutPanel^ paperSearchPanel = gcnew FlowLayoutPanel();
+            paperSearchPanel->Dock = DockStyle::Fill;
+            paperSearchPanel->WrapContents = false;
+            paperSearchPanel->FlowDirection = FlowDirection::LeftToRight;
+            paperSearchPanel->Padding = System::Windows::Forms::Padding(0, 5, 0, 5);
+            txtPaperSearch = gcnew TextBox();
+            txtPaperSearch->Width = 340;
+            txtPaperSearch->Height = 32;
+            txtPaperSearch->MaxLength = 150;
+            btnPaperSearch = gcnew Button();
+            btnPaperSearch->Text = L"Search";
+            btnPaperSearch->Size = System::Drawing::Size(90, 32);
+            btnPaperSearch->Margin = System::Windows::Forms::Padding(6, 0, 0, 0);
+            paperSearchPanel->Controls->Add(txtPaperSearch);
+            paperSearchPanel->Controls->Add(btnPaperSearch);
+            layout->Controls->Add(paperSearchPanel, 0, 1);
 
             papersGrid = gcnew DataGridView();
             papersGrid->Dock = DockStyle::Fill;
@@ -661,7 +720,7 @@ namespace SchoolCore
             papersGrid->Columns->Add(L"PaperType", L"Type");
             papersGrid->Columns->Add(L"Status", L"Status");
 
-            layout->Controls->Add(papersGrid, 0, 1);
+            layout->Controls->Add(papersGrid, 0, 2);
 
             FlowLayoutPanel^ buttons = gcnew FlowLayoutPanel();
             buttons->Dock = DockStyle::Fill;
@@ -689,7 +748,7 @@ namespace SchoolCore
             buttons->Controls->Add(toggle);
             buttons->Controls->Add(edit);
             buttons->Controls->Add(add);
-            layout->Controls->Add(buttons, 0, 2);
+            layout->Controls->Add(buttons, 0, 3);
 
             add->Click += gcnew EventHandler(this,
                 &UnebSubjectPaperManagement::NewPaperClicked);
@@ -700,7 +759,9 @@ namespace SchoolCore
                 &UnebSubjectPaperManagement::ClosePapersClicked);
 
             papersForm->Controls->Add(layout);
-            LoadPapers();
+            btnPaperSearch->Click += gcnew EventHandler(this, &UnebSubjectPaperManagement::PaperSearchClicked);
+            txtPaperSearch->KeyDown += gcnew KeyEventHandler(this, &UnebSubjectPaperManagement::PaperSearchKeyDown);
+            LoadPapers(L"");
             papersForm->ShowDialog(this);
         }
 
@@ -983,7 +1044,7 @@ namespace SchoolCore
                 stmt->executeUpdate();
 
                 paperEditorForm->Close();
-                LoadPapers();
+                LoadPapers(txtPaperSearch == nullptr ? L"" : txtPaperSearch->Text);
             }
             catch (sql::SQLException& ex)
             {
@@ -1045,7 +1106,7 @@ namespace SchoolCore
 
                 stmt->setInt(1, id);
                 stmt->executeUpdate();
-                LoadSubjectRecords();            }
+                LoadSubjectRecords(txtSearch == nullptr ? L"" : txtSearch->Text);            }
             catch (sql::SQLException& ex)
             {
                 MessageBox::Show(gcnew String(ex.what()), L"Database Error",
@@ -1093,6 +1154,20 @@ namespace SchoolCore
         System::Void ToggleSubjectClicked(Object^ sender, EventArgs^ e)
         {
             ToggleSubject();
+        }
+
+        System::Void PaperSearchClicked(Object^ sender, EventArgs^ e)
+        {
+            LoadPapers(txtPaperSearch == nullptr ? L"" : txtPaperSearch->Text);
+        }
+
+        System::Void PaperSearchKeyDown(Object^ sender, KeyEventArgs^ e)
+        {
+            if (e->KeyCode == Keys::Enter)
+            {
+                PaperSearchClicked(sender, e);
+                e->SuppressKeyPress = true;
+            }
         }
 
         System::Void NewPaperClicked(Object^ sender, EventArgs^ e)
@@ -1166,7 +1241,8 @@ namespace SchoolCore
             Text = L"UNEB Subjects & Papers";
             StartPosition = FormStartPosition::CenterScreen;
             WindowState = FormWindowState::Maximized;
-            MinimumSize = System::Drawing::Size(1050, 650);
+            MinimumSize = System::Drawing::Size(1100, 680);
+            AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
             BackColor = Color::FromArgb(248, 250, 252);
 
             mainLayout->Dock = DockStyle::Fill;
@@ -1205,6 +1281,23 @@ namespace SchoolCore
             ConfigureButton(btnManagePapers, L"Manage Papers", 140);
             ConfigureButton(btnToggleSubject, L"Activate / Deactivate", 165);
 
+            lblSearch = gcnew Label();
+            lblSearch->Text = L"Search";
+            lblSearch->Width = 55;
+            lblSearch->Height = 36;
+            lblSearch->TextAlign = ContentAlignment::MiddleLeft;
+            lblSearch->Margin = System::Windows::Forms::Padding(18, 1, 4, 0);
+            txtSearch = gcnew TextBox();
+            txtSearch->Width = 300;
+            txtSearch->Height = 36;
+            txtSearch->MaxLength = 150;
+            btnSearch = gcnew Button();
+            btnSearch->Text = L"Search";
+            btnSearch->Width = 90;
+            btnSearch->Height = 36;
+            btnSearch->FlatStyle = FlatStyle::Flat;
+            btnSearch->FlatAppearance->BorderSize = 0;
+
             btnEditSubject->Enabled = false;
             btnManagePapers->Enabled = false;
             btnToggleSubject->Enabled = false;
@@ -1213,6 +1306,11 @@ namespace SchoolCore
             actionPanel->Controls->Add(btnEditSubject);
             actionPanel->Controls->Add(btnManagePapers);
             actionPanel->Controls->Add(btnToggleSubject);
+            actionPanel->Controls->Add(lblSearch);
+            actionPanel->Controls->Add(txtSearch);
+            actionPanel->Controls->Add(btnSearch);
+            btnSearch->Click += gcnew EventHandler(this, &UnebSubjectPaperManagement::SubjectSearchClicked);
+            txtSearch->KeyDown += gcnew KeyEventHandler(this, &UnebSubjectPaperManagement::SubjectSearchKeyDown);
 
             subjectGrid->Dock = DockStyle::Fill;
             subjectGrid->ReadOnly = true;
@@ -1223,6 +1321,7 @@ namespace SchoolCore
             subjectGrid->SelectionMode = DataGridViewSelectionMode::FullRowSelect;
             subjectGrid->AutoGenerateColumns = false;
             subjectGrid->AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode::Fill;
+            subjectGrid->RowTemplate->Height = 38;
             subjectGrid->BackgroundColor = Color::White;
             subjectGrid->BorderStyle = BorderStyle::None;
             subjectGrid->ColumnHeadersHeight = 40;
