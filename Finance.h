@@ -22,6 +22,61 @@ namespace SchoolCore
         Button^ btnRecordPayment;
         Button^ btnPaymentHistory;
 
+        void OpenFinanceOperation(String^ titleText, String^ descriptionText)
+        {
+            Form^ view = gcnew Form();
+            view->Text = L"SchoolCore - " + titleText;
+            view->StartPosition = FormStartPosition::CenterParent;
+            view->ClientSize = Drawing::Size(900, 560);
+            view->MinimumSize = Drawing::Size(800, 500);
+            view->BackColor = Color::White;
+
+            Panel^ header = gcnew Panel();
+            header->Dock = DockStyle::Top;
+            header->Height = 96;
+            header->BackColor = Color::FromArgb(248, 250, 252);
+            header->Padding = System::Windows::Forms::Padding(28, 18, 28, 12);
+
+            Label^ heading = gcnew Label();
+            heading->Text = titleText;
+            heading->UseMnemonic = false;
+            heading->Dock = DockStyle::Top;
+            heading->Height = 36;
+            heading->Font = gcnew Drawing::Font(L"Segoe UI Semibold", 18.0F, FontStyle::Bold);
+            heading->ForeColor = Color::FromArgb(15, 23, 42);
+
+            Label^ description = gcnew Label();
+            description->Text = descriptionText;
+            description->Dock = DockStyle::Fill;
+            description->Font = gcnew Drawing::Font(L"Segoe UI", 10.0F);
+            description->ForeColor = Color::FromArgb(71, 85, 105);
+
+            header->Controls->Add(description);
+            header->Controls->Add(heading);
+            view->Controls->Add(header);
+            view->ShowDialog(this);
+        }
+
+        void btnFeeStructures_Click(Object^ sender, EventArgs^ e)
+        {
+            OpenFinanceOperation(L"Fee Structures", L"Define and manage school fee structures by academic year, term, class and stream.");
+        }
+
+        void btnStudentCharges_Click(Object^ sender, EventArgs^ e)
+        {
+            OpenFinanceOperation(L"Student Charges", L"Review student fee charges, due dates, payment status and outstanding balances.");
+        }
+
+        void btnRecordPayment_Click(Object^ sender, EventArgs^ e)
+        {
+            OpenFinanceOperation(L"Record Payment", L"Record cash, Mobile Money, bank, card or other supported payments with a transaction reference.");
+        }
+
+        void btnPaymentHistory_Click(Object^ sender, EventArgs^ e)
+        {
+            OpenFinanceOperation(L"Payment History", L"Review recorded payments, receipts, payment methods and transaction references.");
+        }
+
         void InitializeComponent()
         {
             this->Text = L"SchoolCore - Fees & Finance";
@@ -68,7 +123,7 @@ namespace SchoolCore
 
             TableLayoutPanel^ metrics = gcnew TableLayoutPanel();
             metrics->Dock = DockStyle::Top;
-            metrics->Height = 115;
+            metrics->Height = 135;
             metrics->ColumnCount = 4;
             metrics->RowCount = 1;
             for (int i = 0; i < 4; ++i)
@@ -76,7 +131,7 @@ namespace SchoolCore
 
             array<String^>^ metricNames = gcnew array<String^>
             {
-                L"Total Charges", L"Total Paid", L"Outstanding", L"Payments Today"
+                L"Total Revenue", L"Outstanding Fees", L"Collected Today", L"Pending Approvals"
             };
 
             for (int i = 0; i < 4; ++i)
@@ -84,7 +139,7 @@ namespace SchoolCore
                 Panel^ card = gcnew Panel();
                 card->Dock = DockStyle::Fill;
                 card->Margin = System::Windows::Forms::Padding(0, 0, 12, 10);
-                card->Padding = System::Windows::Forms::Padding(15);
+                card->Padding = System::Windows::Forms::Padding(15, 12, 15, 12);
                 card->BackColor = Color::FromArgb(248, 250, 252);
                 card->BorderStyle = BorderStyle::FixedSingle;
 
@@ -97,6 +152,7 @@ namespace SchoolCore
 
                 Label^ value = gcnew Label();
                 value->Text = L"UGX 0.00";
+                value->TextAlign = ContentAlignment::MiddleLeft;
                 value->Dock = DockStyle::Fill;
                 value->Font = gcnew Drawing::Font(L"Segoe UI Semibold", 18.0F, FontStyle::Bold);
                 value->ForeColor = Color::FromArgb(15, 23, 42);
@@ -116,7 +172,7 @@ namespace SchoolCore
 
             TableLayoutPanel^ actions = gcnew TableLayoutPanel();
             actions->Dock = DockStyle::Top;
-            actions->Height = 180;
+            actions->Height = 190;
             actions->ColumnCount = 2;
             actions->RowCount = 2;
             actions->ColumnStyles->Add(gcnew ColumnStyle(SizeType::Percent, 50.0F));
@@ -151,8 +207,15 @@ namespace SchoolCore
                 buttons[i]->Font = gcnew Drawing::Font(L"Segoe UI Semibold", 10.0F);
                 buttons[i]->TextAlign = ContentAlignment::MiddleLeft;
                 buttons[i]->Padding = System::Windows::Forms::Padding(18, 0, 10, 0);
+                buttons[i]->FlatAppearance->MouseOverBackColor = Color::FromArgb(241, 245, 249);
+                buttons[i]->FlatAppearance->MouseDownBackColor = Color::FromArgb(226, 232, 240);
                 actions->Controls->Add(buttons[i], i % 2, i / 2);
             }
+
+            btnFeeStructures->Click += gcnew EventHandler(this, &Finance::btnFeeStructures_Click);
+            btnStudentCharges->Click += gcnew EventHandler(this, &Finance::btnStudentCharges_Click);
+            btnRecordPayment->Click += gcnew EventHandler(this, &Finance::btnRecordPayment_Click);
+            btnPaymentHistory->Click += gcnew EventHandler(this, &Finance::btnPaymentHistory_Click);
 
             Label^ note = gcnew Label();
             note->Text = L"Electronic payments use a payment method and transaction reference. Sensitive credentials such as PINs, CVVs and full card numbers are never stored.";
