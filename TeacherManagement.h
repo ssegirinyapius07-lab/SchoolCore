@@ -25,46 +25,58 @@ namespace SchoolCore
                     LoadTeachers();
                 }
 
+        System::ComponentModel::Container^ components;
+
+
+    protected:
+        ~TeacherManagement()
+        {
+            if (this->components)
+            {
+                delete this->components;
+            }
+        }
+
     private:
         // =========================================================
         // MAIN FORM
         // =========================================================
 
-        TableLayoutPanel^ mainLayout;
-        Panel^ headerPanel;
+        System::Windows::Forms::TableLayoutPanel^ mainLayout;
+        System::Windows::Forms::Panel^ headerPanel;
         System::Windows::Forms::Label^ lblTitle;
         System::Windows::Forms::Label^ lblSubtitle;
 
-        Panel^ actionPanel;
-        Button^ btnRegisterTeacher;
+        System::Windows::Forms::Panel^ actionPanel;
+        System::Windows::Forms::Button^ btnRegisterTeacher;
         System::Windows::Forms::Label^ lblSearch;
-        TextBox^ txtSearch;
-        Button^ btnSearch;
+        System::Windows::Forms::TextBox^ txtSearch;
+        System::Windows::Forms::Button^ btnSearch;
 
         System::Windows::Forms::Label^ lblTeacherCount;
-        DataGridView^ teachersGrid;
+        System::Windows::Forms::DataGridView^ teachersGrid;
 
-        FlowLayoutPanel^ buttonPanel;
-        Button^ btnViewProfile;
-        Button^ btnEditTeacher;
-        Button^ btnToggleTeacher;
-        Button^ btnBack;
+        System::Windows::Forms::FlowLayoutPanel^ buttonPanel;
+        System::Windows::Forms::Button^ btnViewProfile;
+        System::Windows::Forms::Button^ btnEditTeacher;
+        System::Windows::Forms::Button^ btnToggleTeacher;
+        System::Windows::Forms::Button^ btnBack;
 
         // =========================================================
         // EDITOR DIALOG
         // =========================================================
 
         Form^ editorForm;
-        TextBox^ txtStaffNumber;
-        TextBox^ txtFirstName;
-        TextBox^ txtMiddleName;
-        TextBox^ txtLastName;
-        ComboBox^ cmbGender;
-        TextBox^ txtPhoneNumber;
-        TextBox^ txtEmail;
-        TextBox^ txtAddress;
-        Button^ btnEditorSave;
-        Button^ btnEditorCancel;
+        System::Windows::Forms::TextBox^ txtStaffNumber;
+        System::Windows::Forms::TextBox^ txtFirstName;
+        System::Windows::Forms::TextBox^ txtMiddleName;
+        System::Windows::Forms::TextBox^ txtLastName;
+        System::Windows::Forms::ComboBox^ cmbGender;
+        System::Windows::Forms::TextBox^ txtPhoneNumber;
+        System::Windows::Forms::TextBox^ txtEmail;
+        System::Windows::Forms::TextBox^ txtAddress;
+        System::Windows::Forms::Button^ btnEditorSave;
+        System::Windows::Forms::Button^ btnEditorCancel;
 
         bool editorEditMode = false;
         long long editingTeacherId = 0;
@@ -75,7 +87,7 @@ namespace SchoolCore
         // =========================================================
 
         void AddProfileField(
-            TableLayoutPanel^ layout,
+            System::Windows::Forms::TableLayoutPanel^ layout,
             int row,
             String^ labelText,
             String^ valueText)
@@ -349,7 +361,7 @@ namespace SchoolCore
         // =========================================================
 
         void AddEditorLabel(
-            TableLayoutPanel^ layout,
+            System::Windows::Forms::TableLayoutPanel^ layout,
             String^ text,
             int row)
         {
@@ -380,8 +392,8 @@ namespace SchoolCore
 
 
         void AddEditorTextBox(
-            TableLayoutPanel^ layout,
-            TextBox^ box,
+            System::Windows::Forms::TableLayoutPanel^ layout,
+            System::Windows::Forms::TextBox^ box,
             int row)
         {
             box->Dock =
@@ -437,7 +449,7 @@ namespace SchoolCore
                 Color::FromArgb(248, 250, 252);
 
 
-            Panel^ header =
+            System::Windows::Forms::Panel^ header =
                 gcnew Panel();
 
             header->Dock = DockStyle::Top;
@@ -489,7 +501,7 @@ namespace SchoolCore
             header->Controls->Add(title);
 
 
-            TableLayoutPanel^ layout =
+            System::Windows::Forms::TableLayoutPanel^ layout =
                 gcnew TableLayoutPanel();
 
             layout->Dock = DockStyle::Fill;
@@ -607,7 +619,7 @@ namespace SchoolCore
             );
 
 
-            Panel^ footer =
+            System::Windows::Forms::Panel^ footer =
                 gcnew Panel();
 
             footer->Dock = DockStyle::Bottom;
@@ -1437,7 +1449,7 @@ namespace SchoolCore
                     );
 
 
-                Panel^ profileHeader =
+                System::Windows::Forms::Panel^ profileHeader =
                     gcnew Panel();
 
                 profileHeader->Dock =
@@ -1547,7 +1559,7 @@ namespace SchoolCore
                 profileHeader->Controls->Add(nameLabel);
 
 
-                Panel^ content =
+                System::Windows::Forms::Panel^ content =
                     gcnew Panel();
 
                 content->Dock =
@@ -1568,7 +1580,7 @@ namespace SchoolCore
                     );
 
 
-                TableLayoutPanel^ layout =
+                System::Windows::Forms::TableLayoutPanel^ layout =
                     gcnew TableLayoutPanel();
 
                 layout->Dock =
@@ -1591,7 +1603,7 @@ namespace SchoolCore
                 );
 
 
-                GroupBox^ info =
+                System::Windows::Forms::GroupBox^ info =
                     gcnew GroupBox();
 
                 info->Text =
@@ -1620,7 +1632,7 @@ namespace SchoolCore
                     );
 
 
-                TableLayoutPanel^ infoLayout =
+                System::Windows::Forms::TableLayoutPanel^ infoLayout =
                     gcnew TableLayoutPanel();
 
                 infoLayout->Dock =
@@ -1746,7 +1758,7 @@ namespace SchoolCore
                 );
 
 
-                Panel^ footer =
+                System::Windows::Forms::Panel^ footer =
                     gcnew Panel();
 
                 footer->Dock =
@@ -1764,7 +1776,7 @@ namespace SchoolCore
                     );
 
 
-                Button^ closeButton =
+                System::Windows::Forms::Button^ closeButton =
                     gcnew Button();
 
                 closeButton->Text =
@@ -1977,53 +1989,54 @@ namespace SchoolCore
 
 void InitializeComponent(void)
         {
+            this->components = gcnew System::ComponentModel::Container();
             this->mainLayout =
-                gcnew TableLayoutPanel();
+                gcnew System::Windows::Forms::TableLayoutPanel();
 
             this->headerPanel =
-                gcnew Panel();
+                gcnew System::Windows::Forms::Panel();
 
             this->lblTitle =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblSubtitle =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->actionPanel =
-                gcnew Panel();
+                gcnew System::Windows::Forms::Panel();
 
             this->btnRegisterTeacher =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->lblSearch =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->txtSearch =
-                gcnew TextBox();
+                gcnew System::Windows::Forms::TextBox();
 
             this->btnSearch =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->lblTeacherCount =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->teachersGrid =
-                gcnew DataGridView();
+                gcnew System::Windows::Forms::DataGridView();
 
             this->buttonPanel =
-                gcnew FlowLayoutPanel();
+                gcnew System::Windows::Forms::FlowLayoutPanel();
 
             this->btnViewProfile =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->btnEditTeacher =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->btnToggleTeacher =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->btnBack =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
 
             this->SuspendLayout();
@@ -2037,10 +2050,10 @@ void InitializeComponent(void)
                 L"Teachers";
 
             this->StartPosition =
-                FormStartPosition::CenterScreen;
+                System::Windows::Forms::FormStartPosition::CenterScreen;
 
             this->WindowState =
-                FormWindowState::Maximized;
+                System::Windows::Forms::FormWindowState::Maximized;
 
             this->FormBorderStyle =
                 System::Windows::Forms::FormBorderStyle::Sizable;
@@ -2061,7 +2074,7 @@ void InitializeComponent(void)
                 );
 
             this->BackColor =
-                Color::FromArgb(
+                System::Drawing::Color::FromArgb(
                     248, 250, 252
                 );
 
@@ -2071,7 +2084,7 @@ void InitializeComponent(void)
             // =====================================================
 
             this->mainLayout->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->mainLayout->Padding =
                 System::Windows::Forms::Padding(
@@ -2083,42 +2096,42 @@ void InitializeComponent(void)
 
             this->mainLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     100.0F
                 )
             );
 
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     86.0F
                 )
             );
 
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     70.0F
                 )
             );
 
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     38.0F
                 )
             );
 
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     100.0F
                 )
             );
 
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     58.0F
                 )
             );
@@ -2129,7 +2142,7 @@ void InitializeComponent(void)
             // =====================================================
 
             this->headerPanel->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->headerPanel->Margin =
                 System::Windows::Forms::Padding(
@@ -2140,7 +2153,7 @@ void InitializeComponent(void)
                 );
 
             this->headerPanel->BackColor =
-                Color::FromArgb(
+                System::Drawing::Color::FromArgb(
                     30, 41, 59
                 );
 
@@ -2155,25 +2168,25 @@ void InitializeComponent(void)
 
             this->lblTitle->AutoSize = false;
             this->lblTitle->Dock =
-                DockStyle::Top;
+                System::Windows::Forms::DockStyle::Top;
             this->lblTitle->Height = 44;
             this->lblTitle->Font =
                 gcnew System::Drawing::Font(
                     L"Segoe UI",
                     16,
-                    FontStyle::Bold
+                    System::Drawing::FontStyle::Bold
                 );
             this->lblTitle->ForeColor =
-                Color::White;
+                System::Drawing::Color::White;
             this->lblTitle->Text =
                 L"Teachers";
             this->lblTitle->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
 
             this->lblSubtitle->AutoSize = false;
             this->lblSubtitle->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
             this->lblSubtitle->Font =
                 gcnew System::Drawing::Font(
                     L"Segoe UI",
@@ -2182,11 +2195,11 @@ void InitializeComponent(void)
                 );
 
             this->lblSubtitle->ForeColor =
-                Color::Gainsboro;
+                System::Drawing::Color::Gainsboro;
             this->lblSubtitle->Text =
                 L"Register, search and manage teacher records.";
             this->lblSubtitle->TextAlign =
-                ContentAlignment::TopLeft;
+                System::Drawing::ContentAlignment::TopLeft;
 
 
             this->headerPanel->Controls->Add(
@@ -2203,7 +2216,7 @@ void InitializeComponent(void)
             // =====================================================
 
             this->actionPanel->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->actionPanel->Margin =
                 System::Windows::Forms::Padding(
@@ -2214,7 +2227,7 @@ void InitializeComponent(void)
                 );
 
             this->actionPanel->BackColor =
-                Color::White;
+                System::Drawing::Color::White;
 
             this->actionPanel->Padding =
                 System::Windows::Forms::Padding(
@@ -2229,7 +2242,7 @@ void InitializeComponent(void)
                 L"+ Register Teacher";
 
             this->btnRegisterTeacher->Location =
-                Point(15, 13);
+                System::Drawing::Point(15, 13);
 
             this->btnRegisterTeacher->Size =
                 System::Drawing::Size(
@@ -2241,19 +2254,19 @@ void InitializeComponent(void)
                 gcnew System::Drawing::Font(
                     L"Segoe UI",
                     9.5F,
-                    FontStyle::Bold
+                    System::Drawing::FontStyle::Bold
                 );
 
             this->btnRegisterTeacher->BackColor =
-                Color::FromArgb(
+                System::Drawing::Color::FromArgb(
                     30, 41, 59
                 );
 
             this->btnRegisterTeacher->ForeColor =
-                Color::White;
+                System::Drawing::Color::White;
 
             this->btnRegisterTeacher->FlatStyle =
-                FlatStyle::Flat;
+                System::Windows::Forms::FlatStyle::Flat;
 
             this->btnRegisterTeacher->FlatAppearance->BorderSize =
                 0;
@@ -2268,10 +2281,10 @@ void InitializeComponent(void)
             this->lblSearch->AutoSize = true;
 
             this->lblSearch->Location =
-                Point(460, 24);
+                System::Drawing::Point(460, 24);
 
             this->lblSearch->Anchor =
-                AnchorStyles::Top | AnchorStyles::Right;
+                System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Right;
 
             this->lblSearch->Font =
                 gcnew System::Drawing::Font(
@@ -2281,9 +2294,9 @@ void InitializeComponent(void)
 
 
             this->txtSearch->Location =
-                Point(515, 19);
+                System::Drawing::Point(515, 19);
             this->txtSearch->Anchor =
-                AnchorStyles::Top | AnchorStyles::Right;
+                System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Right;
 
             this->txtSearch->Size =
                 System::Drawing::Size(
@@ -2296,9 +2309,9 @@ void InitializeComponent(void)
                 L"Search";
 
             this->btnSearch->Location =
-                Point(865, 18);
+                System::Drawing::Point(865, 18);
             this->btnSearch->Anchor =
-                AnchorStyles::Top | AnchorStyles::Right;
+                System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Right;
 
             this->btnSearch->Size =
                 System::Drawing::Size(
@@ -2329,16 +2342,16 @@ void InitializeComponent(void)
             // =====================================================
 
             this->lblTeacherCount->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblTeacherCount->Text =
                 L"Teachers: 0";
 
             this->lblTeacherCount->ForeColor =
-                Color::DimGray;
+                System::Drawing::Color::DimGray;
 
             this->lblTeacherCount->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
 
             // =====================================================
@@ -2346,7 +2359,7 @@ void InitializeComponent(void)
             // =====================================================
 
             this->teachersGrid->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->teachersGrid->AllowUserToAddRows = false;
             this->teachersGrid->AllowUserToDeleteRows = false;
@@ -2355,26 +2368,26 @@ void InitializeComponent(void)
             this->teachersGrid->ReadOnly = true;
             this->teachersGrid->MultiSelect = false;
             this->teachersGrid->SelectionMode =
-                DataGridViewSelectionMode::FullRowSelect;
+                System::Windows::Forms::DataGridViewSelectionMode::FullRowSelect;
             this->teachersGrid->RowHeadersVisible = false;
-            this->teachersGrid->BackgroundColor = Color::White;
+            this->teachersGrid->BackgroundColor = System::Drawing::Color::White;
             this->teachersGrid->BorderStyle =
-                BorderStyle::None;
+                System::Windows::Forms::BorderStyle::None;
 
             this->teachersGrid->ColumnHeadersHeight = 42;
             this->teachersGrid->EnableHeadersVisualStyles = false;
 
             this->teachersGrid->ColumnHeadersDefaultCellStyle->BackColor =
-                Color::FromArgb(30, 41, 59);
+                System::Drawing::Color::FromArgb(30, 41, 59);
 
             this->teachersGrid->ColumnHeadersDefaultCellStyle->ForeColor =
-                Color::White;
+                System::Drawing::Color::White;
 
             this->teachersGrid->ColumnHeadersDefaultCellStyle->Font =
                 gcnew System::Drawing::Font(
                     L"Segoe UI",
                     9.5F,
-                    FontStyle::Bold
+                    System::Drawing::FontStyle::Bold
                 );
 
             this->teachersGrid->RowTemplate->Height = 34;
@@ -2482,7 +2495,7 @@ void InitializeComponent(void)
             // =====================================================
 
             this->buttonPanel->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->buttonPanel->FlowDirection =
                 FlowDirection::RightToLeft;
