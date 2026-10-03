@@ -47,11 +47,6 @@ namespace SchoolCore {
 					&Dashboard::btnSubjects_Click
 				);
 
-			this->btnCombinations->Click +=
-				gcnew System::EventHandler(
-					this,
-					&Dashboard::btnCombinations_Click
-				);
 
 			this->btnAttendance->Click +=
 				gcnew System::EventHandler(
