@@ -673,15 +673,6 @@ namespace SchoolCore
                     gcnew ComboItem(0, L"All Streams")
                 );
 
-            Action<Label^, Control^>^ addField =
-                gcnew Action<Label^, Control^>(
-                    [&](Label^ label, Control^ control)
-                    {
-                        control->Margin =
-                            System::Windows::Forms::Padding(3);
-                    }
-                );
-
             form->Controls->Add(CreateLabel(L"Academic Year"), 0, 0);
             form->Controls->Add(year, 1, 0);
             form->Controls->Add(CreateLabel(L"Term"), 2, 0);
