@@ -1394,6 +1394,8 @@ void InitializeComponent(void)
             this->cmbClass->DropDownStyle =
                 System::Windows::Forms::ComboBoxStyle::DropDownList;
 
+            this->cmbClass->Enabled = false;
+
             this->cmbClass->Margin =
                 System::Windows::Forms::Padding(3, 4, 3, 4);
 
@@ -2339,6 +2341,7 @@ void InitializeComponent(void)
                     this->cmbClass->Items->Clear();
                     this->cmbClass->Items->Add(L"Select Class");
                     this->cmbClass->SelectedIndex = 0;
+                    this->cmbClass->Enabled = false;
                     this->LoadStreams();
                     return;
                 }
@@ -2390,6 +2393,8 @@ void InitializeComponent(void)
 
 
                 this->cmbClass->SelectedIndex = 0;
+                this->cmbClass->Enabled =
+                    this->cmbClass->Items->Count > 1;
             }
             catch (sql::SQLException& ex)
             {
