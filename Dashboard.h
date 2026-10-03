@@ -11,6 +11,7 @@
 #include "Timetable.h"
 #include "Attendance.h"
 #include "Examinations.h"
+#include "Finance.h"
 #include "AuthSession.h"
 #include "UsersRoles.h"
 
@@ -59,6 +60,12 @@ namespace SchoolCore {
 				gcnew System::EventHandler(
 					this,
 					&Dashboard::btnExaminations_Click
+				);
+
+			this->btnFees->Click +=
+				gcnew System::EventHandler(
+					this,
+					&Dashboard::btnFees_Click
 				);
 
 			this->btnUsers->Click +=
@@ -232,6 +239,26 @@ namespace SchoolCore {
 			Examinations^ form =
 				gcnew Examinations();
 
+			form->ShowDialog(this);
+			ShowDashboardOverview();
+		}
+
+		System::Void btnFees_Click(
+			System::Object^ sender,
+			System::EventArgs^ e)
+		{
+			if (!AuthSession::HasPermission(L"fees.view"))
+			{
+				MessageBox::Show(
+					L"You do not have permission to access Fees & Finance.",
+					L"Access Denied",
+					MessageBoxButtons::OK,
+					MessageBoxIcon::Warning
+				);
+				return;
+			}
+
+			Finance^ form = gcnew Finance();
 			form->ShowDialog(this);
 			ShowDashboardOverview();
 		}
