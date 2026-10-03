@@ -481,8 +481,8 @@ namespace SchoolCore
             editorForm->MaximizeBox = false;
             editorForm->MinimizeBox = false;
             editorForm->ShowInTaskbar = false;
-            editorForm->MinimumSize = Drawing::Size(680, 430);
-            editorForm->ClientSize = Drawing::Size(760, 500);
+            editorForm->MinimumSize = System::Drawing::Size(680, 430);
+            editorForm->ClientSize = System::Drawing::Size(760, 500);
             editorForm->AutoScaleMode = AutoScaleMode::Font;
 
             TableLayoutPanel^ layout = gcnew TableLayoutPanel();
@@ -538,11 +538,11 @@ namespace SchoolCore
 
             Button^ save = gcnew Button();
             save->Text = editSubjectMode ? L"Save Changes" : L"Register";
-            save->Size = Drawing::Size(140, 38);
+            save->Size = System::Drawing::Size(140, 38);
 
             Button^ cancel = gcnew Button();
             cancel->Text = L"Cancel";
-            cancel->Size = Drawing::Size(100, 38);
+            cancel->Size = System::Drawing::Size(100, 38);
 
             buttons->Controls->Add(save);
             buttons->Controls->Add(cancel);
@@ -623,8 +623,8 @@ namespace SchoolCore
             papersForm->MaximizeBox = true;
             papersForm->MinimizeBox = true;
             papersForm->ShowInTaskbar = false;
-            papersForm->MinimumSize = Drawing::Size(880, 560);
-            papersForm->ClientSize = Drawing::Size(1000, 650);
+            papersForm->MinimumSize = System::Drawing::Size(880, 560);
+            papersForm->ClientSize = System::Drawing::Size(1000, 650);
 
             TableLayoutPanel^ layout = gcnew TableLayoutPanel();
             layout->Dock = DockStyle::Fill;
@@ -672,19 +672,19 @@ namespace SchoolCore
 
             Button^ close = gcnew Button();
             close->Text = L"Close";
-            close->Size = Drawing::Size(100, 38);
+            close->Size = System::Drawing::Size(100, 38);
 
             Button^ toggle = gcnew Button();
             toggle->Text = L"Activate / Deactivate";
-            toggle->Size = Drawing::Size(165, 38);
+            toggle->Size = System::Drawing::Size(165, 38);
 
             Button^ edit = gcnew Button();
             edit->Text = L"Edit Paper";
-            edit->Size = Drawing::Size(110, 38);
+            edit->Size = System::Drawing::Size(110, 38);
 
             Button^ add = gcnew Button();
             add->Text = L"New Paper";
-            add->Size = Drawing::Size(110, 38);
+            add->Size = System::Drawing::Size(110, 38);
 
             buttons->Controls->Add(close);
             buttons->Controls->Add(toggle);
@@ -781,8 +781,8 @@ namespace SchoolCore
             paperEditorForm->MaximizeBox = false;
             paperEditorForm->MinimizeBox = false;
             paperEditorForm->ShowInTaskbar = false;
-            paperEditorForm->MinimumSize = Drawing::Size(650, 420);
-            paperEditorForm->ClientSize = Drawing::Size(720, 500);
+            paperEditorForm->MinimumSize = System::Drawing::Size(650, 420);
+            paperEditorForm->ClientSize = System::Drawing::Size(720, 500);
 
             TableLayoutPanel^ layout = gcnew TableLayoutPanel();
             layout->Dock = DockStyle::Fill;
@@ -834,11 +834,11 @@ namespace SchoolCore
 
             Button^ save = gcnew Button();
             save->Text = editPaperMode ? L"Save Changes" : L"Register Paper";
-            save->Size = Drawing::Size(140, 38);
+            save->Size = System::Drawing::Size(140, 38);
 
             Button^ cancel = gcnew Button();
             cancel->Text = L"Cancel";
-            cancel->Size = Drawing::Size(100, 38);
+            cancel->Size = System::Drawing::Size(100, 38);
 
             buttons->Controls->Add(save);
             buttons->Controls->Add(cancel);
@@ -1169,7 +1169,7 @@ namespace SchoolCore
             Text = L"UNEB Subjects & Papers";
             StartPosition = FormStartPosition::CenterScreen;
             WindowState = FormWindowState::Maximized;
-            MinimumSize = Drawing::Size(1050, 650);
+            MinimumSize = System::Drawing::Size(1050, 650);
             BackColor = Color::FromArgb(248, 250, 252);
 
             mainLayout->Dock = DockStyle::Fill;
