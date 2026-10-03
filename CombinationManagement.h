@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DbConnection.h"
+#include "ThemeManager.h"
 #include "SubjectManagement.h"
 
 #include <mariadb/conncpp.hpp>
@@ -67,7 +68,8 @@ namespace SchoolCore
         {
             InitializeComponent();
 
-            this->btnManageSubjects->Click +=
+                                ThemeManager::ApplyToForm(this);
+                    this->btnManageSubjects->Click +=
                 gcnew EventHandler(
                     this,
                     &CombinationManagement::btnManageSubjects_Click
