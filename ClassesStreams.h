@@ -25,25 +25,25 @@ namespace SchoolCore
         TableLayoutPanel^ mainLayout;
 
         Panel^ headerPanel;
-        Label^ lblTitle;
-        Label^ lblSubtitle;
+        System::Windows::Forms::Label^ lblTitle;
+        System::Windows::Forms::Label^ lblSubtitle;
 
         GroupBox^ classGroup;
         GroupBox^ streamGroup;
 
         // Classes
-        Label^ lblClassName;
+        System::Windows::Forms::Label^ lblClassName;
         ComboBox^ cmbClassName;
         Button^ btnAddClass;
         Button^ btnToggleClass;
         DataGridView^ classesGrid;
 
         // Streams
-        Label^ lblSelectedClass;
-        Label^ lblSelectedClassValue;
-        Label^ lblAcademicYear;
-        Label^ lblTerm;
-        Label^ lblStreamName;
+        System::Windows::Forms::Label^ lblSelectedClass;
+        System::Windows::Forms::Label^ lblSelectedClassValue;
+        System::Windows::Forms::Label^ lblAcademicYear;
+        System::Windows::Forms::Label^ lblTerm;
+        System::Windows::Forms::Label^ lblStreamName;
 
         ComboBox^ cmbAcademicYear;
         ComboBox^ cmbTerm;
@@ -2116,8 +2116,11 @@ namespace SchoolCore
        
 
 
-            LoadAcademicYears();
-            LoadClasses();
+            if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
+            {
+                LoadAcademicYears();
+                LoadClasses();
+            }
         }
     };
 }
