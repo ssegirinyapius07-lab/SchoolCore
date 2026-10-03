@@ -516,7 +516,10 @@ namespace SchoolCore
             }
         }
 
-        void SaveUserEditor()
+        System::Void SaveUserEditor(
+            System::Object^ sender,
+            System::EventArgs^ e
+        )
         {
             String^ username =
                 txtUsername->Text->Trim();
