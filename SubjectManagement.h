@@ -62,6 +62,7 @@ namespace SchoolCore
         System::Windows::Forms::TextBox^ txtSubjectCode;
         System::Windows::Forms::TextBox^ txtSubjectName;
         System::Windows::Forms::TextBox^ txtDescription;
+        System::Windows::Forms::ComboBox^ cmbAcademicLevel;
         System::Windows::Forms::Button^ btnEditorSave;
         System::Windows::Forms::Button^ btnEditorCancel;
 
@@ -682,7 +683,7 @@ namespace SchoolCore
                 2;
 
             layout->RowCount =
-                3;
+                4;
 
             layout->ColumnStyles->Add(
                 gcnew ColumnStyle(
@@ -698,12 +699,12 @@ namespace SchoolCore
                 )
             );
 
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 4; i++)
             {
                 layout->RowStyles->Add(
                     gcnew RowStyle(
                         SizeType::Absolute,
-                        i == 2
+                        i == 3
                         ? 130.0F
                         : 44.0F
                     )
@@ -719,6 +720,41 @@ namespace SchoolCore
 
             this->txtDescription =
                 gcnew TextBox();
+
+            this->cmbAcademicLevel =
+                gcnew ComboBox();
+
+            this->cmbAcademicLevel->Dock =
+                DockStyle::Fill;
+
+            this->cmbAcademicLevel->DropDownStyle =
+                ComboBoxStyle::DropDownList;
+
+            this->cmbAcademicLevel->Margin =
+                System::Windows::Forms::Padding(
+                    0,
+                    5,
+                    0,
+                    5
+                );
+
+            this->cmbAcademicLevel->Items->Add(
+                L"Select academic level"
+            );
+
+            this->cmbAcademicLevel->Items->Add(
+                L"O-Level"
+            );
+
+            this->cmbAcademicLevel->Items->Add(
+                L"A-Level"
+            );
+
+            this->cmbAcademicLevel->Items->Add(
+                L"Both"
+            );
+
+            this->cmbAcademicLevel->SelectedIndex = 0;
 
             AddEditorLabel(
                 layout,
@@ -748,8 +784,20 @@ namespace SchoolCore
 
             AddEditorLabel(
                 layout,
-                L"Description",
+                L"Academic Level",
                 2
+            );
+
+            layout->Controls->Add(
+                this->cmbAcademicLevel,
+                1,
+                2
+            );
+
+            AddEditorLabel(
+                layout,
+                L"Description",
+                3
             );
 
             this->txtDescription->Multiline =
@@ -772,7 +820,7 @@ namespace SchoolCore
             layout->Controls->Add(
                 this->txtDescription,
                 1,
-                2
+                3
             );
 
 
@@ -995,6 +1043,60 @@ namespace SchoolCore
                             ).c_str()
                         );
                 }
+
+                std::unique_ptr<sql::PreparedStatement>
+                    levelStmt(
+                        con->prepareStatement(
+                            "SELECT "
+                            "GROUP_CONCAT(al.level_code "
+                            "ORDER BY al.level_code SEPARATOR ',') "
+                            "AS level_codes "
+                            "FROM subject_academic_levels sal "
+                            "INNER JOIN academic_levels al "
+                            "ON al.academic_level_id = sal.academic_level_id "
+                            "WHERE sal.subject_id = ? "
+                            "AND sal.status = 'Active'"
+                        )
+                    );
+
+                levelStmt->setInt64(
+                    1,
+                    subjectId
+                );
+
+                std::unique_ptr<sql::ResultSet>
+                    levelResult(
+                        levelStmt->executeQuery()
+                    );
+
+                if (levelResult->next() &&
+                    !levelResult->isNull("level_codes"))
+                {
+                    String^ codes =
+                        gcnew String(
+                            levelResult->getString(
+                                "level_codes"
+                            ).c_str()
+                        );
+
+                    if (codes->Contains(L"O_LEVEL") &&
+                        codes->Contains(L"A_LEVEL"))
+                    {
+                        this->cmbAcademicLevel->SelectedIndex = 3;
+                    }
+                    else if (codes->Contains(L"A_LEVEL"))
+                    {
+                        this->cmbAcademicLevel->SelectedIndex = 2;
+                    }
+                    else if (codes->Contains(L"O_LEVEL"))
+                    {
+                        this->cmbAcademicLevel->SelectedIndex = 1;
+                    }
+                    else
+                    {
+                        this->cmbAcademicLevel->SelectedIndex = 0;
+                    }
+                }
             }
             catch (sql::SQLException& ex)
             {
@@ -1054,6 +1156,19 @@ namespace SchoolCore
                 return;
             }
 
+            if (this->cmbAcademicLevel->SelectedIndex <= 0)
+            {
+                MessageBox::Show(
+                    L"Select whether the subject is O-Level, A-Level, or Both.",
+                    L"Validation",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+
+                this->cmbAcademicLevel->Focus();
+                return;
+            }
+
             // Normalize the naming convention before validation
             // and database storage.
             this->txtSubjectCode->Text =
@@ -1099,15 +1214,8 @@ namespace SchoolCore
                         this->txtSubjectName->Text->Trim()
                     );
 
-                checkStmt->setString(
-                    1,
-                    subjectCode
-                );
-
-                checkStmt->setString(
-                    2,
-                    subjectName
-                );
+                checkStmt->setString(1, subjectCode);
+                checkStmt->setString(2, subjectName);
 
                 if (editorEditMode)
                 {
@@ -1134,12 +1242,17 @@ namespace SchoolCore
                     return;
                 }
 
-
                 std::string description =
                     msclr::interop::marshal_as<std::string>(
                         this->txtDescription->Text->Trim()
                     );
 
+                con->setAutoCommit(false);
+
+                int finalSubjectId =
+                    static_cast<int>(
+                        this->editingSubjectId
+                    );
 
                 if (editorEditMode)
                 {
@@ -1154,34 +1267,15 @@ namespace SchoolCore
                             )
                         );
 
-                    stmt->setString(
-                        1,
-                        subjectCode
-                    );
-
-                    stmt->setString(
-                        2,
-                        subjectName
-                    );
-
-                    stmt->setString(
-                        3,
-                        description
-                    );
-
+                    stmt->setString(1, subjectCode);
+                    stmt->setString(2, subjectName);
+                    stmt->setString(3, description);
                     stmt->setInt64(
                         4,
                         this->editingSubjectId
                     );
 
                     stmt->executeUpdate();
-
-                    MessageBox::Show(
-                        L"Subject details updated successfully.",
-                        L"Subjects",
-                        MessageBoxButtons::OK,
-                        MessageBoxIcon::Information
-                    );
                 }
                 else
                 {
@@ -1199,30 +1293,106 @@ namespace SchoolCore
                             )
                         );
 
-                    stmt->setString(
-                        1,
-                        subjectCode
-                    );
-
-                    stmt->setString(
-                        2,
-                        subjectName
-                    );
-
-                    stmt->setString(
-                        3,
-                        description
-                    );
+                    stmt->setString(1, subjectCode);
+                    stmt->setString(2, subjectName);
+                    stmt->setString(3, description);
 
                     stmt->executeUpdate();
 
-                    MessageBox::Show(
-                        L"Subject registered successfully.",
-                        L"Subjects",
-                        MessageBoxButtons::OK,
-                        MessageBoxIcon::Information
-                    );
+                    std::unique_ptr<sql::Statement>
+                        idStmt(
+                            con->createStatement()
+                        );
+
+                    std::unique_ptr<sql::ResultSet>
+                        idResult(
+                            idStmt->executeQuery(
+                                "SELECT LAST_INSERT_ID() AS subject_id"
+                            )
+                        );
+
+                    if (!idResult->next())
+                    {
+                        con->rollback();
+                        con->setAutoCommit(true);
+                        return;
+                    }
+
+                    finalSubjectId =
+                        idResult->getInt("subject_id");
                 }
+
+                std::unique_ptr<sql::PreparedStatement>
+                    deleteLevels(
+                        con->prepareStatement(
+                            "DELETE FROM subject_academic_levels "
+                            "WHERE subject_id = ?"
+                        )
+                    );
+
+                deleteLevels->setInt(
+                    1,
+                    finalSubjectId
+                );
+
+                deleteLevels->executeUpdate();
+
+                int levelCount = 0;
+                if (this->cmbAcademicLevel->SelectedIndex == 3)
+                    levelCount = 2;
+                else
+                    levelCount = 1;
+
+                for (int i = 0; i < levelCount; i++)
+                {
+                    String^ levelCode =
+                        L"O_LEVEL";
+
+                    if (this->cmbAcademicLevel->SelectedIndex == 2)
+                        levelCode = L"A_LEVEL";
+                    else if (
+                        this->cmbAcademicLevel->SelectedIndex == 3 &&
+                        i == 1)
+                        levelCode = L"A_LEVEL";
+
+                    std::unique_ptr<sql::PreparedStatement>
+                        levelStmt(
+                            con->prepareStatement(
+                                "INSERT INTO subject_academic_levels "
+                                "(subject_id, academic_level_id, status) "
+                                "SELECT ?, academic_level_id, 'Active' "
+                                "FROM academic_levels "
+                                "WHERE level_code = ? "
+                                "LIMIT 1"
+                            )
+                        );
+
+                    levelStmt->setInt(
+                        1,
+                        finalSubjectId
+                    );
+
+                    levelStmt->setString(
+                        2,
+                        msclr::interop::marshal_as<std::string>(
+                            levelCode
+                        )
+                    );
+
+                    levelStmt->executeUpdate();
+                }
+
+                con->commit();
+                con->setAutoCommit(true);
+
+                MessageBox::Show(
+                    editorEditMode
+                    ? L"Subject details updated successfully."
+                    : L"Subject registered successfully.",
+                    L"Subjects",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Information
+                );
 
                 this->editorForm->DialogResult =
                     System::Windows::Forms::DialogResult::OK;
