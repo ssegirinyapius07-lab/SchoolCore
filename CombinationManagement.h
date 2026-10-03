@@ -789,8 +789,8 @@ namespace SchoolCore
             this->editorForm->ShowInTaskbar = false;
             this->editorForm->ClientSize =
                 System::Drawing::Size(
-                    720,
-                    560
+                    900,
+                    600
                 );
 
             System::Windows::Forms::TableLayoutPanel^ layout =
@@ -805,7 +805,7 @@ namespace SchoolCore
             layout->ColumnStyles->Add(
                 gcnew ColumnStyle(
                     SizeType::Absolute,
-                    170.0F
+                    220.0F
                 )
             );
 
