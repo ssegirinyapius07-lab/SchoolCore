@@ -19,7 +19,7 @@ namespace SchoolCore
     public ref class TeacherManagement : public System::Windows::Forms::Form
     {
     public:
-                TeacherManagement()
+                TeacherManagement(void)
                 {
                     InitializeComponent();
                     LoadTeachers();
@@ -29,7 +29,7 @@ namespace SchoolCore
 
 
     protected:
-        ~TeacherManagement()
+        ~TeacherManagement(void)
         {
             if (this->components)
             {
