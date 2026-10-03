@@ -161,6 +161,9 @@
     <ClInclude Include="Attendance.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="Examinations.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Dashboard.resx">
