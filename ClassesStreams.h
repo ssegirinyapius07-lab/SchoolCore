@@ -133,7 +133,7 @@ namespace SchoolCore
         System::Windows::Forms::ComboBox^ cmbAcademicYear;
         System::Windows::Forms::ComboBox^ cmbTerm;
 
-        System::Windows::Forms::TextBox^ txtStreamName;
+        System::Windows::Forms::ComboBox^ cmbStreamName;
 
         System::Windows::Forms::Button^ btnAddStream;
         System::Windows::Forms::Button^ btnToggleStream;
@@ -248,7 +248,6 @@ void InitializeComponent(void)
 
             this->BackColor =
                 System::Drawing::Color::WhiteSmoke;
-
             this->Font =
                 gcnew System::Drawing::Font(
                     L"Segoe UI",
@@ -497,8 +496,7 @@ void InitializeComponent(void)
             this->lblAcademicLevel =
                 gcnew System::Windows::Forms::Label();
 
-            this->lblAcademicLevel->Text =
-                L"Academic Level";
+            this->lblAcademicLevel->Text =                L"Academic Level";
 
             this->lblAcademicLevel->Dock =
                 System::Windows::Forms::DockStyle::Fill;
@@ -749,7 +747,6 @@ void InitializeComponent(void)
             streamLayout->Padding =
                 System::Windows::Forms::Padding(5);
 
-
             streamLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
                     System::Windows::Forms::SizeType::Absolute,
@@ -914,13 +911,24 @@ void InitializeComponent(void)
                 System::Drawing::ContentAlignment::MiddleLeft;
 
 
-            this->txtStreamName =
-                gcnew System::Windows::Forms::TextBox();
+            this->cmbStreamName =
+                gcnew System::Windows::Forms::ComboBox();
 
-            this->txtStreamName->Dock =
+            this->cmbStreamName->Dock =
                 System::Windows::Forms::DockStyle::Fill;
 
-            this->txtStreamName->Margin =
+            this->cmbStreamName->DropDownStyle =
+                System::Windows::Forms::ComboBoxStyle::DropDownList;
+
+            this->cmbStreamName->Items->Add(
+                L"Select Stream"
+            );
+
+            this->cmbStreamName->SelectedIndex = 0;
+
+            this->cmbStreamName->Enabled = false;
+
+            this->cmbStreamName->Margin =
                 System::Windows::Forms::Padding(3);
 
 
@@ -998,7 +1006,6 @@ void InitializeComponent(void)
                 L"student_count",
                 L"Students"
             );
-
             this->streamsGrid->Columns->Add(
                 L"status",
                 L"Status"
@@ -1249,7 +1256,6 @@ void InitializeComponent(void)
                     )
                 );
 
-
                 stmt->setInt(
                     1,
                     yearItem->Id
@@ -1499,7 +1505,6 @@ void InitializeComponent(void)
                     );
                 }
 
-
                 std::unique_ptr<sql::ResultSet> result(
                     stmt->executeQuery()
                 );
@@ -1534,6 +1539,92 @@ void InitializeComponent(void)
                         )
                     );
                 }
+            }
+            catch (sql::SQLException& ex)
+            {
+                MessageBox::Show(
+                    gcnew String(ex.what()),
+                    L"Database Error",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+        }
+
+
+        // =========================================================
+        // LOAD STREAM OPTIONS
+        // =========================================================
+
+        void LoadStreamOptions(int classId)
+        {
+            this->cmbStreamName->Items->Clear();
+            this->cmbStreamName->Items->Add(
+                L"Select Stream"
+            );
+            this->cmbStreamName->SelectedIndex = 0;
+            this->cmbStreamName->Enabled = false;
+
+            try
+            {
+                auto con =
+                    DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT al.level_code "
+                        "FROM classes c "
+                        "INNER JOIN academic_levels al "
+                        "ON al.academic_level_id = c.academic_level_id "
+                        "WHERE c.class_id = ? "
+                        "LIMIT 1"
+                    )
+                );
+
+                stmt->setInt(1, classId);
+
+                std::unique_ptr<sql::ResultSet> result(
+                    stmt->executeQuery()
+                );
+
+                if (!result->next())
+                    return;
+
+                String^ levelCode =
+                    gcnew String(
+                        result->getString("level_code").c_str()
+                    );
+
+                if (
+                    String::Equals(
+                        levelCode,
+                        L"O_LEVEL",
+                        StringComparison::OrdinalIgnoreCase
+                    )
+                    )
+                {
+                    this->cmbStreamName->Items->Add(L"West");
+                    this->cmbStreamName->Items->Add(L"South");
+                    this->cmbStreamName->Items->Add(L"East");
+                    this->cmbStreamName->Items->Add(L"North");
+                }
+                else if (
+                    String::Equals(
+                        levelCode,
+                        L"A_LEVEL",
+                        StringComparison::OrdinalIgnoreCase
+                    )
+                    )
+                {
+                    this->cmbStreamName->Items->Add(L"Sciences");
+                    this->cmbStreamName->Items->Add(L"Arts");
+                }
+                else
+                {
+                    return;
+                }
+
+                this->cmbStreamName->Enabled = true;
             }
             catch (sql::SQLException& ex)
             {
@@ -1694,7 +1785,8 @@ void InitializeComponent(void)
 
 
                 this->btnAddStream->Enabled =
-                    true;
+                    this->cmbStreamName->Enabled &&
+                    this->cmbStreamName->Items->Count > 1;
 
                 this->btnToggleStream->Enabled =
                     this->streamsGrid
@@ -1747,8 +1839,7 @@ void InitializeComponent(void)
             }
 
             ComboItem^ levelItem =
-                safe_cast<ComboItem^>(
-                    this->cmbAcademicLevel->SelectedItem
+                safe_cast<ComboItem^>(                    this->cmbAcademicLevel->SelectedItem
                 );
 
             String^ className =
@@ -1858,6 +1949,25 @@ void InitializeComponent(void)
             System::Object^ sender,
             System::EventArgs^ e)
         {
+            if (this->classesGrid->SelectedRows->Count == 0)
+            {
+                this->cmbStreamName->Items->Clear();
+                this->cmbStreamName->Items->Add(L"Select Stream");
+                this->cmbStreamName->SelectedIndex = 0;
+                this->cmbStreamName->Enabled = false;
+                LoadStreams();
+                return;
+            }
+
+            int classId =
+                Convert::ToInt32(
+                    this->classesGrid
+                    ->SelectedRows[0]
+                    ->Cells["id"]
+                    ->Value
+                );
+
+            LoadStreamOptions(classId);
             LoadStreams();
         }
 
@@ -1880,10 +1990,8 @@ void InitializeComponent(void)
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Warning
                 );
-
                 return;
             }
-
 
             if (
                 this->cmbAcademicYear->SelectedIndex <= 0
@@ -1895,10 +2003,8 @@ void InitializeComponent(void)
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Warning
                 );
-
                 return;
             }
-
 
             if (
                 this->cmbTerm->SelectedIndex <= 0
@@ -1910,33 +2016,22 @@ void InitializeComponent(void)
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Warning
                 );
-
                 return;
             }
 
-
-            String^ streamName =
-                this->txtStreamName->Text->Trim();
-
-
             if (
-                String::IsNullOrWhiteSpace(
-                    streamName
-                )
+                this->cmbStreamName->SelectedIndex <= 0
                 )
             {
                 MessageBox::Show(
-                    L"Please enter a stream name.",
+                    L"Please select a valid stream for the selected academic level.",
                     L"Validation",
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Warning
                 );
-
-                this->txtStreamName->Focus();
-
+                this->cmbStreamName->Focus();
                 return;
             }
-
 
             int classId =
                 Convert::ToInt32(
@@ -1946,81 +2041,13 @@ void InitializeComponent(void)
                     ->Value
                 );
 
+            String^ streamName =
+                this->cmbStreamName->SelectedItem->ToString();
 
             try
             {
                 auto con =
                     DbConnection::GetConnection();
-
-                std::unique_ptr<sql::PreparedStatement>
-                    levelStmt(
-                        con->prepareStatement(
-                            "SELECT al.level_code "
-                            "FROM classes c "
-                            "INNER JOIN academic_levels al "
-                            "ON al.academic_level_id = c.academic_level_id "
-                            "WHERE c.class_id = ? "
-                            "LIMIT 1"
-                        )
-                    );
-
-                levelStmt->setInt(1, classId);
-
-                std::unique_ptr<sql::ResultSet> levelResult(
-                    levelStmt->executeQuery()
-                );
-
-                if (!levelResult->next())
-                {
-                    MessageBox::Show(
-                        L"The selected class does not have a valid academic level.",
-                        L"Validation",
-                        MessageBoxButtons::OK,
-                        MessageBoxIcon::Warning
-                    );
-                    return;
-                }
-
-                String^ levelCode =
-                    gcnew String(levelResult->getString("level_code").c_str());
-
-                String^ canonicalStream = nullptr;
-
-                if (String::Equals(levelCode, L"O_LEVEL", StringComparison::OrdinalIgnoreCase))
-                {
-                    if (String::Equals(streamName, L"West", StringComparison::OrdinalIgnoreCase))
-                        canonicalStream = L"West";
-                    else if (String::Equals(streamName, L"South", StringComparison::OrdinalIgnoreCase))
-                        canonicalStream = L"South";
-                    else if (String::Equals(streamName, L"East", StringComparison::OrdinalIgnoreCase))
-                        canonicalStream = L"East";
-                    else if (String::Equals(streamName, L"North", StringComparison::OrdinalIgnoreCase))
-                        canonicalStream = L"North";
-                }
-                else if (String::Equals(levelCode, L"A_LEVEL", StringComparison::OrdinalIgnoreCase))
-                {
-                    if (String::Equals(streamName, L"Sciences", StringComparison::OrdinalIgnoreCase))
-                        canonicalStream = L"Sciences";
-                    else if (String::Equals(streamName, L"Arts", StringComparison::OrdinalIgnoreCase))
-                        canonicalStream = L"Arts";
-                }
-
-                if (canonicalStream == nullptr)
-                {
-                    MessageBox::Show(
-                        String::Equals(levelCode, L"O_LEVEL", StringComparison::OrdinalIgnoreCase)
-                        ? L"O-Level streams must be West, South, East or North."
-                        : L"A-Level streams must be Sciences or Arts.",
-                        L"Validation",
-                        MessageBoxButtons::OK,
-                        MessageBoxIcon::Warning
-                    );
-                    this->txtStreamName->Focus();
-                    return;
-                }
-
-                streamName = canonicalStream;
-
 
                 std::unique_ptr<sql::PreparedStatement>
                     checkStmt(
@@ -2032,12 +2059,10 @@ void InitializeComponent(void)
                         )
                     );
 
-
                 checkStmt->setInt(
                     1,
                     classId
                 );
-
 
                 checkStmt->setString(
                     2,
@@ -2046,12 +2071,10 @@ void InitializeComponent(void)
                     )
                 );
 
-
                 std::unique_ptr<sql::ResultSet>
                     checkResult(
                         checkStmt->executeQuery()
                     );
-
 
                 if (checkResult->next())
                 {
@@ -2061,10 +2084,8 @@ void InitializeComponent(void)
                         MessageBoxButtons::OK,
                         MessageBoxIcon::Warning
                     );
-
                     return;
                 }
-
 
                 std::unique_ptr<sql::PreparedStatement>
                     insertStmt(
@@ -2075,12 +2096,10 @@ void InitializeComponent(void)
                         )
                     );
 
-
                 insertStmt->setInt(
                     1,
                     classId
                 );
-
 
                 insertStmt->setString(
                     2,
@@ -2089,15 +2108,11 @@ void InitializeComponent(void)
                     )
                 );
 
-
                 insertStmt->executeUpdate();
 
-
-                this->txtStreamName->Clear();
-
+                this->cmbStreamName->SelectedIndex = 0;
 
                 LoadStreams();
-
 
                 MessageBox::Show(
                     L"Stream added successfully.",
@@ -2247,8 +2262,7 @@ void InitializeComponent(void)
         // TOGGLE STREAM
         // =========================================================
 
-        System::Void streamsGrid_SelectionChanged(
-            System::Object^ sender,
+        System::Void streamsGrid_SelectionChanged(            System::Object^ sender,
             System::EventArgs^ e)
         {
             this->btnToggleStream->Enabled =
