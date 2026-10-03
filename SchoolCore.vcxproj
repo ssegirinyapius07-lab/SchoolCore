@@ -155,6 +155,9 @@
     <ClInclude Include="StudentRegistration.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="PromotionManagement.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
     <ClInclude Include="TeacherManagement.h">
       <FileType>CppForm</FileType>
     </ClInclude>
