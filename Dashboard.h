@@ -2,6 +2,7 @@
 
 #include "DbConnection.h"
 #include "StudentManagement.h"
+#include "StudentRegistration.h"
 #include "TeacherManagement.h"
 #include "AcademicYearsTerms.h"
 #include "ClassesStreams.h"
@@ -203,6 +204,94 @@ namespace SchoolCore {
 		}
 
 
+
+		System::Void btnQuickAction_Click(
+			System::Object^ sender,
+			System::EventArgs^ e)
+		{
+			Button^ button =
+				safe_cast<Button^>(sender);
+
+			String^ action =
+				button->Tag == nullptr
+				? L""
+				: button->Tag->ToString();
+
+			if (action->Equals(
+				L"register_student",
+				StringComparison::Ordinal))
+			{
+				StudentRegistration^ form =
+					gcnew StudentRegistration();
+
+				if (form->ShowDialog(this) ==
+					DialogResult::OK)
+				{
+					ShowDashboardOverview();
+				}
+
+				return;
+			}
+
+			if (action->Equals(
+				L"students",
+				StringComparison::Ordinal))
+			{
+				StudentManagement^ form =
+					gcnew StudentManagement();
+
+				form->ShowDialog(this);
+				ShowDashboardOverview();
+				return;
+			}
+
+			if (action->Equals(
+				L"teachers",
+				StringComparison::Ordinal))
+			{
+				TeacherManagement^ form =
+					gcnew TeacherManagement();
+
+				form->ShowDialog(this);
+				ShowDashboardOverview();
+				return;
+			}
+
+			if (action->Equals(
+				L"subjects",
+				StringComparison::Ordinal))
+			{
+				SubjectManagement^ form =
+					gcnew SubjectManagement();
+
+				form->ShowDialog(this);
+				ShowDashboardOverview();
+				return;
+			}
+
+			if (action->Equals(
+				L"academic",
+				StringComparison::Ordinal))
+			{
+				this->contentPanel->Controls->Clear();
+
+				SchoolCore::AcademicYearsTerms^ form =
+					gcnew SchoolCore::AcademicYearsTerms();
+
+				form->TopLevel = false;
+				form->FormBorderStyle =
+					System::Windows::Forms::FormBorderStyle::None;
+				form->Dock =
+					System::Windows::Forms::DockStyle::Fill;
+				form->WindowState =
+					System::Windows::Forms::FormWindowState::Normal;
+
+				this->contentPanel->Controls->Add(form);
+				form->Show();
+			}
+		}
+
+
 		System::Void btnDashboard_Click(
 			System::Object^ sender,
 			System::EventArgs^ e)
@@ -309,22 +398,47 @@ namespace SchoolCore {
 			layout->Controls->Add(CreateDashboardCard(L"Academic Year", currentAcademicYear,
 				Color::FromArgb(139, 92, 246), false), 3, 1);
 
-			// Free content area (two panels, ready for real content later)
+			// Main content area
 			TableLayoutPanel^ lower = gcnew TableLayoutPanel();
 			lower->Dock = DockStyle::Fill;
 			lower->Margin = System::Windows::Forms::Padding(0, 20, 0, 0);
 			lower->ColumnCount = 2;
 			lower->RowCount = 1;
-			lower->ColumnStyles->Add(gcnew ColumnStyle(SizeType::Percent, 60.0F));
-			lower->ColumnStyles->Add(gcnew ColumnStyle(SizeType::Percent, 40.0F));
+			lower->ColumnStyles->Add(
+				gcnew ColumnStyle(
+					SizeType::Percent,
+					60.0F
+				)
+			);
+			lower->ColumnStyles->Add(
+				gcnew ColumnStyle(
+					SizeType::Percent,
+					40.0F
+				)
+			);
 
-			lower->Controls->Add(CreateSectionPanel(L"Recent Activity",
-				L"Latest enrolments and changes will appear here."), 0, 0);
-			lower->Controls->Add(CreateSectionPanel(L"Quick Actions",
-				L"Shortcuts for common tasks will appear here."), 1, 0);
+			lower->Controls->Add(
+				CreateRecentActivityPanel(),
+				0,
+				0
+			);
 
-			layout->Controls->Add(lower, 0, 2);
-			layout->SetColumnSpan(lower, 4);
+			lower->Controls->Add(
+				CreateQuickActionsPanel(),
+				1,
+				0
+			);
+
+			layout->Controls->Add(
+				lower,
+				0,
+				2
+			);
+
+			layout->SetColumnSpan(
+				lower,
+				4
+			);
 
 			// Footer
 			Label^ footer = gcnew Label();
@@ -376,31 +490,521 @@ namespace SchoolCore {
 		}
 
 
-		Panel^ CreateSectionPanel(String^ heading, String^ placeholder)
+
+		Panel^ CreateRecentActivityPanel()
 		{
-			Panel^ section = gcnew Panel();
-			section->Dock = DockStyle::Fill;
-			section->Margin = System::Windows::Forms::Padding(0, 0, 15, 0);
-			section->BackColor = Color::White;
-			section->BorderStyle = BorderStyle::FixedSingle;
-			section->Padding = System::Windows::Forms::Padding(20);
+			Panel^ section =
+				gcnew Panel();
 
-			Label^ headingLabel = gcnew Label();
-			headingLabel->Text = heading;
-			headingLabel->Dock = DockStyle::Top;
-			headingLabel->Height = 34;
-			headingLabel->Font = gcnew System::Drawing::Font(L"Segoe UI Semibold", 12.0F, FontStyle::Bold);
-			headingLabel->ForeColor = Color::FromArgb(30, 41, 59);
+			section->Dock =
+				DockStyle::Fill;
 
-			Label^ hint = gcnew Label();
-			hint->Text = placeholder;
-			hint->Dock = DockStyle::Fill;
-			hint->Font = gcnew System::Drawing::Font(L"Segoe UI", 10.0F);
-			hint->ForeColor = Color::Gray;
-			hint->TextAlign = ContentAlignment::MiddleCenter;
+			section->Margin =
+				System::Windows::Forms::Padding(
+					0, 0, 15, 0
+				);
 
-			section->Controls->Add(hint);
-			section->Controls->Add(headingLabel);
+			section->BackColor =
+				Color::White;
+
+			section->BorderStyle =
+				BorderStyle::FixedSingle;
+
+			section->Padding =
+				System::Windows::Forms::Padding(
+					18
+				);
+
+			Label^ heading =
+				gcnew Label();
+
+			heading->Text =
+				L"Recent Activity";
+
+			heading->Dock =
+				DockStyle::Top;
+
+			heading->Height =
+				34;
+
+			heading->Font =
+				gcnew System::Drawing::Font(
+					L"Segoe UI Semibold",
+					12.0F,
+					FontStyle::Bold
+				);
+
+			heading->ForeColor =
+				Color::FromArgb(
+					30, 41, 59
+				);
+
+			section->Controls->Add(
+				heading
+			);
+
+			FlowLayoutPanel^ activityList =
+				gcnew FlowLayoutPanel();
+
+			activityList->Dock =
+				DockStyle::Fill;
+
+			activityList->FlowDirection =
+				FlowDirection::TopDown;
+
+			activityList->WrapContents =
+				false;
+
+			activityList->AutoScroll =
+				true;
+
+			activityList->Padding =
+				System::Windows::Forms::Padding(
+					0, 4, 4, 0
+				);
+
+			try
+			{
+				auto con =
+					DbConnection::GetConnection();
+
+				std::unique_ptr<sql::PreparedStatement>
+					studentStmt(
+						con->prepareStatement(
+							"SELECT "
+							"registration_number, "
+							"first_name, "
+							"middle_name, "
+							"last_name "
+							"FROM students "
+							"ORDER BY student_id DESC "
+							"LIMIT 3"
+						)
+					);
+
+				std::unique_ptr<sql::ResultSet>
+					studentResult(
+						studentStmt->executeQuery()
+					);
+
+				int activityCount = 0;
+
+				while (
+					studentResult->next() &&
+					activityCount < 3
+				)
+				{
+					String^ first =
+						gcnew String(
+							studentResult->getString(
+								"first_name"
+							).c_str()
+						);
+
+					String^ last =
+						gcnew String(
+							studentResult->getString(
+								"last_name"
+						).c_str()
+						);
+
+					String^ registration =
+						gcnew String(
+							studentResult->getString(
+								"registration_number"
+							).c_str()
+						);
+
+					String^ name =
+						first + L" " + last;
+
+					Panel^ item =
+						gcnew Panel();
+
+					item->Width =
+						activityList->ClientSize.Width - 10;
+
+					item->Height =
+						52;
+
+					item->BackColor =
+						Color::FromArgb(
+							248, 250, 252
+						);
+
+					Label^ title =
+						gcnew Label();
+
+					title->Text =
+						L"New student registered";
+
+					title->Font =
+						gcnew System::Drawing::Font(
+							L"Segoe UI Semibold",
+							9.5F,
+							FontStyle::Bold
+						);
+
+					title->Location =
+						Point(12, 6);
+
+					title->AutoSize =
+						true;
+
+					Label^ detail =
+						gcnew Label();
+
+					detail->Text =
+						name +
+						L"  •  " +
+						registration;
+
+					detail->ForeColor =
+						Color::DimGray;
+
+					detail->Location =
+						Point(12, 27);
+
+					detail->AutoSize =
+						true;
+
+					item->Controls->Add(detail);
+					item->Controls->Add(title);
+					activityList->Controls->Add(item);
+
+					activityCount++;
+				}
+
+				std::unique_ptr<sql::PreparedStatement>
+					teacherStmt(
+						con->prepareStatement(
+							"SELECT "
+							"staff_number, "
+							"first_name, "
+							"last_name "
+							"FROM teachers "
+							"ORDER BY teacher_id DESC "
+							"LIMIT 2"
+						)
+					);
+
+				std::unique_ptr<sql::ResultSet>
+					teacherResult(
+						teacherStmt->executeQuery()
+					);
+
+				while (
+					teacherResult->next() &&
+					activityCount < 5
+				)
+				{
+					String^ first =
+						gcnew String(
+							teacherResult->getString(
+								"first_name"
+						).c_str()
+						);
+
+					String^ last =
+						gcnew String(
+							teacherResult->getString(
+								"last_name"
+						).c_str()
+						);
+
+					String^ staff =
+						gcnew String(
+							teacherResult->getString(
+								"staff_number"
+						).c_str()
+						);
+
+					Panel^ item =
+						gcnew Panel();
+
+					item->Width =
+						activityList->ClientSize.Width - 10;
+
+					item->Height =
+						52;
+
+					item->BackColor =
+						Color::FromArgb(
+							248, 250, 252
+						);
+
+					Label^ title =
+						gcnew Label();
+
+					title->Text =
+						L"Teacher record added";
+
+					title->Font =
+						gcnew System::Drawing::Font(
+							L"Segoe UI Semibold",
+							9.5F,
+							FontStyle::Bold
+						);
+
+					title->Location =
+						Point(12, 6);
+
+					title->AutoSize =
+						true;
+
+					Label^ detail =
+						gcnew Label();
+
+					detail->Text =
+						first + L" " + last +
+						L"  •  " + staff;
+
+					detail->ForeColor =
+						Color::DimGray;
+
+					detail->Location =
+						Point(12, 27);
+
+					detail->AutoSize =
+						true;
+
+					item->Controls->Add(detail);
+					item->Controls->Add(title);
+					activityList->Controls->Add(item);
+
+					activityCount++;
+				}
+
+			if (activityList->Controls->Count == 0)
+			{
+				Label^ empty =
+					gcnew Label();
+
+				empty->Text =
+					L"No recent activity yet.";
+
+				empty->Dock =
+					DockStyle::Top;
+
+				empty->Height =
+					40;
+
+				empty->ForeColor =
+					Color::Gray;
+
+				empty->TextAlign =
+					ContentAlignment::MiddleLeft;
+
+				activityList->Controls->Add(empty);
+			}
+			}
+			catch (sql::SQLException&)
+			{
+				Label^ error =
+					gcnew Label();
+
+				error->Text =
+					L"Recent activity could not be loaded.";
+
+				error->Dock =
+					DockStyle::Top;
+
+				error->Height =
+					40;
+
+				error->ForeColor =
+					Color::DimGray;
+
+				activityList->Controls->Add(error);
+			}
+
+			section->Controls->Add(
+				activityList
+			);
+
+			return section;
+		}
+
+
+		Button^ CreateQuickActionButton(
+			String^ caption,
+			String^ action,
+			bool enabled)
+		{
+			Button^ button =
+				gcnew Button();
+
+			button->Text =
+				caption;
+
+			button->Tag =
+				action;
+
+			button->Size =
+				System::Drawing::Size(
+					175,
+					42
+				);
+
+			button->Margin =
+				System::Windows::Forms::Padding(
+					0, 0, 8, 10
+				);
+
+			button->BackColor =
+				Color::FromArgb(
+					248, 250, 252
+				);
+
+			button->ForeColor =
+				Color::FromArgb(
+					30, 41, 59
+				);
+
+			button->FlatStyle =
+				FlatStyle::Flat;
+
+			button->FlatAppearance->BorderColor =
+				Color::FromArgb(
+					203, 213, 225
+				);
+
+			button->FlatAppearance->BorderSize =
+				1;
+
+			button->Enabled =
+				enabled;
+
+			button->Click +=
+				gcnew EventHandler(
+					this,
+					&Dashboard::btnQuickAction_Click
+				);
+
+			return button;
+		}
+
+
+		Panel^ CreateQuickActionsPanel()
+		{
+			Panel^ section =
+				gcnew Panel();
+
+			section->Dock =
+				DockStyle::Fill;
+
+			section->BackColor =
+				Color::White;
+
+			section->BorderStyle =
+				BorderStyle::FixedSingle;
+
+			section->Padding =
+				System::Windows::Forms::Padding(
+					18
+				);
+
+			Label^ heading =
+				gcnew Label();
+
+			heading->Text =
+				L"Quick Actions";
+
+			heading->Dock =
+				DockStyle::Top;
+
+			heading->Height =
+				34;
+
+			heading->Font =
+				gcnew System::Drawing::Font(
+					L"Segoe UI Semibold",
+					12.0F,
+					FontStyle::Bold
+				);
+
+			heading->ForeColor =
+				Color::FromArgb(
+					30, 41, 59
+				);
+
+			section->Controls->Add(
+				heading
+			);
+
+			FlowLayoutPanel^ actions =
+				gcnew FlowLayoutPanel();
+
+			actions->Dock =
+				DockStyle::Fill;
+
+			actions->FlowDirection =
+				FlowDirection::LeftToRight;
+
+			actions->WrapContents =
+				true;
+
+			actions->AutoScroll =
+				true;
+
+			actions->Padding =
+				System::Windows::Forms::Padding(
+					0, 8, 0, 0
+				);
+
+			actions->Controls->Add(
+				CreateQuickActionButton(
+					L"Register Student",
+					L"register_student",
+					AuthSession::HasPermission(
+						L"students.manage"
+					)
+				)
+			);
+
+			actions->Controls->Add(
+				CreateQuickActionButton(
+					L"Manage Students",
+					L"students",
+					AuthSession::HasPermission(
+						L"students.view"
+					)
+				)
+			);
+
+			actions->Controls->Add(
+				CreateQuickActionButton(
+					L"Teachers",
+					L"teachers",
+					AuthSession::HasPermission(
+						L"teachers.view"
+					)
+				)
+			);
+
+			actions->Controls->Add(
+				CreateQuickActionButton(
+					L"Subjects",
+					L"subjects",
+					AuthSession::HasPermission(
+						L"subjects.view"
+					)
+				)
+			);
+
+			actions->Controls->Add(
+				CreateQuickActionButton(
+					L"Academic Years",
+					L"academic",
+					AuthSession::HasPermission(
+						L"academic_years.view"
+					)
+				)
+			);
+
+			section->Controls->Add(
+				actions
+			);
 
 			return section;
 		}
