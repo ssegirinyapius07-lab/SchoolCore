@@ -350,10 +350,18 @@ namespace SchoolCore
 
                 std::unique_ptr<sql::PreparedStatement> stmt(
                     con->prepareStatement(
-                        "SELECT subject_id, subject_name "
-                        "FROM subjects "
-                        "WHERE status = 'Active' "
-                        "ORDER BY subject_name ASC"
+                        "SELECT DISTINCT "
+                        "s.subject_id, s.subject_name "
+                        "FROM subjects s "
+                        "INNER JOIN subject_academic_levels sal "
+                        "ON sal.subject_id = s.subject_id "
+                        "INNER JOIN academic_levels al "
+                        "ON al.academic_level_id = sal.academic_level_id "
+                        "WHERE s.status = 'Active' "
+                        "AND sal.status = 'Active' "
+                        "AND al.level_code = 'A_LEVEL' "
+                        "AND al.status = 'Active' "
+                        "ORDER BY s.subject_name ASC"
                     )
                 );
 
