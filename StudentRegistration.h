@@ -364,10 +364,12 @@ namespace SchoolCore
             );
 
             // Student
+            // Extra vertical space keeps the address field and photo
+            // section comfortably inside the Student Information box.
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
                     SizeType::Absolute,
-                    245.0F
+                    285.0F
                 )
             );
 
@@ -388,10 +390,12 @@ namespace SchoolCore
             );
 
             // Buttons
+            // A larger action row keeps all actions reachable when
+            // the registration form is reduced and scrolled.
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
                     SizeType::Absolute,
-                    60.0F
+                    70.0F
                 )
             );
 
@@ -563,7 +567,7 @@ namespace SchoolCore
             studentLayout->RowStyles->Add(
                 gcnew RowStyle(
                     SizeType::Absolute,
-                    65.0F
+                    80.0F
                 )
             );
 
@@ -951,9 +955,9 @@ namespace SchoolCore
             this->photoPanel->Margin =
                 System::Windows::Forms::Padding(
                     8,
+                    10,
                     8,
-                    8,
-                    8
+                    10
                 );
 
             this->photoPanel->BorderStyle =
@@ -961,7 +965,10 @@ namespace SchoolCore
 
             this->photoPanel->Padding =
                 System::Windows::Forms::Padding(
-                    8
+                    8,
+                    10,
+                    8,
+                    10
                 );
 
             this->picStudentPhoto =
@@ -1043,7 +1050,7 @@ namespace SchoolCore
             this->lblPhotoHint->Location =
                 System::Drawing::Point(
                     4,
-                    157
+                    162
                 );
 
             this->lblPhotoHint->TextAlign =
@@ -1692,7 +1699,16 @@ namespace SchoolCore
 
             this->buttonPanel->Padding =
                 System::Windows::Forms::Padding(
-                    0, 5, 0, 5
+                    0,
+                    8,
+                    0,
+                    8
+                );
+
+            this->buttonPanel->MinimumSize =
+                System::Drawing::Size(
+                    0,
+                    70
                 );
 
 
@@ -1808,6 +1824,16 @@ namespace SchoolCore
             // =========================================================
             // PUT MAIN LAYOUT INSIDE SCROLL PANEL
             // =========================================================
+
+            // Keep a little extra room after the action buttons so the
+            // entire bottom row can be reached comfortably by scrolling.
+            this->mainLayout->Margin =
+                System::Windows::Forms::Padding(
+                    0,
+                    0,
+                    0,
+                    20
+                );
 
             this->scrollPanel->Controls->Add(
                 this->mainLayout
