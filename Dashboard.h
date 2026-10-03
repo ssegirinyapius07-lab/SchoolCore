@@ -6,6 +6,7 @@
 #include "AcademicYearsTerms.h"
 #include "ClassesStreams.h"
 #include "SubjectManagement.h"
+#include "AuthSession.h"
 
 namespace SchoolCore {
 
@@ -41,7 +42,53 @@ namespace SchoolCore {
 					&Dashboard::btnSubjects_Click
 				);
 
+			ApplyRolePermissions();
 			ShowDashboardOverview();
+		}
+
+		void ApplyRolePermissions()
+		{
+			this->btnStudents->Visible =
+				AuthSession::HasPermission(L"students.view");
+
+			this->btnTeachers->Visible =
+				AuthSession::HasPermission(L"teachers.view");
+
+			this->btnClasses->Visible =
+				AuthSession::HasPermission(L"classes.view");
+
+			this->btnSubjects->Visible =
+				AuthSession::HasPermission(L"subjects.view");
+
+			this->btnAcademic->Visible =
+				AuthSession::HasPermission(L"academic_years.view");
+
+			this->btnTimetable->Visible =
+				AuthSession::HasPermission(L"timetable.view");
+
+			this->btnAttendance->Visible =
+				AuthSession::HasPermission(L"attendance.view");
+
+			this->btnExaminations->Visible =
+				AuthSession::HasPermission(L"examinations.view");
+
+			this->btnFees->Visible =
+				AuthSession::HasPermission(L"fees.view");
+
+			this->btnDiscipline->Visible =
+				AuthSession::HasPermission(L"discipline.view");
+
+			this->btnCommunication->Visible =
+				AuthSession::HasPermission(L"communication.view");
+
+			this->btnReports->Visible =
+				AuthSession::HasPermission(L"reports.view");
+
+			this->btnUsers->Visible =
+				AuthSession::HasPermission(L"users.view");
+
+			this->btnSettings->Visible =
+				AuthSession::HasPermission(L"settings.view");
 		}
 
 	protected:
