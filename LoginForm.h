@@ -30,6 +30,7 @@ namespace SchoolCore
         Button^ btnLogin;
         Label^ lblMessage;
         CheckBox^ chkShowPassword;
+        Button^ btnClose;
 
         static array<Byte>^ Base64Decode(String^ value)
         {
@@ -152,6 +153,16 @@ namespace SchoolCore
                 error
                 ? Color::Firebrick
                 : Color::DarkGreen;
+        }
+
+        System::Void btnClose_Click(
+            System::Object^ sender,
+            System::EventArgs^ e)
+        {
+            this->DialogResult =
+                System::Windows::Forms::DialogResult::Cancel;
+
+            this->Close();
         }
 
         System::Void chkShowPassword_CheckedChanged(
@@ -455,6 +466,59 @@ namespace SchoolCore
 
             this->card->BorderStyle =
                 BorderStyle::FixedSingle;
+
+
+            // =====================================================
+            // CLOSE LOGIN
+            // =====================================================
+
+            this->btnClose =
+                gcnew Button();
+
+            this->btnClose->Text =
+                L"×";
+
+            this->btnClose->Size =
+                System::Drawing::Size(
+                    42,
+                    42
+                );
+
+            this->btnClose->Location =
+                Point(
+                    this->ClientSize.Width - 58,
+                    18
+                );
+
+            this->btnClose->Anchor =
+                AnchorStyles::Top |
+                AnchorStyles::Right;
+
+            this->btnClose->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI",
+                    18.0F,
+                    FontStyle::Regular
+                );
+
+            this->btnClose->ForeColor =
+                Color::FromArgb(
+                    71,
+                    85,
+                    105
+                );
+
+            this->btnClose->BackColor =
+                Color::Transparent;
+
+            this->btnClose->FlatStyle =
+                FlatStyle::Flat;
+
+            this->btnClose->FlatAppearance->BorderSize =
+                0;
+
+            this->btnClose->Cursor =
+                Cursors::Hand;
 
 
             // =====================================================
@@ -893,6 +957,10 @@ namespace SchoolCore
                 this->card
             );
 
+            this->Controls->Add(
+                this->btnClose
+            );
+
 
             // =====================================================
             // EVENTS
@@ -904,6 +972,12 @@ namespace SchoolCore
                     &LoginForm::btnLogin_Click
                 );
 
+            this->btnClose->Click +=
+                gcnew EventHandler(
+                    this,
+                    &LoginForm::btnClose_Click
+                );
+
             this->chkShowPassword->CheckedChanged +=
                 gcnew EventHandler(
                     this,
@@ -913,6 +987,9 @@ namespace SchoolCore
 
             this->AcceptButton =
                 this->btnLogin;
+
+            this->CancelButton =
+                this->btnClose;
 
             this->Resize +=
                 gcnew EventHandler(
