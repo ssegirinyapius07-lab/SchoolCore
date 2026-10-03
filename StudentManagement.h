@@ -1,6 +1,7 @@
 #pragma once
 #include "StudentRegistration.h"
 #include "PromotionManagement.h"
+#include "BulkPromotionManagement.h"
 #include "ThemeManager.h"
 #include "DbConnection.h"
 
@@ -53,8 +54,21 @@ namespace SchoolCore
 					&StudentManagement::btnEditStudent_Click
 				);
 
+			this->studentsGrid->CurrentCellDirtyStateChanged +=
+				gcnew System::EventHandler(
+					this,
+					&StudentManagement::studentsGrid_CurrentCellDirtyStateChanged
+				);
+
+			this->studentsGrid->CellValueChanged +=
+				gcnew System::Windows::Forms::DataGridViewCellEventHandler(
+					this,
+					&StudentManagement::studentsGrid_CellValueChanged
+				);
+
 			this->btnViewProfile->Enabled = false;
 			this->btnEditStudent->Enabled = false;
+			this->btnBulkPromote->Enabled = false;
 
 			if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
 			{
@@ -99,6 +113,8 @@ namespace SchoolCore
 		System::Windows::Forms::Button^ btnViewProfile;
 		System::Windows::Forms::Button^ btnEditStudent;
 		System::Windows::Forms::Button^ btnPromoteStudent;
+		System::Windows::Forms::Button^ btnBulkPromote;
+		System::Windows::Forms::Button^ btnSelectAll;
 		System::Windows::Forms::Button^ btnBack;
 
 		System::Void btnRegisterStudent_Click(
@@ -269,6 +285,7 @@ namespace SchoolCore
 					fullName += lastName;
 
 					this->studentsGrid->Rows->Add(
+						false,
 						result->getInt64("student_id"),
 						registration,
 						fullName,
@@ -323,6 +340,140 @@ namespace SchoolCore
 				e->SuppressKeyPress = true;
 			}
 		}
+
+		void UpdateBulkPromotionButtons()
+		{
+			int checkedCount = 0;
+
+			for each (DataGridViewRow^ row in this->studentsGrid->Rows)
+			{
+				Object^ value = row->Cells["Select"]->Value;
+
+				if (value != nullptr &&
+					Convert::ToBoolean(value))
+				{
+					checkedCount++;
+				}
+			}
+
+			this->btnBulkPromote->Enabled = checkedCount > 0;
+
+			this->btnSelectAll->Enabled =
+				this->studentsGrid->Rows->Count > 0;
+
+			this->btnSelectAll->Text =
+				(checkedCount == this->studentsGrid->Rows->Count &&
+				 this->studentsGrid->Rows->Count > 0)
+				? L"Clear Selection"
+				: L"Select All";
+		}
+
+		System::Void studentsGrid_CurrentCellDirtyStateChanged(
+			System::Object^ sender,
+			System::EventArgs^ e)
+		{
+			if (this->studentsGrid->IsCurrentCellDirty &&
+				this->studentsGrid->CurrentCell->ColumnIndex ==
+				this->studentsGrid->Columns["Select"]->Index)
+			{
+				this->studentsGrid->CommitEdit(
+					DataGridViewDataErrorContexts::Commit);
+			}
+		}
+
+		System::Void studentsGrid_CellValueChanged(
+			System::Object^ sender,
+			DataGridViewCellEventArgs^ e)
+		{
+			if (e->RowIndex >= 0 &&
+				e->ColumnIndex == this->studentsGrid->Columns["Select"]->Index)
+			{
+				UpdateBulkPromotionButtons();
+			}
+		}
+
+		System::Void btnSelectAll_Click(
+			System::Object^ sender,
+			System::EventArgs^ e)
+		{
+			bool allSelected =
+				this->studentsGrid->Rows->Count > 0;
+
+			for each (DataGridViewRow^ row in this->studentsGrid->Rows)
+			{
+				Object^ value = row->Cells["Select"]->Value;
+
+				if (value == nullptr ||
+					!Convert::ToBoolean(value))
+				{
+					allSelected = false;
+					break;
+				}
+			}
+
+			for each (DataGridViewRow^ row in this->studentsGrid->Rows)
+			{
+				row->Cells["Select"]->Value = !allSelected;
+			}
+
+			UpdateBulkPromotionButtons();
+		}
+
+		System::Void btnBulkPromote_Click(
+			System::Object^ sender,
+			System::EventArgs^ e)
+		{
+			int count = 0;
+
+			for each (DataGridViewRow^ row in this->studentsGrid->Rows)
+			{
+				Object^ value = row->Cells["Select"]->Value;
+
+				if (value != nullptr &&
+					Convert::ToBoolean(value))
+				{
+					count++;
+				}
+			}
+
+			if (count == 0)
+			{
+				MessageBox::Show(
+					L"Select at least one student to promote.",
+					L"Bulk Promotion",
+					MessageBoxButtons::OK,
+					MessageBoxIcon::Warning);
+				return;
+			}
+
+			array<long long>^ selectedIds =
+				gcnew array<long long>(count);
+
+			int index = 0;
+
+			for each (DataGridViewRow^ row in this->studentsGrid->Rows)
+			{
+				Object^ value = row->Cells["Select"]->Value;
+
+				if (value != nullptr &&
+					Convert::ToBoolean(value))
+				{
+					selectedIds[index++] =
+						Convert::ToInt64(
+							row->Cells["StudentId"]->Value);
+				}
+			}
+
+			BulkPromotionManagement^ form =
+				gcnew BulkPromotionManagement(selectedIds);
+
+			if (form->ShowDialog(this) ==
+				System::Windows::Forms::DialogResult::OK)
+			{
+				LoadStudents();
+			}
+		}
+
 
 		System::Void studentsGrid_SelectionChanged(
 			System::Object^ sender,
@@ -1020,6 +1171,12 @@ namespace SchoolCore
 			this->btnPromoteStudent =
 				gcnew System::Windows::Forms::Button();
 
+			this->btnBulkPromote =
+				gcnew System::Windows::Forms::Button();
+
+			this->btnSelectAll =
+				gcnew System::Windows::Forms::Button();
+
 			this->btnBack =
 				gcnew System::Windows::Forms::Button();
 
@@ -1416,6 +1573,7 @@ namespace SchoolCore
 				System::Windows::Forms::DataGridViewSelectionMode::FullRowSelect;
 
 			this->studentsGrid->MultiSelect = false;
+			this->studentsGrid->ReadOnly = false;
 
 			this->studentsGrid->AutoSizeRowsMode =
 				System::Windows::Forms::DataGridViewAutoSizeRowsMode::None;
@@ -1443,6 +1601,19 @@ namespace SchoolCore
 			// GRID COLUMNS
 			// ============================================================
 
+
+			// Checkbox used for bulk promotion selection
+			System::Windows::Forms::DataGridViewCheckBoxColumn^ selectColumn =
+				gcnew System::Windows::Forms::DataGridViewCheckBoxColumn();
+
+			selectColumn->HeaderText = L"Select";
+			selectColumn->Name = L"Select";
+			selectColumn->Width = 65;
+			selectColumn->ReadOnly = false;
+			selectColumn->ThreeState = false;
+
+			this->studentsGrid->Columns->Add(selectColumn);
+
 			System::Windows::Forms::DataGridViewTextBoxColumn^ studentIdColumn =
 				gcnew System::Windows::Forms::DataGridViewTextBoxColumn();
 
@@ -1451,8 +1622,8 @@ namespace SchoolCore
 
 			studentIdColumn->Name =
 				L"StudentId";
-
 			studentIdColumn->Visible = false;
+			studentIdColumn->ReadOnly = true;
 
 			this->studentsGrid->Columns->Add(
 				studentIdColumn
@@ -1467,6 +1638,7 @@ namespace SchoolCore
 
 			registrationColumn->Name =
 				L"RegistrationNumber";
+			registrationColumn->ReadOnly = true;
 
 			registrationColumn->Width = 165;
 
@@ -1483,6 +1655,7 @@ namespace SchoolCore
 
 			nameColumn->Name =
 				L"StudentName";
+			nameColumn->ReadOnly = true;
 
 			nameColumn->AutoSizeMode =
 				System::Windows::Forms::DataGridViewAutoSizeColumnMode::Fill;
@@ -1500,6 +1673,7 @@ namespace SchoolCore
 
 			classColumn->Name =
 				L"Class";
+			classColumn->ReadOnly = true;
 
 			classColumn->Width = 100;
 
@@ -1516,6 +1690,7 @@ namespace SchoolCore
 
 			streamColumn->Name =
 				L"Stream";
+			streamColumn->ReadOnly = true;
 
 			streamColumn->Width = 110;
 
@@ -1532,6 +1707,7 @@ namespace SchoolCore
 
 			statusColumn->Name =
 				L"Status";
+			statusColumn->ReadOnly = true;
 
 			statusColumn->Width = 100;
 
@@ -1607,8 +1783,52 @@ namespace SchoolCore
 				);
 
 
+			// Bulk promote
+			this->btnBulkPromote->Text =
+				L"Promote Selected";
+
+			this->btnBulkPromote->Font =
+				regularFont;
+
+			this->btnBulkPromote->Size =
+				System::Drawing::Size(145, 40);
+
+			this->btnBulkPromote->Margin =
+				System::Windows::Forms::Padding(
+					8, 0, 0, 0
+				);
+
+			this->btnBulkPromote->Click +=
+				gcnew System::EventHandler(
+					this,
+					&StudentManagement::btnBulkPromote_Click
+				);
+
+			// Select all
+			this->btnSelectAll->Text =
+				L"Select All";
+
+			this->btnSelectAll->Font =
+				regularFont;
+
+			this->btnSelectAll->Size =
+				System::Drawing::Size(110, 40);
+
+			this->btnSelectAll->Margin =
+				System::Windows::Forms::Padding(
+					8, 0, 0, 0
+				);
+
+			this->btnSelectAll->Click +=
+				gcnew System::EventHandler(
+					this,
+					&StudentManagement::btnSelectAll_Click
+				);
+
+
 			// Back
 			this->btnBack->Text =
+
 				L"Back to Dashboard";
 
 			this->btnBack->Font =
@@ -1631,6 +1851,14 @@ namespace SchoolCore
 
 			this->buttonPanel->Controls->Add(
 				this->btnBack
+			);
+
+			this->buttonPanel->Controls->Add(
+				this->btnSelectAll
+			);
+
+			this->buttonPanel->Controls->Add(
+				this->btnBulkPromote
 			);
 
 			this->buttonPanel->Controls->Add(
