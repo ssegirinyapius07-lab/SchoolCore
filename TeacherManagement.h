@@ -2028,6 +2028,9 @@ namespace SchoolCore
             this->StartPosition =
                 FormStartPosition::CenterScreen;
 
+            this->WindowState =
+                FormWindowState::Maximized;
+
             this->FormBorderStyle =
                 System::Windows::Forms::FormBorderStyle::Sizable;
 
