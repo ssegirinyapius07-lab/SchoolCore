@@ -423,8 +423,8 @@ namespace SchoolCore
 
             this->btnEdit->Enabled = selected;
             this->btnSubjects->Enabled = selected;
-            this->btnMarks->Enabled = selected;
-            this->btnResults->Enabled = selected;
+            this->btnMarks->Enabled = false;
+            this->btnResults->Enabled = false;
         }
 
 
@@ -2267,12 +2267,7 @@ namespace SchoolCore
             Object^ sender,
             EventArgs^ e)
         {
-            MessageBox::Show(
-                L"Marks entry will use the configured examination subjects and the student's active enrollment.",
-                L"Marks",
-                MessageBoxButtons::OK,
-                MessageBoxIcon::Information
-            );
+            // Marks entry will be enabled when the results workflow is added.
         }
 
 
@@ -2280,12 +2275,7 @@ namespace SchoolCore
             Object^ sender,
             EventArgs^ e)
         {
-            MessageBox::Show(
-                L"Results will use the stored marks and administrator-configured grading scale.",
-                L"Results",
-                MessageBoxButtons::OK,
-                MessageBoxIcon::Information
-            );
+            // Results view will be enabled when the results workflow is added.
         }
 
 
