@@ -2,6 +2,7 @@
 
 #include "DbConnection.h"
 #include "AuthSession.h"
+#include "PasswordChangeForm.h"
 
 #include <mariadb/conncpp.hpp>
 #include <msclr/marshal_cppstd.h>
@@ -354,6 +355,11 @@ using namespace System::Drawing;
                     );
                 }
 
+                bool mustChangePassword =
+                    userResult->getBoolean(
+                        "must_change_password"
+                    );
+
                 AuthSession::Start(
                     userId,
                     username,
@@ -361,6 +367,34 @@ using namespace System::Drawing;
                     roleName,
                     permissionList
                 );
+
+                if (mustChangePassword)
+                {
+                    PasswordChangeForm^ passwordForm =
+                        gcnew PasswordChangeForm(
+                            userId,
+                            username
+                        );
+
+                    DialogResult passwordResult =
+                        passwordForm->ShowDialog(this);
+
+                    passwordForm->Dispose();
+
+                    if (passwordResult !=
+                        DialogResult::OK)
+                    {
+                        AuthSession::Clear();
+
+                        SetMessage(
+                            L"Password change is required before signing in.",
+                            true
+                        );
+
+                        this->btnLogin->Enabled = true;
+                        return;
+                    }
+                }
 
                 this->DialogResult =
                     System::Windows::Forms::DialogResult::OK;
