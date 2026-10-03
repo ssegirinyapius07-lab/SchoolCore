@@ -121,9 +121,11 @@ namespace SchoolCore
 
             this->StartPosition =
                 FormStartPosition::CenterParent;
-
             this->WindowState =
-                FormWindowState::Maximized;
+                FormWindowState::Normal;
+
+            this->ClientSize =
+                System::Drawing::Size(1000, 620);
 
             this->MinimumSize =
                 System::Drawing::Size(900, 600);
@@ -148,6 +150,8 @@ namespace SchoolCore
 
             this->mainLayout->Dock =
                 DockStyle::Fill;
+
+            this->mainLayout->AutoScroll = true;
 
             this->mainLayout->ColumnCount = 1;
             this->mainLayout->RowCount = 3;
