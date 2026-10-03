@@ -1,6 +1,8 @@
 #pragma once
 
 #include "DbConnection.h"
+#include "ThemeManager.h"
+#include "Settings.h"
 #include "StudentManagement.h"
 #include "StudentRegistration.h"
 #include "TeacherManagement.h"
@@ -31,7 +33,8 @@ namespace SchoolCore {
 		{
 			InitializeComponent();
 
-			this->btnDashboard->Click +=
+			                    ThemeManager::ApplyToForm(this);
+                    this->btnDashboard->Click +=
 				gcnew System::EventHandler(
 					this,
 					&Dashboard::btnDashboard_Click
@@ -72,6 +75,12 @@ namespace SchoolCore {
 				gcnew System::EventHandler(
 					this,
 					&Dashboard::btnUsers_Click
+				);
+
+			this->btnSettings->Click +=
+				gcnew System::EventHandler(
+					this,
+					&Dashboard::btnSettings_Click
 				);
 
 			if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
@@ -277,6 +286,24 @@ namespace SchoolCore {
 
 			this->contentPanel->Controls->Add(form);
 			form->Show();
+		}
+
+		System::Void btnSettings_Click(
+			System::Object^ sender,
+			System::EventArgs^ e)
+		{
+			if (!AuthSession::HasPermission(L"settings.view"))
+			{
+				MessageBox::Show(
+					L"You do not have permission to access Settings.",
+					L"Access Denied",
+					MessageBoxButtons::OK,
+					MessageBoxIcon::Warning);
+				return;
+			}
+
+			Settings^ form = gcnew Settings();
+			form->ShowDialog(this);
 		}
 
 		System::Void btnUsers_Click(
