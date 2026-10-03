@@ -54,22 +54,34 @@ namespace SchoolCore
                     LoadStudentForEdit(studentId);
                 }
 
+        System::ComponentModel::Container^ components;
+
+
+    protected:
+        ~StudentRegistration()
+        {
+            if (this->components)
+            {
+                delete this->components;
+            }
+        }
+
     private:
 
         // =========================================================
         // CONTROLS
         // =========================================================
 
-        TableLayoutPanel^ mainLayout;
+        System::Windows::Forms::TableLayoutPanel^ mainLayout;
 
-        Panel^ scrollPanel;
-        Panel^ headerPanel;
+        System::Windows::Forms::Panel^ scrollPanel;
+        System::Windows::Forms::Panel^ headerPanel;
         System::Windows::Forms::Label^ lblTitle;
         System::Windows::Forms::Label^ lblSubtitle;
 
-        GroupBox^ studentGroup;
-        GroupBox^ enrollmentGroup;
-        GroupBox^ guardianGroup;
+        System::Windows::Forms::GroupBox^ studentGroup;
+        System::Windows::Forms::GroupBox^ enrollmentGroup;
+        System::Windows::Forms::GroupBox^ guardianGroup;
 
         // Student controls
         System::Windows::Forms::Label^ lblFirstName;
@@ -80,18 +92,18 @@ namespace SchoolCore
         System::Windows::Forms::Label^ lblAdmissionDate;
         System::Windows::Forms::Label^ lblHomeAddress;
 
-        TextBox^ txtFirstName;
-        TextBox^ txtMiddleName;
-        TextBox^ txtLastName;
-        DateTimePicker^ dtpDob;
-        ComboBox^ cmbGender;
-        DateTimePicker^ dtpAdmissionDate;
-        TextBox^ txtHomeAddress;
+        System::Windows::Forms::TextBox^ txtFirstName;
+        System::Windows::Forms::TextBox^ txtMiddleName;
+        System::Windows::Forms::TextBox^ txtLastName;
+        System::Windows::Forms::DateTimePicker^ dtpDob;
+        System::Windows::Forms::ComboBox^ cmbGender;
+        System::Windows::Forms::DateTimePicker^ dtpAdmissionDate;
+        System::Windows::Forms::TextBox^ txtHomeAddress;
 
         // Student photo
-        Panel^ photoPanel;
-        PictureBox^ picStudentPhoto;
-        Button^ btnChoosePhoto;
+        System::Windows::Forms::Panel^ photoPanel;
+        System::Windows::Forms::PictureBox^ picStudentPhoto;
+        System::Windows::Forms::Button^ btnChoosePhoto;
         System::Windows::Forms::Label^ lblPhotoHint;
         String^ selectedPhotoSourcePath = nullptr;
         String^ editingPhotoPath = L"";
@@ -104,10 +116,10 @@ namespace SchoolCore
         System::Windows::Forms::Label^ lblStream;
         System::Windows::Forms::Label^ lblStreamInfo;
 
-        ComboBox^ cmbAcademicYear;
-        ComboBox^ cmbTerm;
-        ComboBox^ cmbClass;
-        ComboBox^ cmbStream;
+        System::Windows::Forms::ComboBox^ cmbAcademicYear;
+        System::Windows::Forms::ComboBox^ cmbTerm;
+        System::Windows::Forms::ComboBox^ cmbClass;
+        System::Windows::Forms::ComboBox^ cmbStream;
 
         // Guardian controls
         System::Windows::Forms::Label^ lblGuardianName;
@@ -117,18 +129,18 @@ namespace SchoolCore
         System::Windows::Forms::Label^ lblGuardianEmail;
         System::Windows::Forms::Label^ lblGuardianAddress;
 
-        TextBox^ txtGuardianName;
-        TextBox^ txtGuardianRelationship;
-        TextBox^ txtGuardianPhone;
-        TextBox^ txtGuardianAlternativePhone;
-        TextBox^ txtGuardianEmail;
-        TextBox^ txtGuardianAddress;
+        System::Windows::Forms::TextBox^ txtGuardianName;
+        System::Windows::Forms::TextBox^ txtGuardianRelationship;
+        System::Windows::Forms::TextBox^ txtGuardianPhone;
+        System::Windows::Forms::TextBox^ txtGuardianAlternativePhone;
+        System::Windows::Forms::TextBox^ txtGuardianEmail;
+        System::Windows::Forms::TextBox^ txtGuardianAddress;
 
         // Buttons
-        Panel^ buttonPanel;
-        Button^ btnSave;
-        Button^ btnClear;
-        Button^ btnCancel;
+        System::Windows::Forms::Panel^ buttonPanel;
+        System::Windows::Forms::Button^ btnSave;
+        System::Windows::Forms::Button^ btnClear;
+        System::Windows::Forms::Button^ btnCancel;
 
         // Edit mode
         bool editMode = false;
@@ -181,7 +193,7 @@ namespace SchoolCore
         // =========================================================
 
         void MakeCircularPictureBox(
-            PictureBox^ pictureBox)
+            System::Windows::Forms::PictureBox^ pictureBox)
         {
             System::Drawing::Drawing2D::GraphicsPath^ path =
                 gcnew System::Drawing::Drawing2D::GraphicsPath();
@@ -330,6 +342,7 @@ namespace SchoolCore
 
 void InitializeComponent()
         {
+            this->components = gcnew System::ComponentModel::Container();
             this->SuspendLayout();
 
             // =========================================================
@@ -337,17 +350,17 @@ void InitializeComponent()
             // =========================================================
 
             this->Text = L"Student Registration";
-            this->StartPosition = FormStartPosition::CenterParent;
-            this->WindowState = FormWindowState::Maximized;
+            this->StartPosition = System::Windows::Forms::FormStartPosition::CenterParent;
+            this->WindowState = System::Windows::Forms::FormWindowState::Maximized;
             this->ClientSize = System::Drawing::Size(1100, 760);
             this->MinimumSize = System::Drawing::Size(900, 650);
 
-            this->BackColor = Color::WhiteSmoke;
+            this->BackColor = System::Drawing::Color::WhiteSmoke;
 
             this->Font = gcnew System::Drawing::Font(
                 L"Segoe UI",
                 9.5F,
-                FontStyle::Regular
+                System::Drawing::FontStyle::Regular
             );
 
 
@@ -355,11 +368,11 @@ void InitializeComponent()
             // SCROLL PANEL
             // =========================================================
 
-            this->scrollPanel = gcnew Panel();
+            this->scrollPanel = gcnew System::Windows::Forms::Panel();
 
-            this->scrollPanel->Dock = DockStyle::Fill;
+            this->scrollPanel->Dock = System::Windows::Forms::DockStyle::Fill;
             this->scrollPanel->AutoScroll = true;
-            this->scrollPanel->BackColor = Color::WhiteSmoke;
+            this->scrollPanel->BackColor = System::Drawing::Color::WhiteSmoke;
             this->scrollPanel->Padding =
                 System::Windows::Forms::Padding(20);
 
@@ -374,9 +387,9 @@ void InitializeComponent()
             // MAIN LAYOUT
             // =========================================================
 
-            this->mainLayout = gcnew TableLayoutPanel();
+            this->mainLayout = gcnew System::Windows::Forms::TableLayoutPanel();
 
-            this->mainLayout->Dock = DockStyle::Top;
+            this->mainLayout->Dock = System::Windows::Forms::DockStyle::Top;
             this->mainLayout->AutoSize = true;
             this->mainLayout->AutoSizeMode =
                 System::Windows::Forms::AutoSizeMode::GrowAndShrink;
@@ -385,7 +398,7 @@ void InitializeComponent()
             this->mainLayout->RowCount = 5;
 
             this->mainLayout->BackColor =
-                Color::WhiteSmoke;
+                System::Drawing::Color::WhiteSmoke;
 
             this->mainLayout->Margin =
                 System::Windows::Forms::Padding(0);
@@ -393,7 +406,7 @@ void InitializeComponent()
 
             this->mainLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     100.0F
                 )
             );
@@ -402,7 +415,7 @@ void InitializeComponent()
             // Header
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     78.0F
                 )
             );
@@ -412,7 +425,7 @@ void InitializeComponent()
             // section comfortably inside the Student Information box.
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     285.0F
                 )
             );
@@ -420,7 +433,7 @@ void InitializeComponent()
             // Enrollment
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     165.0F
                 )
             );
@@ -428,7 +441,7 @@ void InitializeComponent()
             // Guardian
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     210.0F
                 )
             );
@@ -438,7 +451,7 @@ void InitializeComponent()
             // the registration form is reduced and scrolled.
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     70.0F
                 )
             );
@@ -448,12 +461,12 @@ void InitializeComponent()
             // HEADER
             // =========================================================
 
-            this->headerPanel = gcnew Panel();
+            this->headerPanel = gcnew System::Windows::Forms::Panel();
 
-            this->headerPanel->Dock = DockStyle::Fill;
+            this->headerPanel->Dock = System::Windows::Forms::DockStyle::Fill;
 
             this->headerPanel->BackColor =
-                Color::FromArgb(35, 47, 62);
+                System::Drawing::Color::FromArgb(35, 47, 62);
 
             this->headerPanel->Padding =
                 System::Windows::Forms::Padding(
@@ -461,7 +474,7 @@ void InitializeComponent()
                 );
 
 
-            this->lblTitle = gcnew Label();
+            this->lblTitle = gcnew System::Windows::Forms::Label();
 
             this->lblTitle->AutoSize = true;
 
@@ -469,20 +482,20 @@ void InitializeComponent()
                 L"Student Registration";
 
             this->lblTitle->ForeColor =
-                Color::White;
+                System::Drawing::Color::White;
 
             this->lblTitle->Font =
                 gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
                     18.0F,
-                    FontStyle::Bold
+                    System::Drawing::FontStyle::Bold
                 );
 
             this->lblTitle->Location =
-                Point(18, 10);
+                System::Drawing::Point(18, 10);
 
 
-            this->lblSubtitle = gcnew Label();
+            this->lblSubtitle = gcnew System::Windows::Forms::Label();
 
             this->lblSubtitle->AutoSize = true;
 
@@ -490,17 +503,17 @@ void InitializeComponent()
                 L"Register a new student and assign the initial enrollment.";
 
             this->lblSubtitle->ForeColor =
-                Color::FromArgb(220, 225, 230);
+                System::Drawing::Color::FromArgb(220, 225, 230);
 
             this->lblSubtitle->Font =
                 gcnew System::Drawing::Font(
                     L"Segoe UI",
                     9.5F,
-                    FontStyle::Regular
+                    System::Drawing::FontStyle::Regular
                 );
 
             this->lblSubtitle->Location =
-                Point(20, 45);
+                System::Drawing::Point(20, 45);
 
 
             this->headerPanel->Controls->Add(
@@ -517,10 +530,10 @@ void InitializeComponent()
             // =========================================================
 
             this->studentGroup =
-                gcnew GroupBox();
+                gcnew System::Windows::Forms::GroupBox();
 
             this->studentGroup->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->studentGroup->Text =
                 L"Student Information";
@@ -537,15 +550,15 @@ void InitializeComponent()
                 gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
                     10.0F,
-                    FontStyle::Bold
+                    System::Drawing::FontStyle::Bold
                 );
 
 
-            TableLayoutPanel^ studentLayout =
-                gcnew TableLayoutPanel();
+            System::Windows::Forms::TableLayoutPanel^ studentLayout =
+                gcnew System::Windows::Forms::TableLayoutPanel();
 
             studentLayout->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             studentLayout->ColumnCount = 4;
             studentLayout->RowCount = 4;
@@ -557,7 +570,7 @@ void InitializeComponent()
             // Label columns
             studentLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     125.0F
                 )
             );
@@ -565,7 +578,7 @@ void InitializeComponent()
             // Input columns
             studentLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     50.0F
                 )
             );
@@ -573,7 +586,7 @@ void InitializeComponent()
             // Label columns
             studentLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     125.0F
                 )
             );
@@ -581,7 +594,7 @@ void InitializeComponent()
             // Input columns
             studentLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     50.0F
                 )
             );
@@ -591,7 +604,7 @@ void InitializeComponent()
             {
                 studentLayout->RowStyles->Add(
                     gcnew RowStyle(
-                        SizeType::Absolute,
+                        System::Windows::Forms::SizeType::Absolute,
                         42.0F
                     )
                 );
@@ -599,7 +612,7 @@ void InitializeComponent()
 
             studentLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     80.0F
                 )
             );
@@ -610,28 +623,28 @@ void InitializeComponent()
             // ---------------------------------------------------------
 
             this->lblFirstName =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblFirstName->Text =
                 L"First Name";
 
             this->lblFirstName->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblFirstName->AutoSize = false;
 
             this->lblFirstName->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
             this->lblFirstName->Margin =
                 System::Windows::Forms::Padding(3, 0, 3, 0);
 
 
             this->txtFirstName =
-                gcnew TextBox();
+                gcnew System::Windows::Forms::TextBox();
 
             this->txtFirstName->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->txtFirstName->Margin =
                 System::Windows::Forms::Padding(3, 4, 3, 4);
@@ -642,28 +655,28 @@ void InitializeComponent()
             // ---------------------------------------------------------
 
             this->lblLastName =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblLastName->Text =
                 L"Last Name";
 
             this->lblLastName->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblLastName->AutoSize = false;
 
             this->lblLastName->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
             this->lblLastName->Margin =
                 System::Windows::Forms::Padding(3, 0, 3, 0);
 
 
             this->txtLastName =
-                gcnew TextBox();
+                gcnew System::Windows::Forms::TextBox();
 
             this->txtLastName->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->txtLastName->Margin =
                 System::Windows::Forms::Padding(3, 4, 3, 4);
@@ -674,28 +687,28 @@ void InitializeComponent()
             // ---------------------------------------------------------
 
             this->lblMiddleName =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblMiddleName->Text =
                 L"Middle Name";
 
             this->lblMiddleName->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblMiddleName->AutoSize = false;
 
             this->lblMiddleName->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
             this->lblMiddleName->Margin =
                 System::Windows::Forms::Padding(3, 0, 3, 0);
 
 
             this->txtMiddleName =
-                gcnew TextBox();
+                gcnew System::Windows::Forms::TextBox();
 
             this->txtMiddleName->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->txtMiddleName->Margin =
                 System::Windows::Forms::Padding(3, 4, 3, 4);
@@ -706,31 +719,31 @@ void InitializeComponent()
             // ---------------------------------------------------------
 
             this->lblGender =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblGender->Text =
                 L"Gender";
 
             this->lblGender->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblGender->AutoSize = false;
 
             this->lblGender->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
             this->lblGender->Margin =
                 System::Windows::Forms::Padding(3, 0, 3, 0);
 
 
             this->cmbGender =
-                gcnew ComboBox();
+                gcnew System::Windows::Forms::ComboBox();
 
             this->cmbGender->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->cmbGender->DropDownStyle =
-                ComboBoxStyle::DropDownList;
+                System::Windows::Forms::ComboBoxStyle::DropDownList;
 
             this->cmbGender->Margin =
                 System::Windows::Forms::Padding(3, 4, 3, 4);
@@ -755,28 +768,28 @@ void InitializeComponent()
             // ---------------------------------------------------------
 
             this->lblDob =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblDob->Text =
                 L"Date of Birth";
 
             this->lblDob->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblDob->AutoSize = false;
 
             this->lblDob->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
             this->lblDob->Margin =
                 System::Windows::Forms::Padding(3, 0, 3, 0);
 
 
             this->dtpDob =
-                gcnew DateTimePicker();
+                gcnew System::Windows::Forms::DateTimePicker();
 
             this->dtpDob->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->dtpDob->AutoSize = false;
 
@@ -784,7 +797,7 @@ void InitializeComponent()
             this->dtpDob->Height = 28;
 
             this->dtpDob->Format =
-                DateTimePickerFormat::Custom;
+                System::Windows::Forms::DateTimePickerFormat::Custom;
 
             this->dtpDob->CustomFormat =
                 L"dd/MM/yyyy";
@@ -799,8 +812,8 @@ void InitializeComponent()
                 System::Windows::Forms::Padding(3, 4, 3, 4);
 
             this->dtpDob->Anchor =
-                AnchorStyles::Left |
-                AnchorStyles::Right;
+                System::Windows::Forms::AnchorStyles::Left |
+                System::Windows::Forms::AnchorStyles::Right;
 
 
             // ---------------------------------------------------------
@@ -808,28 +821,28 @@ void InitializeComponent()
             // ---------------------------------------------------------
 
             this->lblAdmissionDate =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblAdmissionDate->Text =
                 L"Admission Date";
 
             this->lblAdmissionDate->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblAdmissionDate->AutoSize = false;
 
             this->lblAdmissionDate->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
             this->lblAdmissionDate->Margin =
                 System::Windows::Forms::Padding(3, 0, 3, 0);
 
 
             this->dtpAdmissionDate =
-                gcnew DateTimePicker();
+                gcnew System::Windows::Forms::DateTimePicker();
 
             this->dtpAdmissionDate->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->dtpAdmissionDate->AutoSize = false;
 
@@ -837,7 +850,7 @@ void InitializeComponent()
             this->dtpAdmissionDate->Height = 28;
 
             this->dtpAdmissionDate->Format =
-                DateTimePickerFormat::Custom;
+                System::Windows::Forms::DateTimePickerFormat::Custom;
 
             this->dtpAdmissionDate->CustomFormat =
                 L"dd/MM/yyyy";
@@ -852,8 +865,8 @@ void InitializeComponent()
                 System::Windows::Forms::Padding(3, 4, 3, 4);
 
             this->dtpAdmissionDate->Anchor =
-                AnchorStyles::Left |
-                AnchorStyles::Right;
+                System::Windows::Forms::AnchorStyles::Left |
+                System::Windows::Forms::AnchorStyles::Right;
 
 
             // ---------------------------------------------------------
@@ -861,34 +874,34 @@ void InitializeComponent()
             // ---------------------------------------------------------
 
             this->lblHomeAddress =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblHomeAddress->Text =
                 L"Home Address";
 
             this->lblHomeAddress->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblHomeAddress->AutoSize = false;
 
             this->lblHomeAddress->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
             this->lblHomeAddress->Margin =
                 System::Windows::Forms::Padding(3, 0, 3, 0);
 
 
             this->txtHomeAddress =
-                gcnew TextBox();
+                gcnew System::Windows::Forms::TextBox();
 
             this->txtHomeAddress->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->txtHomeAddress->Multiline =
                 true;
 
             this->txtHomeAddress->ScrollBars =
-                ScrollBars::Vertical;
+                System::Windows::Forms::ScrollBars::Vertical;
 
             this->txtHomeAddress->Margin =
                 System::Windows::Forms::Padding(3, 5, 3, 5);
@@ -979,11 +992,11 @@ void InitializeComponent()
 
             // The student fields and photo are kept in separate
             // layout columns so the photo never overlaps any field.
-            TableLayoutPanel^ studentSectionLayout =
-                gcnew TableLayoutPanel();
+            System::Windows::Forms::TableLayoutPanel^ studentSectionLayout =
+                gcnew System::Windows::Forms::TableLayoutPanel();
 
             studentSectionLayout->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             studentSectionLayout->ColumnCount = 2;
             studentSectionLayout->RowCount = 1;
@@ -993,14 +1006,14 @@ void InitializeComponent()
 
             studentSectionLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     100.0F
                 )
             );
 
             studentSectionLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     175.0F
                 )
             );
@@ -1017,10 +1030,10 @@ void InitializeComponent()
             // ---------------------------------------------------------
 
             this->photoPanel =
-                gcnew Panel();
+                gcnew System::Windows::Forms::Panel();
 
             this->photoPanel->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->photoPanel->Margin =
                 System::Windows::Forms::Padding(
@@ -1031,7 +1044,7 @@ void InitializeComponent()
                 );
 
             this->photoPanel->BorderStyle =
-                BorderStyle::FixedSingle;
+                System::Windows::Forms::BorderStyle::FixedSingle;
 
             this->photoPanel->Padding =
                 System::Windows::Forms::Padding(
@@ -1042,7 +1055,7 @@ void InitializeComponent()
                 );
 
             this->picStudentPhoto =
-                gcnew PictureBox();
+                gcnew System::Windows::Forms::PictureBox();
 
             this->picStudentPhoto->Size =
                 System::Drawing::Size(
@@ -1060,14 +1073,14 @@ void InitializeComponent()
                 PictureBoxSizeMode::Zoom;
 
             this->picStudentPhoto->BackColor =
-                Color::Gainsboro;
+                System::Drawing::Color::Gainsboro;
 
             this->picStudentPhoto->BorderStyle =
-                BorderStyle::FixedSingle;
+                System::Windows::Forms::BorderStyle::FixedSingle;
 
 
             this->btnChoosePhoto =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->btnChoosePhoto->Text =
                 L"Choose Photo";
@@ -1085,24 +1098,24 @@ void InitializeComponent()
                 );
 
             this->btnChoosePhoto->FlatStyle =
-                FlatStyle::Flat;
+                System::Windows::Forms::FlatStyle::Flat;
 
             this->btnChoosePhoto->FlatAppearance->BorderSize =
                 0;
 
             this->btnChoosePhoto->BackColor =
-                Color::FromArgb(
+                System::Drawing::Color::FromArgb(
                     30,
                     41,
                     59
                 );
 
             this->btnChoosePhoto->ForeColor =
-                Color::White;
+                System::Drawing::Color::White;
 
 
             this->lblPhotoHint =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblPhotoHint->Text =
                 L"No photo selected";
@@ -1123,10 +1136,10 @@ void InitializeComponent()
                 );
 
             this->lblPhotoHint->TextAlign =
-                ContentAlignment::TopCenter;
+                System::Drawing::ContentAlignment::TopCenter;
 
             this->lblPhotoHint->ForeColor =
-                Color::DimGray;
+                System::Drawing::Color::DimGray;
 
 
             this->photoPanel->Controls->Add(
@@ -1157,10 +1170,10 @@ void InitializeComponent()
             // =========================================================
 
             this->enrollmentGroup =
-                gcnew GroupBox();
+                gcnew System::Windows::Forms::GroupBox();
 
             this->enrollmentGroup->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->enrollmentGroup->Text =
                 L"Enrollment Information";
@@ -1179,15 +1192,15 @@ void InitializeComponent()
                 gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
                     10.0F,
-                    FontStyle::Bold
+                    System::Drawing::FontStyle::Bold
                 );
 
 
-            TableLayoutPanel^ enrollmentLayout =
-                gcnew TableLayoutPanel();
+            System::Windows::Forms::TableLayoutPanel^ enrollmentLayout =
+                gcnew System::Windows::Forms::TableLayoutPanel();
 
             enrollmentLayout->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             enrollmentLayout->ColumnCount = 4;
             enrollmentLayout->RowCount = 3;
@@ -1198,28 +1211,28 @@ void InitializeComponent()
 
             enrollmentLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     125.0F
                 )
             );
 
             enrollmentLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     50.0F
                 )
             );
 
             enrollmentLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     125.0F
                 )
             );
 
             enrollmentLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     50.0F
                 )
             );
@@ -1227,21 +1240,21 @@ void InitializeComponent()
 
             enrollmentLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     40.0F
                 )
             );
 
             enrollmentLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     40.0F
                 )
             );
 
             enrollmentLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     34.0F
                 )
             );
@@ -1250,31 +1263,31 @@ void InitializeComponent()
             // Academic Year
 
             this->lblAcademicYear =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblAcademicYear->Text =
                 L"Academic Year";
 
             this->lblAcademicYear->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblAcademicYear->AutoSize = false;
 
             this->lblAcademicYear->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
             this->lblAcademicYear->Margin =
                 System::Windows::Forms::Padding(3, 0, 3, 0);
 
 
             this->cmbAcademicYear =
-                gcnew ComboBox();
+                gcnew System::Windows::Forms::ComboBox();
 
             this->cmbAcademicYear->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->cmbAcademicYear->DropDownStyle =
-                ComboBoxStyle::DropDownList;
+                System::Windows::Forms::ComboBoxStyle::DropDownList;
 
             this->cmbAcademicYear->Margin =
                 System::Windows::Forms::Padding(3, 4, 3, 4);
@@ -1283,31 +1296,31 @@ void InitializeComponent()
             // Term
 
             this->lblTerm =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblTerm->Text =
                 L"Term";
 
             this->lblTerm->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblTerm->AutoSize = false;
 
             this->lblTerm->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
             this->lblTerm->Margin =
                 System::Windows::Forms::Padding(3, 0, 3, 0);
 
 
             this->cmbTerm =
-                gcnew ComboBox();
+                gcnew System::Windows::Forms::ComboBox();
 
             this->cmbTerm->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->cmbTerm->DropDownStyle =
-                ComboBoxStyle::DropDownList;
+                System::Windows::Forms::ComboBoxStyle::DropDownList;
 
             this->cmbTerm->Enabled =
                 false;
@@ -1319,31 +1332,31 @@ void InitializeComponent()
             // Class
 
             this->lblClass =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblClass->Text =
                 L"Class";
 
             this->lblClass->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblClass->AutoSize = false;
 
             this->lblClass->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
             this->lblClass->Margin =
                 System::Windows::Forms::Padding(3, 0, 3, 0);
 
 
             this->cmbClass =
-                gcnew ComboBox();
+                gcnew System::Windows::Forms::ComboBox();
 
             this->cmbClass->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->cmbClass->DropDownStyle =
-                ComboBoxStyle::DropDownList;
+                System::Windows::Forms::ComboBoxStyle::DropDownList;
 
             this->cmbClass->Margin =
                 System::Windows::Forms::Padding(3, 4, 3, 4);
@@ -1352,31 +1365,31 @@ void InitializeComponent()
             // Stream
 
             this->lblStream =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblStream->Text =
                 L"Stream";
 
             this->lblStream->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblStream->AutoSize = false;
 
             this->lblStream->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
             this->lblStream->Margin =
                 System::Windows::Forms::Padding(3, 0, 3, 0);
 
 
             this->cmbStream =
-                gcnew ComboBox();
+                gcnew System::Windows::Forms::ComboBox();
 
             this->cmbStream->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->cmbStream->DropDownStyle =
-                ComboBoxStyle::DropDownList;
+                System::Windows::Forms::ComboBoxStyle::DropDownList;
 
             this->cmbStream->Enabled =
                 false;
@@ -1388,30 +1401,30 @@ void InitializeComponent()
             // Stream Info
 
             this->lblStreamInfo =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblStreamInfo->AutoSize =
                 false;
 
             this->lblStreamInfo->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblStreamInfo->Text =
                 L"Select an academic year, term and class "
                 L"to view stream enrollment.";
 
             this->lblStreamInfo->ForeColor =
-                Color::DimGray;
+                System::Drawing::Color::DimGray;
 
             this->lblStreamInfo->Font =
                 gcnew System::Drawing::Font(
                     L"Segoe UI",
                     8.5F,
-                    FontStyle::Italic
+                    System::Drawing::FontStyle::Italic
                 );
 
             this->lblStreamInfo->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
 
             enrollmentLayout->Controls->Add(
@@ -1477,10 +1490,10 @@ void InitializeComponent()
             // =========================================================
 
             this->guardianGroup =
-                gcnew GroupBox();
+                gcnew System::Windows::Forms::GroupBox();
 
             this->guardianGroup->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->guardianGroup->Text =
                 L"Guardian Information";
@@ -1497,15 +1510,15 @@ void InitializeComponent()
                 gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
                     10.0F,
-                    FontStyle::Bold
+                    System::Drawing::FontStyle::Bold
                 );
 
 
-            TableLayoutPanel^ guardianLayout =
-                gcnew TableLayoutPanel();
+            System::Windows::Forms::TableLayoutPanel^ guardianLayout =
+                gcnew System::Windows::Forms::TableLayoutPanel();
 
             guardianLayout->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             guardianLayout->ColumnCount = 4;
             guardianLayout->RowCount = 3;
@@ -1516,28 +1529,28 @@ void InitializeComponent()
 
             guardianLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     135.0F
                 )
             );
 
             guardianLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     50.0F
                 )
             );
 
             guardianLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     135.0F
                 )
             );
 
             guardianLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     50.0F
                 )
             );
@@ -1547,7 +1560,7 @@ void InitializeComponent()
             {
                 guardianLayout->RowStyles->Add(
                     gcnew RowStyle(
-                        SizeType::Absolute,
+                        System::Windows::Forms::SizeType::Absolute,
                         40.0F
                     )
                 );
@@ -1557,16 +1570,16 @@ void InitializeComponent()
             // Guardian Name
 
             this->lblGuardianName =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblGuardianName->Text =
                 L"Full Name";
 
             this->lblGuardianName->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblGuardianName->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
             this->lblGuardianName->Margin =
                 System::Windows::Forms::Padding(3, 0, 3, 0);
@@ -1578,10 +1591,10 @@ void InitializeComponent()
 
 
             this->txtGuardianName =
-                gcnew TextBox();
+                gcnew System::Windows::Forms::TextBox();
 
             this->txtGuardianName->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->txtGuardianName->Margin =
                 System::Windows::Forms::Padding(3, 6, 3, 6);
@@ -1599,16 +1612,16 @@ void InitializeComponent()
             // Relationship
 
             this->lblGuardianRelationship =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblGuardianRelationship->Text =
                 L"Relationship";
 
             this->lblGuardianRelationship->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblGuardianRelationship->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
             this->lblGuardianRelationship->Margin =
                 System::Windows::Forms::Padding(3, 0, 3, 0);
@@ -1620,10 +1633,10 @@ void InitializeComponent()
 
 
             this->txtGuardianRelationship =
-                gcnew TextBox();
+                gcnew System::Windows::Forms::TextBox();
 
             this->txtGuardianRelationship->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->txtGuardianRelationship->Margin =
                 System::Windows::Forms::Padding(3, 6, 3, 6);
@@ -1641,16 +1654,16 @@ void InitializeComponent()
             // Phone
 
             this->lblGuardianPhone =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblGuardianPhone->Text =
                 L"Phone Number";
 
             this->lblGuardianPhone->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblGuardianPhone->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
             this->lblGuardianPhone->Margin =
                 System::Windows::Forms::Padding(3, 0, 3, 0);
@@ -1662,10 +1675,10 @@ void InitializeComponent()
 
 
             this->txtGuardianPhone =
-                gcnew TextBox();
+                gcnew System::Windows::Forms::TextBox();
 
             this->txtGuardianPhone->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->txtGuardianPhone->Margin =
                 System::Windows::Forms::Padding(3, 6, 3, 6);
@@ -1683,16 +1696,16 @@ void InitializeComponent()
             // Alternative Phone
 
             this->lblGuardianAlternativePhone =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblGuardianAlternativePhone->Text =
                 L"Alternative Phone";
 
             this->lblGuardianAlternativePhone->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblGuardianAlternativePhone->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
             this->lblGuardianAlternativePhone->Margin =
                 System::Windows::Forms::Padding(3, 0, 3, 0);
@@ -1704,10 +1717,10 @@ void InitializeComponent()
 
 
             this->txtGuardianAlternativePhone =
-                gcnew TextBox();
+                gcnew System::Windows::Forms::TextBox();
 
             this->txtGuardianAlternativePhone->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->txtGuardianAlternativePhone->Margin =
                 System::Windows::Forms::Padding(3, 6, 3, 6);
@@ -1725,16 +1738,16 @@ void InitializeComponent()
             // Email
 
             this->lblGuardianEmail =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblGuardianEmail->Text =
                 L"Email (Optional)";
 
             this->lblGuardianEmail->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblGuardianEmail->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
             this->lblGuardianEmail->Margin =
                 System::Windows::Forms::Padding(3, 0, 3, 0);
@@ -1746,10 +1759,10 @@ void InitializeComponent()
 
 
             this->txtGuardianEmail =
-                gcnew TextBox();
+                gcnew System::Windows::Forms::TextBox();
 
             this->txtGuardianEmail->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->txtGuardianEmail->Margin =
                 System::Windows::Forms::Padding(3, 6, 3, 6);
@@ -1767,16 +1780,16 @@ void InitializeComponent()
             // Address
 
             this->lblGuardianAddress =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblGuardianAddress->Text =
                 L"Address";
 
             this->lblGuardianAddress->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblGuardianAddress->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
             this->lblGuardianAddress->Margin =
                 System::Windows::Forms::Padding(3, 0, 3, 0);
@@ -1788,10 +1801,10 @@ void InitializeComponent()
 
 
             this->txtGuardianAddress =
-                gcnew TextBox();
+                gcnew System::Windows::Forms::TextBox();
 
             this->txtGuardianAddress->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->txtGuardianAddress->Margin =
                 System::Windows::Forms::Padding(3, 6, 3, 6);
@@ -1883,10 +1896,10 @@ void InitializeComponent()
             // =========================================================
 
             this->buttonPanel =
-                gcnew Panel();
+                gcnew System::Windows::Forms::Panel();
 
             this->buttonPanel->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->buttonPanel->Padding =
                 System::Windows::Forms::Padding(
@@ -1906,7 +1919,7 @@ void InitializeComponent()
             // Save
 
             this->btnSave =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->btnSave->Text =
                 L"Save Student";
@@ -1918,22 +1931,22 @@ void InitializeComponent()
                 42;
 
             this->btnSave->Dock =
-                DockStyle::Right;
+                System::Windows::Forms::DockStyle::Right;
 
             this->btnSave->BackColor =
-                Color::FromArgb(38, 117, 92);
+                System::Drawing::Color::FromArgb(38, 117, 92);
 
             this->btnSave->ForeColor =
-                Color::White;
+                System::Drawing::Color::White;
 
             this->btnSave->FlatStyle =
-                FlatStyle::Flat;
+                System::Windows::Forms::FlatStyle::Flat;
 
 
             // Back
 
             this->btnCancel =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->btnCancel->Text =
                 L"Back to Students";
@@ -1948,7 +1961,7 @@ void InitializeComponent()
             // Clear
 
             this->btnClear =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->btnClear->Text =
                 L"Clear";
@@ -1963,10 +1976,10 @@ void InitializeComponent()
             // Put buttons next to each other
 
             this->btnCancel->Location =
-                Point(0, 12);
+                System::Drawing::Point(0, 12);
 
             this->btnClear->Location =
-                Point(155, 12);
+                System::Drawing::Point(155, 12);
 
 
             this->buttonPanel->Controls->Add(
@@ -2495,7 +2508,7 @@ void InitializeComponent()
         // =========================================================
 
         bool SelectComboItemById(
-            ComboBox^ combo,
+            System::Windows::Forms::ComboBox^ combo,
             int id)
         {
             for (int i = 0; i < combo->Items->Count; i++)
