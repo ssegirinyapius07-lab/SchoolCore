@@ -300,7 +300,7 @@ namespace SchoolCore
 
             this->Text = L"Student Registration";
             this->StartPosition = FormStartPosition::CenterParent;
-            this->WindowState = FormWindowState::Normal;
+            this->WindowState = FormWindowState::Maximized;
             this->ClientSize = System::Drawing::Size(1000, 720);
             this->MinimumSize = System::Drawing::Size(850, 600);
 
@@ -497,10 +497,15 @@ namespace SchoolCore
                 gcnew TableLayoutPanel();
 
             studentLayout->Dock =
-                DockStyle::Left;
+                DockStyle::Fill;
 
-            studentLayout->Width =
-                720;
+            studentLayout->Margin =
+                System::Windows::Forms::Padding(
+                    0,
+                    0,
+                    160,
+                    0
+                );
 
             studentLayout->ColumnCount = 4;
             studentLayout->RowCount = 4;
@@ -1039,6 +1044,8 @@ namespace SchoolCore
             this->studentGroup->Controls->Add(
                 this->photoPanel
             );
+
+            this->photoPanel->BringToFront();
 
 
             // =========================================================
