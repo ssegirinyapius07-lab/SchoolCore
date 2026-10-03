@@ -19,7 +19,7 @@ namespace SchoolCore
     public ref class SubjectManagement : public System::Windows::Forms::Form
     {
     public:
-                SubjectManagement()
+                SubjectManagement(void)
                 {
                     InitializeComponent();
                     if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
@@ -2050,7 +2050,7 @@ namespace SchoolCore
 
         #pragma region Windows Form Designer generated code
 
-void InitializeComponent()
+void InitializeComponent(void)
         {
             this->SuspendLayout();
 
@@ -2896,7 +2896,7 @@ void InitializeComponent()
 
     protected:
 
-        ~SubjectManagement()
+        ~SubjectManagement(void)
         {
             if (this->components)
             {
