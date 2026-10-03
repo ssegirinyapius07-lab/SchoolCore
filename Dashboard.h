@@ -2,6 +2,7 @@
 
 #include "DbConnection.h"
 #include "StudentManagement.h"
+#include "TeacherManagement.h"
 #include "AcademicYearsTerms.h"
 #include "ClassesStreams.h"
 
@@ -25,6 +26,12 @@ namespace SchoolCore {
 				gcnew System::EventHandler(
 					this,
 					&Dashboard::btnDashboard_Click
+				);
+
+			this->btnTeachers->Click +=
+				gcnew System::EventHandler(
+					this,
+					&Dashboard::btnTeachers_Click
 				);
 
 			ShowDashboardOverview();
@@ -66,6 +73,16 @@ namespace SchoolCore {
 		System::Windows::Forms::Button^ btnReports;
 		System::Windows::Forms::Button^ btnUsers;
 		System::Windows::Forms::Button^ btnSettings;
+
+		System::Void btnTeachers_Click(
+			System::Object^ sender,
+			System::EventArgs^ e)
+		{
+			TeacherManagement^ form =
+				gcnew TeacherManagement();
+
+			form->ShowDialog(this);
+		}
 
 		System::Void btnStudents_Click(
 			System::Object^ sender,
