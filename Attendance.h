@@ -7,6 +7,7 @@
 #include <msclr/marshal_cppstd.h>
 #include <memory>
 #include <string>
+#include <stdexcept>
 
 using namespace System;
 using namespace System::Drawing;
@@ -16,6 +17,25 @@ namespace SchoolCore
 {
     public ref class Attendance : public Form
     {
+    public:
+        ref class FilterItem
+        {
+        public:
+            int Id;
+            String^ Name;
+
+            FilterItem(int id, String^ name)
+            {
+                Id = id;
+                Name = name;
+            }
+
+            virtual String^ ToString() override
+            {
+                return Name;
+            }
+        };
+
     private:
         TableLayoutPanel^ mainLayout;
         Panel^ headerPanel;
@@ -1226,24 +1246,6 @@ namespace SchoolCore
         }
 
     public:
-        ref class FilterItem
-        {
-        public:
-            int Id;
-            String^ Name;
-
-            FilterItem(int id, String^ name)
-            {
-                Id = id;
-                Name = name;
-            }
-
-            virtual String^ ToString() override
-            {
-                return Name;
-            }
-        };
-
         Attendance()
         {
             InitializeComponent();
