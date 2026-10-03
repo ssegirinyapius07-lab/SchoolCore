@@ -445,9 +445,10 @@ namespace SchoolCore
                 return L"";
             }
 
-            return gcnew String(
-                gcnew array<wchar_t>{ a, b, c }
-            );
+            return
+                gcnew String(a, 1) +
+                gcnew String(b, 1) +
+                gcnew String(c, 1);
         }
 
         String^ BuildCombinationName()
