@@ -68,5 +68,8 @@
     <ClInclude Include="Attendance.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Examinations.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
