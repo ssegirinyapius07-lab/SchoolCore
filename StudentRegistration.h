@@ -300,7 +300,8 @@ namespace SchoolCore
 
             this->Text = L"Student Registration";
             this->StartPosition = FormStartPosition::CenterParent;
-            this->WindowState = FormWindowState::Maximized;
+            this->WindowState = FormWindowState::Normal;
+            this->ClientSize = System::Drawing::Size(1000, 720);
             this->MinimumSize = System::Drawing::Size(850, 600);
 
             this->BackColor = Color::WhiteSmoke;
