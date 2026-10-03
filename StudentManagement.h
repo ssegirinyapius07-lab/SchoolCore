@@ -546,13 +546,13 @@ namespace SchoolCore
 				Form^ profileForm = gcnew Form();
 
 				profileForm->Text = L"Student Profile";
-				profileForm->StartPosition = FormStartPosition::CenterParent;
+				profileForm->StartPosition = FormStartPosition::CenterScreen;
 				profileForm->FormBorderStyle =
 					System::Windows::Forms::FormBorderStyle::FixedSingle;
 				profileForm->MaximizeBox = false;
 				profileForm->MinimizeBox = false;
 				profileForm->ShowInTaskbar = false;
-				profileForm->ClientSize = System::Drawing::Size(720, 680);
+				profileForm->ClientSize = System::Drawing::Size(720, 620);
 				profileForm->BackColor = Color::FromArgb(248, 250, 252);
 
 				// Header
