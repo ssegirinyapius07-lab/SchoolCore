@@ -13,12 +13,19 @@
 namespace SchoolCore
 {
     using namespace System;
-    using namespace System::Drawing;
+    using namespace System::ComponentModel;
+using namespace System::Drawing;
     using namespace System::Security::Cryptography;
     using namespace System::Windows::Forms;
     using namespace System::Collections::Generic;
-    public ref class LoginForm : public Form
+    public ref class LoginForm : public System::Windows::Forms::Form
     {
+    public:
+                LoginForm()
+                {
+                    InitializeComponent();
+                }
+
     private:
         Panel^ card;
         System::Windows::Forms::Label^ lblTitle;
@@ -404,7 +411,9 @@ namespace SchoolCore
             CenterLoginCard();
         }
 
-        void InitializeComponent()
+        #pragma region Windows Form Designer generated code
+
+void InitializeComponent()
         {
             this->SuspendLayout();
 
@@ -1002,10 +1011,9 @@ namespace SchoolCore
             CenterLoginCard();
         }
 
+#pragma endregion
+
     public:
-        LoginForm()
-        {
-            InitializeComponent();
-        }
+
     };
 }
