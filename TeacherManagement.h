@@ -1565,7 +1565,7 @@ namespace SchoolCore
                     infoLayout,
                     8,
                     L"Teacher ID",
-                    teacherId.ToString()
+                    Convert::ToString(teacherId)
                 );
 
 
