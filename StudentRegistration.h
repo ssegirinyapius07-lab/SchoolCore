@@ -11,13 +11,49 @@
 #include <iomanip>
 
 using namespace System;
+using namespace System::ComponentModel;
 using namespace System::Drawing;
 using namespace System::Windows::Forms;
 
 namespace SchoolCore
 {
-    public ref class StudentRegistration : public Form
+    public ref class StudentRegistration : public System::Windows::Forms::Form
     {
+    public:
+                StudentRegistration()
+                {
+                    InitializeComponent();
+                    WireEvents();
+        
+                    if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
+                    {
+                        LoadAcademicYears();
+                        LoadClasses();
+                    }
+                }
+
+                StudentRegistration(long long studentId)
+                {
+                    InitializeComponent();
+                    WireEvents();
+        
+                    this->editMode = true;
+                    this->editingStudentId = studentId;
+        
+                    this->Text =
+                        L"Edit Student";
+        
+                    this->lblTitle->Text =
+                        L"Edit Student";
+        
+                    this->lblSubtitle->Text =
+                        L"Loading student information...";
+        
+                    LoadAcademicYears();
+                    LoadClasses();
+                    LoadStudentForEdit(studentId);
+                }
+
     private:
 
         // =========================================================
@@ -290,7 +326,9 @@ namespace SchoolCore
         // INITIALIZE COMPONENTS
         // =========================================================
 
-        void InitializeComponent()
+        #pragma region Windows Form Designer generated code
+
+void InitializeComponent()
         {
             this->SuspendLayout();
 
@@ -1026,7 +1064,6 @@ namespace SchoolCore
 
             this->picStudentPhoto->BorderStyle =
                 BorderStyle::FixedSingle;
-
 
 
             this->btnChoosePhoto =
@@ -2011,6 +2048,8 @@ namespace SchoolCore
 
             this->ResumeLayout(false);
         }
+
+#pragma endregion
 
 
         // =========================================================
@@ -4195,43 +4234,11 @@ namespace SchoolCore
         // NEW STUDENT
         // =========================================================
 
-        StudentRegistration()
-        {
-            InitializeComponent();
-            WireEvents();
-
-            if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
-            {
-                LoadAcademicYears();
-                LoadClasses();
-            }
-        }
-
 
         // =========================================================
         // EDIT EXISTING STUDENT
         // =========================================================
 
-        StudentRegistration(long long studentId)
-        {
-            InitializeComponent();
-            WireEvents();
 
-            this->editMode = true;
-            this->editingStudentId = studentId;
-
-            this->Text =
-                L"Edit Student";
-
-            this->lblTitle->Text =
-                L"Edit Student";
-
-            this->lblSubtitle->Text =
-                L"Loading student information...";
-
-            LoadAcademicYears();
-            LoadClasses();
-            LoadStudentForEdit(studentId);
-        }
     };
 }
