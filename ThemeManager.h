@@ -2,7 +2,6 @@
 
 using namespace System;
 using namespace System::Drawing;
-using namespace System::Windows::Forms;
 using namespace Microsoft::Win32;
 
 namespace SchoolCore
@@ -50,7 +49,7 @@ namespace SchoolCore
             return IsSystemDark();
         }
 
-        static void ApplyControl(Control^ control, bool dark)
+        static void ApplyControl(System::Windows::Forms::Control^ control, bool dark)
         {
             if (control == nullptr)
                 return;
@@ -71,28 +70,28 @@ namespace SchoolCore
                 ? Color::FromArgb(148, 163, 184)
                 : Color::FromArgb(71, 85, 105);
 
-            if (dynamic_cast<Form^>(control) != nullptr)
+            if (dynamic_cast<System::Windows::Forms::Form^>(control) != nullptr)
             {
                 control->BackColor = background;
                 control->ForeColor = text;
             }
-            else if (dynamic_cast<Panel^>(control) != nullptr ||
-                     dynamic_cast<TableLayoutPanel^>(control) != nullptr ||
-                     dynamic_cast<FlowLayoutPanel^>(control) != nullptr ||
-                     dynamic_cast<GroupBox^>(control) != nullptr)
+            else if (dynamic_cast<System::Windows::Forms::Panel^>(control) != nullptr ||
+                     dynamic_cast<TableLayoutSystem::Windows::Forms::Panel^>(control) != nullptr ||
+                     dynamic_cast<FlowLayoutSystem::Windows::Forms::Panel^>(control) != nullptr ||
+                     dynamic_cast<System::Windows::Forms::GroupBox^>(control) != nullptr)
             {
                 control->BackColor = surface;
                 control->ForeColor = text;
             }
-            else if (dynamic_cast<Label^>(control) != nullptr)
+            else if (dynamic_cast<System::Windows::Forms::Label^>(control) != nullptr)
             {
                 control->ForeColor = muted;
                 if (control->BackColor != Color::Transparent)
                     control->BackColor = Color::Transparent;
             }
-            else if (dynamic_cast<Button^>(control) != nullptr)
+            else if (dynamic_cast<System::Windows::Forms::Button^>(control) != nullptr)
             {
-                Button^ button = safe_cast<Button^>(control);
+                System::Windows::Forms::Button^ button = safe_cast<System::Windows::Forms::Button^>(control);
                 button->BackColor = surface;
                 button->ForeColor = text;
                 button->FlatAppearance->MouseOverBackColor =
@@ -100,24 +99,24 @@ namespace SchoolCore
                 button->FlatAppearance->MouseDownBackColor =
                     dark ? Color::FromArgb(71, 85, 105) : Color::FromArgb(226, 232, 240);
             }
-            else if (dynamic_cast<TextBox^>(control) != nullptr ||
-                     dynamic_cast<ComboBox^>(control) != nullptr ||
-                     dynamic_cast<RichTextBox^>(control) != nullptr)
+            else if (dynamic_cast<System::Windows::Forms::TextBox^>(control) != nullptr ||
+                     dynamic_cast<System::Windows::Forms::ComboBox^>(control) != nullptr ||
+                     dynamic_cast<RichSystem::Windows::Forms::TextBox^>(control) != nullptr)
             {
                 control->BackColor = dark
                     ? Color::FromArgb(30, 41, 59)
                     : Color::White;
                 control->ForeColor = text;
             }
-            else if (dynamic_cast<CheckBox^>(control) != nullptr ||
-                     dynamic_cast<RadioButton^>(control) != nullptr)
+            else if (dynamic_cast<System::Windows::Forms::CheckBox^>(control) != nullptr ||
+                     dynamic_cast<RadioSystem::Windows::Forms::Button^>(control) != nullptr)
             {
                 control->BackColor = surface;
                 control->ForeColor = text;
             }
-            else if (dynamic_cast<DataGridView^>(control) != nullptr)
+            else if (dynamic_cast<System::Windows::Forms::DataGridView^>(control) != nullptr)
             {
-                DataGridView^ grid = safe_cast<DataGridView^>(control);
+                System::Windows::Forms::DataGridView^ grid = safe_cast<System::Windows::Forms::DataGridView^>(control);
                 grid->BackgroundColor = background;
                 grid->GridColor = dark
                     ? Color::FromArgb(71, 85, 105)
@@ -139,7 +138,7 @@ namespace SchoolCore
                 control->ForeColor = text;
             }
 
-            for each (Control^ child in control->Controls)
+            for each (System::Windows::Forms::Control^ child in control->Controls)
                 ApplyControl(child, dark);
         }
 
@@ -216,7 +215,7 @@ namespace SchoolCore
             return L"System";
         }
 
-        static void ApplyToForm(Form^ form)
+        static void ApplyToForm(System::Windows::Forms::Form^ form)
         {
             if (form == nullptr)
                 return;
@@ -228,7 +227,7 @@ namespace SchoolCore
 
         static void ApplyToOpenForms()
         {
-            for each (Form^ form in Application::OpenForms)
+            for each (System::Windows::Forms::Form^ form in System::Windows::Forms::Application::OpenForms)
                 ApplyToForm(form);
         }
     };
