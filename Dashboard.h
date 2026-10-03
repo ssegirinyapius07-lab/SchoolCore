@@ -225,7 +225,7 @@ namespace SchoolCore {
 					gcnew StudentRegistration();
 
 				if (form->ShowDialog(this) ==
-					DialogResult::OK)
+					System::Windows::Forms::DialogResult::OK)
 				{
 					ShowDashboardOverview();
 				}
