@@ -128,6 +128,7 @@
     <ClCompile Include="StudentManagement.cpp" />
     <ClCompile Include="StudentRegistration.cpp" />
     <ClCompile Include="TeacherManagement.cpp" />
+    <ClCompile Include="SubjectManagement.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AcademicYearsTerms.h">
@@ -145,6 +146,9 @@
       <FileType>CppForm</FileType>
     </ClInclude>
     <ClInclude Include="TeacherManagement.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
+    <ClInclude Include="SubjectManagement.h">
       <FileType>CppForm</FileType>
     </ClInclude>
   </ItemGroup>
