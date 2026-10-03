@@ -394,15 +394,6 @@ namespace SchoolCore
                             "subject_id"
                         );
 
-                    String^ subjectCode =
-                        result->isNull("subject_code")
-                        ? L""
-                        : gcnew String(
-                            result->getString(
-                                "subject_code"
-                            ).c_str()
-                        );
-
                     String^ subjectName =
                         gcnew String(
                             result->getString(
@@ -445,7 +436,6 @@ namespace SchoolCore
 
                     this->subjectsGrid->Rows->Add(
                         subjectId,
-                        subjectCode,
                         subjectName,
                         description,
                         status,
@@ -1824,13 +1814,6 @@ namespace SchoolCore
                 AddProfileField(
                     infoLayout,
                     0,
-                    L"Subject Code",
-                    subjectCode
-                );
-
-                AddProfileField(
-                    infoLayout,
-                    1,
                     L"Subject Name",
                     subjectName
                 );
@@ -2702,23 +2685,6 @@ void InitializeComponent(void)
 
             this->subjectsGrid->Columns->Add(
                 subjectIdColumn
-            );
-
-
-            DataGridViewTextBoxColumn^ codeColumn =
-                gcnew DataGridViewTextBoxColumn();
-
-            codeColumn->HeaderText =
-                L"Subject Code";
-
-            codeColumn->Name =
-                L"SubjectCode";
-
-            codeColumn->Width =
-                130;
-
-            this->subjectsGrid->Columns->Add(
-                codeColumn
             );
 
 
