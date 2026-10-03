@@ -376,13 +376,13 @@ using namespace System::Drawing;
                             username
                         );
 
-                    DialogResult passwordResult =
+                    System::Windows::Forms::DialogResult passwordResult =
                         passwordForm->ShowDialog(this);
 
-                    passwordForm->Dispose();
+                    delete passwordForm;
 
                     if (passwordResult !=
-                        DialogResult::OK)
+                        System::Windows::Forms::DialogResult::OK)
                     {
                         AuthSession::Clear();
 
