@@ -122,6 +122,7 @@ namespace SchoolCore
 
         Form^ subjectsDialog;
         System::Windows::Forms::ComboBox^ subjectCombo;
+        System::Windows::Forms::ComboBox^ paperCombo;
         System::Windows::Forms::NumericUpDown^ subjectMaxScore;
         System::Windows::Forms::NumericUpDown^ subjectPassMark;
         System::Windows::Forms::DataGridView^ assignedSubjectsGrid;
@@ -1694,16 +1695,23 @@ namespace SchoolCore
                 std::unique_ptr<sql::PreparedStatement> stmt(
                     con->prepareStatement(
                         "SELECT "
-                        "es.examination_subject_id, "
-                        "s.subject_name, "
+                        "ep.examination_paper_id, "
                         "s.subject_code, "
-                        "es.max_score, "
-                        "es.pass_mark "
-                        "FROM examination_subjects es "
+                        "s.subject_name, "
+                        "sp.paper_code, "
+                        "sp.paper_name, "
+                        "ep.max_score, "
+                        "ep.pass_mark "
+                        "FROM examination_papers ep "
+                        "INNER JOIN examination_subjects es "
+                        "ON es.examination_subject_id = ep.examination_subject_id "
+                        "INNER JOIN subject_papers sp "
+                        "ON sp.paper_id = ep.paper_id "
                         "INNER JOIN subjects s "
                         "ON s.subject_id = es.subject_id "
                         "WHERE es.examination_id = ? "
-                        "ORDER BY s.subject_name ASC"
+                        "AND ep.status = 'Active' "
+                        "ORDER BY s.subject_name ASC, sp.paper_code ASC"
                     )
                 );
 
@@ -1720,9 +1728,18 @@ namespace SchoolCore
 
                 while (result->next())
                 {
+                    String^ paperName =
+                        result->isNull("paper_name")
+                        ? L""
+                        : gcnew String(
+                            result->getString(
+                                "paper_name"
+                            ).c_str()
+                        );
+
                     this->assignedSubjectsGrid->Rows->Add(
                         result->getInt(
-                            "examination_subject_id"
+                            "examination_paper_id"
                         ),
                         gcnew String(
                             result->getString(
@@ -1734,6 +1751,12 @@ namespace SchoolCore
                                 "subject_name"
                             ).c_str()
                         ),
+                        gcnew String(
+                            result->getString(
+                                "paper_code"
+                            ).c_str()
+                        ),
+                        paperName,
                         result->getDouble(
                             "max_score"
                         ).ToString(
@@ -1844,6 +1867,110 @@ namespace SchoolCore
         }
 
 
+        void LoadPapersForSelectedSubject()
+        {
+            this->paperCombo->Items->Clear();
+
+            FilterItem^ subject =
+                dynamic_cast<FilterItem^>(
+                    this->subjectCombo->SelectedItem
+                );
+
+            if (subject == nullptr)
+            {
+                this->paperCombo->Items->Add(
+                    L"Select paper"
+                );
+                this->paperCombo->SelectedIndex = 0;
+                this->paperCombo->Enabled = false;
+                return;
+            }
+
+            try
+            {
+                auto con =
+                    DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT "
+                        "sp.paper_id, "
+                        "sp.paper_code, "
+                        "sp.paper_name "
+                        "FROM examinations e "
+                        "INNER JOIN classes c "
+                        "ON c.class_id = e.class_id "
+                        "INNER JOIN subject_papers sp "
+                        "ON sp.academic_level_id = c.academic_level_id "
+                        "AND sp.subject_id = ? "
+                        "WHERE e.examination_id = ? "
+                        "AND sp.status = 'Active' "
+                        "ORDER BY sp.paper_code ASC"
+                    )
+                );
+
+                stmt->setInt(1, subject->Id);
+                stmt->setInt(
+                    2,
+                    this->subjectAssignmentExaminationId
+                );
+
+                std::unique_ptr<sql::ResultSet> result(
+                    stmt->executeQuery()
+                );
+
+                while (result->next())
+                {
+                    String^ code =
+                        gcnew String(
+                            result->getString(
+                                "paper_code"
+                            ).c_str()
+                        );
+
+                    String^ name =
+                        result->isNull("paper_name")
+                        ? L""
+                        : gcnew String(
+                            result->getString(
+                                "paper_name"
+                            ).c_str()
+                        );
+
+                    String^ display =
+                        String::IsNullOrWhiteSpace(name)
+                        ? code
+                        : code + L" - " + name;
+
+                    this->paperCombo->Items->Add(
+                        gcnew FilterItem(
+                            result->getInt("paper_id"),
+                            display
+                        )
+                    );
+                }
+
+                this->paperCombo->Enabled =
+                    this->paperCombo->Items->Count > 0;
+
+                if (this->paperCombo->Items->Count > 0)
+                    this->paperCombo->SelectedIndex = 0;
+            }
+            catch (sql::SQLException& ex)
+            {
+                ShowDatabaseError(ex);
+            }
+        }
+
+
+        System::Void SubjectSelectionChanged(
+            Object^ sender,
+            EventArgs^ e)
+        {
+            this->LoadPapersForSelectedSubject();
+        }
+
+
         System::Void AddExamSubjectClicked(
             Object^ sender,
             EventArgs^ e)
@@ -1853,11 +1980,16 @@ namespace SchoolCore
                     this->subjectCombo->SelectedItem
                 );
 
-            if (subject == nullptr)
+            FilterItem^ paper =
+                dynamic_cast<FilterItem^>(
+                    this->paperCombo->SelectedItem
+                );
+
+            if (subject == nullptr || paper == nullptr)
             {
                 MessageBox::Show(
-                    L"Select a subject first.",
-                    L"Examination Subjects",
+                    L"Select both a subject and its standard paper code.",
+                    L"Examination Papers",
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Warning
                 );
@@ -1885,56 +2017,157 @@ namespace SchoolCore
                 auto con =
                     DbConnection::GetConnection();
 
-                std::unique_ptr<sql::PreparedStatement> stmt(
+                con->setAutoCommit(false);
+
+                int examinationSubjectId = 0;
+
+                std::unique_ptr<sql::PreparedStatement> findStmt(
                     con->prepareStatement(
-                        "INSERT INTO examination_subjects "
-                        "("
-                        "examination_id, "
-                        "subject_id, "
-                        "max_score, "
-                        "pass_mark"
-                        ") "
-                        "VALUES (?, ?, ?, ?)"
+                        "SELECT examination_subject_id "
+                        "FROM examination_subjects "
+                        "WHERE examination_id = ? "
+                        "AND subject_id = ? "
+                        "LIMIT 1"
                     )
                 );
 
-                stmt->setInt(
+                findStmt->setInt(
                     1,
                     this->subjectAssignmentExaminationId
                 );
 
-                stmt->setInt(
+                findStmt->setInt(
                     2,
                     subject->Id
                 );
 
-                stmt->setDouble(
+                std::unique_ptr<sql::ResultSet> findResult(
+                    findStmt->executeQuery()
+                );
+
+                if (findResult->next())
+                {
+                    examinationSubjectId =
+                        findResult->getInt(
+                            "examination_subject_id"
+                        );
+                }
+                else
+                {
+                    std::unique_ptr<sql::PreparedStatement> subjectStmt(
+                        con->prepareStatement(
+                            "INSERT INTO examination_subjects "
+                            "(examination_id, subject_id, max_score, pass_mark) "
+                            "VALUES (?, ?, ?, ?)"
+                        )
+                    );
+
+                    subjectStmt->setInt(
+                        1,
+                        this->subjectAssignmentExaminationId
+                    );
+
+                    subjectStmt->setInt(
+                        2,
+                        subject->Id
+                    );
+
+                    subjectStmt->setDouble(
+                        3,
+                        Convert::ToDouble(
+                            this->subjectMaxScore->Value
+                        )
+                    );
+
+                    subjectStmt->setDouble(
+                        4,
+                        Convert::ToDouble(
+                            this->subjectPassMark->Value
+                        )
+                    );
+
+                    subjectStmt->executeUpdate();
+
+                    std::unique_ptr<sql::Statement> idStmt(
+                        con->createStatement()
+                    );
+
+                    std::unique_ptr<sql::ResultSet> idResult(
+                        idStmt->executeQuery(
+                            "SELECT LAST_INSERT_ID() AS examination_subject_id"
+                        )
+                    );
+
+                    if (!idResult->next())
+                    {
+                        con->rollback();
+                        con->setAutoCommit(true);
+                        return;
+                    }
+
+                    examinationSubjectId =
+                        idResult->getInt(
+                            "examination_subject_id"
+                        );
+                }
+
+                std::unique_ptr<sql::PreparedStatement> paperStmt(
+                    con->prepareStatement(
+                        "INSERT INTO examination_papers "
+                        "(examination_subject_id, paper_id, max_score, pass_mark, status) "
+                        "VALUES (?, ?, ?, ?, 'Active')"
+                    )
+                );
+
+                paperStmt->setInt(
+                    1,
+                    examinationSubjectId
+                );
+
+                paperStmt->setInt(
+                    2,
+                    paper->Id
+                );
+
+                paperStmt->setDouble(
                     3,
                     Convert::ToDouble(
                         this->subjectMaxScore->Value
                     )
                 );
 
-                stmt->setDouble(
+                paperStmt->setDouble(
                     4,
                     Convert::ToDouble(
                         this->subjectPassMark->Value
                     )
                 );
 
-                stmt->executeUpdate();
+                paperStmt->executeUpdate();
+
+                con->commit();
+                con->setAutoCommit(true);
 
                 LoadAssignedSubjects();
 
                 MessageBox::Show(
-                    L"Subject added to examination.",
-                    L"Examination Subjects",
+                    L"Standard examination paper added successfully.",
+                    L"Examination Papers",
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Information
                 );
             }
             catch (sql::SQLException& ex)
             {
+                try
+                {
+                    con->rollback();
+                    con->setAutoCommit(true);
+                }
+                catch (...)
+                {
+                }
+
                 ShowDatabaseError(ex);
             }
         }
@@ -1948,8 +2181,8 @@ namespace SchoolCore
                 this->assignedSubjectsGrid->SelectedRows->Count == 0)
             {
                 MessageBox::Show(
-                    L"Select a subject to remove.",
-                    L"Examination Subjects",
+                    L"Select an examination paper to remove.",
+                    L"Examination Papers",
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Warning
                 );
@@ -1961,7 +2194,7 @@ namespace SchoolCore
                 Convert::ToInt32(
                     this->assignedSubjectsGrid
                         ->SelectedRows[0]
-                        ->Cells["ExaminationSubjectId"]
+                        ->Cells["ExaminationPaperId"]
                         ->Value
                 );
 
@@ -1972,16 +2205,12 @@ namespace SchoolCore
 
                 std::unique_ptr<sql::PreparedStatement> stmt(
                     con->prepareStatement(
-                        "DELETE FROM examination_subjects "
-                        "WHERE examination_subject_id = ?"
+                        "DELETE FROM examination_papers "
+                        "WHERE examination_paper_id = ?"
                     )
                 );
 
-                stmt->setInt(
-                    1,
-                    id
-                );
-
+                stmt->setInt(1, id);
                 stmt->executeUpdate();
 
                 LoadAssignedSubjects();
@@ -2120,21 +2349,23 @@ namespace SchoolCore
             entry->Dock =
                 DockStyle::Fill;
 
-            entry->ColumnCount = 6;
+            entry->ColumnCount = 8;
             entry->RowCount = 1;
 
             array<float>^ widths =
                 gcnew array<float>
                 {
+                    80.0F,
+                    220.0F,
+                    80.0F,
+                    230.0F,
+                    85.0F,
                     95.0F,
-                    250.0F,
-                    90.0F,
-                    120.0F,
-                    90.0F,
-                    120.0F
+                    85.0F,
+                    95.0F
                 };
 
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < 8; i++)
             {
                 entry->ColumnStyles->Add(
                     gcnew ColumnStyle(
@@ -2161,6 +2392,29 @@ namespace SchoolCore
 
             this->subjectCombo->DropDownStyle =
                 ComboBoxStyle::DropDownList;
+
+            System::Windows::Forms::Label^ paperLabel =
+                gcnew System::Windows::Forms::Label();
+
+            paperLabel->Text =
+                L"Paper";
+
+            paperLabel->Dock =
+                DockStyle::Fill;
+
+            paperLabel->TextAlign =
+                ContentAlignment::MiddleLeft;
+
+            this->paperCombo =
+                gcnew ComboBox();
+
+            this->paperCombo->Dock =
+                DockStyle::Fill;
+
+            this->paperCombo->DropDownStyle =
+                ComboBoxStyle::DropDownList;
+
+            this->paperCombo->Enabled = false;
 
             System::Windows::Forms::Label^ maxLabel =
                 gcnew System::Windows::Forms::Label();
@@ -2222,7 +2476,6 @@ namespace SchoolCore
             this->subjectPassMark->Dock =
                 DockStyle::Fill;
 
-
             entry->Controls->Add(
                 subjectLabel,
                 0,
@@ -2236,26 +2489,38 @@ namespace SchoolCore
             );
 
             entry->Controls->Add(
-                maxLabel,
+                paperLabel,
                 2,
                 0
             );
 
             entry->Controls->Add(
-                this->subjectMaxScore,
+                this->paperCombo,
                 3,
                 0
             );
 
             entry->Controls->Add(
-                passLabel,
+                maxLabel,
                 4,
                 0
             );
 
             entry->Controls->Add(
-                this->subjectPassMark,
+                this->subjectMaxScore,
                 5,
+                0
+            );
+
+            entry->Controls->Add(
+                passLabel,
+                6,
+                0
+            );
+
+            entry->Controls->Add(
+                this->subjectPassMark,
+                7,
                 0
             );
 
@@ -2287,7 +2552,7 @@ namespace SchoolCore
                 gcnew DataGridViewTextBoxColumn();
 
             idColumn->Name =
-                L"ExaminationSubjectId";
+                L"ExaminationPaperId";
 
             idColumn->Visible = false;
 
@@ -2299,10 +2564,10 @@ namespace SchoolCore
                 L"SubjectCode";
 
             codeColumn->HeaderText =
-                L"Code";
+                L"Subject Code";
 
             codeColumn->Width =
-                130;
+                120;
 
 
             DataGridViewTextBoxColumn^ nameColumn =
@@ -2314,7 +2579,33 @@ namespace SchoolCore
             nameColumn->HeaderText =
                 L"Subject";
 
-            nameColumn->AutoSizeMode =
+            nameColumn->Width =
+                220;
+
+
+            DataGridViewTextBoxColumn^ paperCodeColumn =
+                gcnew DataGridViewTextBoxColumn();
+
+            paperCodeColumn->Name =
+                L"PaperCode";
+
+            paperCodeColumn->HeaderText =
+                L"Paper Code";
+
+            paperCodeColumn->Width =
+                120;
+
+
+            DataGridViewTextBoxColumn^ paperNameColumn =
+                gcnew DataGridViewTextBoxColumn();
+
+            paperNameColumn->Name =
+                L"PaperName";
+
+            paperNameColumn->HeaderText =
+                L"Paper";
+
+            paperNameColumn->AutoSizeMode =
                 DataGridViewAutoSizeColumnMode::Fill;
 
 
@@ -2328,7 +2619,7 @@ namespace SchoolCore
                 L"Max Score";
 
             maxColumn->Width =
-                110;
+                95;
 
 
             DataGridViewTextBoxColumn^ passColumn =
@@ -2341,7 +2632,7 @@ namespace SchoolCore
                 L"Pass Mark";
 
             passColumn->Width =
-                110;
+                95;
 
 
             this->assignedSubjectsGrid->Columns->Add(
@@ -2354,6 +2645,14 @@ namespace SchoolCore
 
             this->assignedSubjectsGrid->Columns->Add(
                 nameColumn
+            );
+
+            this->assignedSubjectsGrid->Columns->Add(
+                paperCodeColumn
+            );
+
+            this->assignedSubjectsGrid->Columns->Add(
+                paperNameColumn
             );
 
             this->assignedSubjectsGrid->Columns->Add(
@@ -2408,7 +2707,7 @@ namespace SchoolCore
                 gcnew Button();
 
             removeButton->Text =
-                L"Remove Subject";
+                L"Remove Paper";
 
             removeButton->Size =
                 System::Drawing::Size(
@@ -2421,7 +2720,7 @@ namespace SchoolCore
                 gcnew Button();
 
             addButton->Text =
-                L"Add Subject";
+                L"Add Paper";
 
             addButton->Size =
                 System::Drawing::Size(
@@ -2468,7 +2767,14 @@ namespace SchoolCore
                 );
 
 
+            this->subjectCombo->SelectedIndexChanged +=
+                gcnew EventHandler(
+                    this,
+                    &Examinations::SubjectSelectionChanged
+                );
+
             this->LoadCombinationAwareSubjects();
+            this->LoadPapersForSelectedSubject();
             this->LoadAssignedSubjects();
 
 
