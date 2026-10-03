@@ -52,6 +52,15 @@ namespace SchoolCore
         DateTimePicker^ dtpAdmissionDate;
         TextBox^ txtHomeAddress;
 
+        // Student photo
+        Panel^ photoPanel;
+        PictureBox^ picStudentPhoto;
+        Button^ btnChoosePhoto;
+        Label^ lblPhotoHint;
+        String^ selectedPhotoSourcePath = nullptr;
+        String^ editingPhotoPath = L"";
+        String^ editingRegistrationNumber = L"";
+
         // Enrollment controls
         Label^ lblAcademicYear;
         Label^ lblTerm;
@@ -129,6 +138,152 @@ namespace SchoolCore
                 return Text;
             }
         };
+
+
+        // =========================================================
+        // STUDENT PHOTO HELPERS
+        // =========================================================
+
+        void MakeCircularPictureBox(
+            PictureBox^ pictureBox)
+        {
+            System::Drawing::Drawing2D::GraphicsPath^ path =
+                gcnew System::Drawing::Drawing2D::GraphicsPath();
+
+            path->AddEllipse(
+                0,
+                0,
+                pictureBox->Width,
+                pictureBox->Height
+            );
+
+            pictureBox->Region =
+                gcnew System::Drawing::Region(path);
+        }
+
+
+        void ShowPhotoPreview(
+            String^ imagePath)
+        {
+            if (this->picStudentPhoto == nullptr)
+            {
+                return;
+            }
+
+            if (this->picStudentPhoto->Image != nullptr)
+            {
+                delete this->picStudentPhoto->Image;
+                this->picStudentPhoto->Image = nullptr;
+            }
+
+            if (
+                String::IsNullOrWhiteSpace(imagePath) ||
+                !System::IO::File::Exists(imagePath)
+            )
+            {
+                this->lblPhotoHint->Text =
+                    L"No photo selected";
+
+                return;
+            }
+
+            try
+            {
+                Image^ loaded =
+                    Image::FromFile(imagePath);
+
+                this->picStudentPhoto->Image =
+                    gcnew Bitmap(loaded);
+
+                delete loaded;
+
+                this->lblPhotoHint->Text =
+                    L"Photo selected";
+            }
+            catch (System::Exception^)
+            {
+                this->lblPhotoHint->Text =
+                    L"Unable to load photo";
+            }
+        }
+
+
+        String^ SaveStudentPhoto(
+            String^ sourcePath,
+            String^ registrationNumber)
+        {
+            if (
+                String::IsNullOrWhiteSpace(sourcePath)
+            )
+            {
+                return L"";
+            }
+
+            String^ folder =
+                System::IO::Path::Combine(
+                    Application::StartupPath,
+                    L"StudentPhotos"
+                );
+
+            System::IO::Directory::CreateDirectory(
+                folder
+            );
+
+            String^ extension =
+                System::IO::Path::GetExtension(
+                    sourcePath
+                );
+
+            if (
+                String::IsNullOrWhiteSpace(extension)
+            )
+            {
+                extension = L".jpg";
+            }
+
+            String^ fileName =
+                registrationNumber->Replace(
+                    L"/",
+                    L"_"
+                ) +
+                extension->ToLowerInvariant();
+
+            String^ destination =
+                System::IO::Path::Combine(
+                    folder,
+                    fileName
+                );
+
+            String^ sourceFull =
+                System::IO::Path::GetFullPath(
+                    sourcePath
+                );
+
+            String^ destinationFull =
+                System::IO::Path::GetFullPath(
+                    destination
+                );
+
+            if (
+                !sourceFull->Equals(
+                    destinationFull,
+                    StringComparison::OrdinalIgnoreCase
+                )
+            )
+            {
+                System::IO::File::Copy(
+                    sourcePath,
+                    destination,
+                    true
+                );
+            }
+
+            return
+                System::IO::Path::Combine(
+                    L"StudentPhotos",
+                    fileName
+                );
+        }
 
 
         // =========================================================
@@ -749,6 +904,136 @@ namespace SchoolCore
 
             this->studentGroup->Controls->Add(
                 studentLayout
+            );
+
+
+            // ---------------------------------------------------------
+            // Student Photo
+            // ---------------------------------------------------------
+
+            this->photoPanel =
+                gcnew Panel();
+
+            this->photoPanel->Dock =
+                DockStyle::Right;
+
+            this->photoPanel->Width =
+                165;
+
+            this->photoPanel->Padding =
+                System::Windows::Forms::Padding(
+                    8,
+                    4,
+                    4,
+                    4
+                );
+
+            this->picStudentPhoto =
+                gcnew PictureBox();
+
+            this->picStudentPhoto->Size =
+                System::Drawing::Size(
+                    125,
+                    125
+                );
+
+            this->picStudentPhoto->Location =
+                System::Drawing::Point(
+                    18,
+                    4
+                );
+
+            this->picStudentPhoto->SizeMode =
+                PictureBoxSizeMode::Zoom;
+
+            this->picStudentPhoto->BackColor =
+                Color::Gainsboro;
+
+            this->picStudentPhoto->BorderStyle =
+                BorderStyle::FixedSingle;
+
+            MakeCircularPictureBox(
+                this->picStudentPhoto
+            );
+
+
+            this->btnChoosePhoto =
+                gcnew Button();
+
+            this->btnChoosePhoto->Text =
+                L"Choose Photo";
+
+            this->btnChoosePhoto->Size =
+                System::Drawing::Size(
+                    125,
+                    32
+                );
+
+            this->btnChoosePhoto->Location =
+                System::Drawing::Point(
+                    18,
+                    135
+                );
+
+            this->btnChoosePhoto->FlatStyle =
+                FlatStyle::Flat;
+
+            this->btnChoosePhoto->FlatAppearance->BorderSize =
+                0;
+
+            this->btnChoosePhoto->BackColor =
+                Color::FromArgb(
+                    30,
+                    41,
+                    59
+                );
+
+            this->btnChoosePhoto->ForeColor =
+                Color::White;
+
+
+            this->lblPhotoHint =
+                gcnew Label();
+
+            this->lblPhotoHint->Text =
+                L"No photo selected";
+
+            this->lblPhotoHint->AutoSize =
+                false;
+
+            this->lblPhotoHint->Size =
+                System::Drawing::Size(
+                    145,
+                    35
+                );
+
+            this->lblPhotoHint->Location =
+                System::Drawing::Point(
+                    8,
+                    169
+                );
+
+            this->lblPhotoHint->TextAlign =
+                ContentAlignment::TopCenter;
+
+            this->lblPhotoHint->ForeColor =
+                Color::DimGray;
+
+
+            this->photoPanel->Controls->Add(
+                this->lblPhotoHint
+            );
+
+            this->photoPanel->Controls->Add(
+                this->btnChoosePhoto
+            );
+
+            this->photoPanel->Controls->Add(
+                this->picStudentPhoto
+            );
+
+            this->studentGroup->Controls->Add(
+                this->photoPanel
             );
 
 
@@ -1990,6 +2275,7 @@ namespace SchoolCore
                         "s.gender, "
                         "s.admission_date, "
                         "s.home_address, "
+                        "s.photo_path, "
                         "s.status, "
                         "e.enrollment_id, "
                         "e.academic_year_id, "
@@ -2043,6 +2329,45 @@ namespace SchoolCore
 
                     this->Close();
                     return;
+                }
+
+                this->editingPhotoPath =
+                    result->isNull("photo_path")
+                    ? L""
+                    : gcnew String(
+                        result->getString(
+                            "photo_path"
+                        ).c_str()
+                    );
+
+                this->selectedPhotoSourcePath =
+                    nullptr;
+
+                this->editingRegistrationNumber =
+                    gcnew String(
+                        result->getString(
+                            "registration_number"
+                        ).c_str()
+                    );
+
+                if (
+                    !String::IsNullOrWhiteSpace(
+                        this->editingPhotoPath
+                    )
+                )
+                {
+                    ShowPhotoPreview(
+                        System::IO::Path::Combine(
+                            Application::StartupPath,
+                            this->editingPhotoPath
+                        )
+                    );
+                }
+                else
+                {
+                    ShowPhotoPreview(
+                        L""
+                    );
                 }
 
                 this->editingGuardianId =
@@ -2303,7 +2628,8 @@ namespace SchoolCore
                             "date_of_birth = ?, "
                             "gender = ?, "
                             "admission_date = ?, "
-                            "home_address = ? "
+                            "home_address = ?, "
+                            "photo_path = ? "
                             "WHERE student_id = ?"
                         )
                     );
@@ -2357,8 +2683,31 @@ namespace SchoolCore
                     )
                 );
 
-                studentStmt->setInt64(
+                String^ storedPhotoPath =
+                    this->editingPhotoPath;
+
+                if (
+                    !String::IsNullOrWhiteSpace(
+                        this->selectedPhotoSourcePath
+                    )
+                )
+                {
+                    storedPhotoPath =
+                        SaveStudentPhoto(
+                            this->selectedPhotoSourcePath,
+                            this->editingRegistrationNumber
+                        );
+                }
+
+                studentStmt->setString(
                     8,
+                    msclr::interop::marshal_as<std::string>(
+                        storedPhotoPath
+                    )
+                );
+
+                studentStmt->setInt64(
+                    9,
                     this->editingStudentId
                 );
 
@@ -3045,6 +3394,7 @@ namespace SchoolCore
                             "registration_number, "
                             "registration_year, "
                             "registration_sequence, "
+                            "photo_path, "
                             "first_name, "
                             "middle_name, "
                             "last_name, "
@@ -3055,7 +3405,7 @@ namespace SchoolCore
                             "status"
                             ") "
                             "VALUES "
-                            "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                            "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
                         )
                     );
 
@@ -3075,6 +3425,31 @@ namespace SchoolCore
                     sequenceNumber
                 );
 
+                String^ storedPhotoPath =
+                    L"";
+
+                if (
+                    !String::IsNullOrWhiteSpace(
+                        this->selectedPhotoSourcePath
+                    )
+                )
+                {
+                    storedPhotoPath =
+                        SaveStudentPhoto(
+                            this->selectedPhotoSourcePath,
+                            gcnew String(
+                                registrationNumber.c_str()
+                            )
+                        );
+                }
+
+                studentStmt->setString(
+                    5,
+                    msclr::interop::marshal_as<std::string>(
+                        storedPhotoPath
+                    )
+                );
+
                 studentStmt->setString(
                     4,
                     msclr::interop::marshal_as<std::string>(
@@ -3083,49 +3458,49 @@ namespace SchoolCore
                 );
 
                 studentStmt->setString(
-                    5,
+                    6,
                     msclr::interop::marshal_as<std::string>(
                         this->txtMiddleName->Text->Trim()
                     )
                 );
 
                 studentStmt->setString(
-                    6,
+                    7,
                     msclr::interop::marshal_as<std::string>(
                         this->txtLastName->Text->Trim()
                     )
                 );
 
                 studentStmt->setString(
-                    7,
+                    8,
                     msclr::interop::marshal_as<std::string>(
                         dob.ToString("yyyy-MM-dd")
                     )
                 );
 
                 studentStmt->setString(
-                    8,
+                    9,
                     msclr::interop::marshal_as<std::string>(
                         this->cmbGender->SelectedItem->ToString()
                     )
                 );
 
                 studentStmt->setString(
-                    9,
+                    10,
                     msclr::interop::marshal_as<std::string>(
                         admissionDate.ToString("yyyy-MM-dd")
                     )
                 );
 
                 studentStmt->setString(
-                    10,
+                    11,
                     msclr::interop::marshal_as<std::string>(
                         this->txtHomeAddress->Text->Trim()
                     )
                 );
 
                 studentStmt->setString(
-                    11,
+                    12,
                     "Active"
                 );
 
@@ -3428,6 +3803,42 @@ namespace SchoolCore
 
 
         // =========================================================
+        // CHOOSE STUDENT PHOTO
+        // =========================================================
+
+        System::Void btnChoosePhoto_Click(
+            System::Object^ sender,
+            System::EventArgs^ e)
+        {
+            OpenFileDialog^ dialog =
+                gcnew OpenFileDialog();
+
+            dialog->Title =
+                L"Select Student Photo";
+
+            dialog->Filter =
+                L"Image Files|*.jpg;*.jpeg;*.png;*.bmp";
+
+            dialog->Multiselect =
+                false;
+
+            if (
+                dialog->ShowDialog(this)
+                ==
+                System::Windows::Forms::DialogResult::OK
+            )
+            {
+                this->selectedPhotoSourcePath =
+                    dialog->FileName;
+
+                ShowPhotoPreview(
+                    dialog->FileName
+                );
+            }
+        }
+
+
+        // =========================================================
         // CLEAR FORM
         // =========================================================
 
@@ -3519,6 +3930,12 @@ namespace SchoolCore
                 gcnew System::EventHandler(
                     this,
                     &StudentRegistration::btnCancel_Click
+                );
+
+            this->btnChoosePhoto->Click +=
+                gcnew System::EventHandler(
+                    this,
+                    &StudentRegistration::btnChoosePhoto_Click
                 );
 
             this->cmbAcademicYear->SelectedIndexChanged +=
