@@ -539,10 +539,6 @@ namespace SchoolCore {
 					30, 41, 59
 				);
 
-			section->Controls->Add(
-				heading
-			);
-
 			FlowLayoutPanel^ activityList =
 				gcnew FlowLayoutPanel();
 
@@ -822,6 +818,10 @@ namespace SchoolCore {
 				activityList
 			);
 
+			section->Controls->Add(
+				heading
+			);
+
 			return section;
 		}
 
@@ -928,10 +928,6 @@ namespace SchoolCore {
 					30, 41, 59
 				);
 
-			section->Controls->Add(
-				heading
-			);
-
 			FlowLayoutPanel^ actions =
 				gcnew FlowLayoutPanel();
 
@@ -1006,6 +1002,10 @@ namespace SchoolCore {
 
 			section->Controls->Add(
 				actions
+			);
+
+			section->Controls->Add(
+				heading
 			);
 
 			return section;
