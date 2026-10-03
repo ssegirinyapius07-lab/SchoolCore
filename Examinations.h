@@ -2938,20 +2938,25 @@ void InitializeComponent()
                 gcnew System::Windows::Forms::ComboBox();
 
 
-            for each (System::Windows::Forms::ComboBox^ combo in gcnew array<System::Windows::Forms::ComboBox^>
-            {
-                this->cmbAcademicYear,
-                this->cmbTerm,
-                this->cmbClass,
-                this->cmbStatus
-            })
-            {
-                combo->Dock =
-                    System::Windows::Forms::DockStyle::Fill;
+            this->cmbAcademicYear->Dock =
+                System::Windows::Forms::DockStyle::Fill;
+            this->cmbAcademicYear->DropDownStyle =
+                System::Windows::Forms::ComboBoxStyle::DropDownList;
 
-                combo->DropDownStyle =
-                    System::Windows::Forms::ComboBoxStyle::DropDownList;
-            }
+            this->cmbTerm->Dock =
+                System::Windows::Forms::DockStyle::Fill;
+            this->cmbTerm->DropDownStyle =
+                System::Windows::Forms::ComboBoxStyle::DropDownList;
+
+            this->cmbClass->Dock =
+                System::Windows::Forms::DockStyle::Fill;
+            this->cmbClass->DropDownStyle =
+                System::Windows::Forms::ComboBoxStyle::DropDownList;
+
+            this->cmbStatus->Dock =
+                System::Windows::Forms::DockStyle::Fill;
+            this->cmbStatus->DropDownStyle =
+                System::Windows::Forms::ComboBoxStyle::DropDownList;
 
 
             this->cmbStatus->Items->Add(
