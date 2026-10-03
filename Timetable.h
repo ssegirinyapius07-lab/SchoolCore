@@ -19,7 +19,7 @@ namespace SchoolCore
     public ref class Timetable : public System::Windows::Forms::Form
     {
     public:
-                Timetable()
+                Timetable(void)
                 {
                     InitializeComponent();
                     LoadTimetable();
@@ -29,7 +29,7 @@ namespace SchoolCore
 
 
     protected:
-        ~Timetable()
+        ~Timetable(void)
         {
             if (this->components)
             {
@@ -1084,7 +1084,7 @@ namespace SchoolCore
 
         #pragma region Windows Form Designer generated code
 
-void InitializeComponent()
+void InitializeComponent(void)
         {
             this->components = gcnew System::ComponentModel::Container();
             this->SuspendLayout();
