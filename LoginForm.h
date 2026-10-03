@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DbConnection.h"
+#include "ThemeManager.h"
 #include "AuthSession.h"
 #include "PasswordChangeForm.h"
 
@@ -25,7 +26,8 @@ using namespace System::Drawing;
                 LoginForm(void)
                 {
                     InitializeComponent();
-                }
+                                    ThemeManager::ApplyToForm(this);
+                    }
 
         System::ComponentModel::Container^ components;
 
