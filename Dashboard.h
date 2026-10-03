@@ -12,6 +12,7 @@
 #include "Attendance.h"
 #include "Examinations.h"
 #include "AuthSession.h"
+#include "UsersRoles.h"
 
 namespace SchoolCore {
 
@@ -58,6 +59,12 @@ namespace SchoolCore {
 				gcnew System::EventHandler(
 					this,
 					&Dashboard::btnExaminations_Click
+				);
+
+			this->btnUsers->Click +=
+				gcnew System::EventHandler(
+					this,
+					&Dashboard::btnUsers_Click
 				);
 
 			if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
@@ -224,6 +231,17 @@ namespace SchoolCore {
 		{
 			Examinations^ form =
 				gcnew Examinations();
+
+			form->ShowDialog(this);
+			ShowDashboardOverview();
+		}
+
+		System::Void btnUsers_Click(
+			System::Object^ sender,
+			System::EventArgs^ e)
+		{
+			UsersRoles^ form =
+				gcnew UsersRoles();
 
 			form->ShowDialog(this);
 			ShowDashboardOverview();
