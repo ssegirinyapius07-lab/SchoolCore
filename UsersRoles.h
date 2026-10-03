@@ -71,6 +71,7 @@ namespace SchoolCore
 
         bool editMode = false;
         int editingUserId = 0;
+        DataTable^ roleTable = nullptr;
 
         static String^ Base64Encode(array<Byte>^ value)
         {
@@ -117,7 +118,7 @@ namespace SchoolCore
 
         static String^ GenerateTemporaryPassword()
         {
-            const String^ chars =
+            String^ chars =
                 L"ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
 
             array<Byte>^ bytes = gcnew array<Byte>(12);
@@ -256,7 +257,8 @@ namespace SchoolCore
                     table->Rows->Add(row);
                 }
 
-                cmbRole->DataSource = table;
+                roleTable = table;
+                cmbRole->DataSource = roleTable;
                 cmbRole->DisplayMember = L"role_name";
                 cmbRole->ValueMember = L"role_id";
 
@@ -1140,6 +1142,9 @@ namespace SchoolCore
 
             this->ClientSize =
                 Drawing::Size(1180, 720);
+
+            cmbRole = gcnew ComboBox();
+            cmbRole->Visible = false;
 
             // Header
             headerPanel = gcnew Panel();
