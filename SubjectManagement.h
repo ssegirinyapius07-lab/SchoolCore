@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DbConnection.h"
+#include "UnebSubjectPaperManagement.h"
 
 #include <mariadb/conncpp.hpp>
 #include <msclr/marshal_cppstd.h>
@@ -41,6 +42,7 @@ namespace SchoolCore
 
         System::Windows::Forms::Panel^ actionPanel;
         System::Windows::Forms::Button^ btnRegisterSubject;
+        System::Windows::Forms::Button^ btnUnebSetup;
         System::Windows::Forms::Label^ lblSearch;
         System::Windows::Forms::TextBox^ txtSearch;
         System::Windows::Forms::Button^ btnSearch;
@@ -476,6 +478,20 @@ namespace SchoolCore
         // =========================================================
         // SEARCH
         // =========================================================
+
+        System::Void btnUnebSetup_Click(
+            System::Object^ sender,
+            System::EventArgs^ e)
+        {
+            UnebSubjectPaperManagement^ form =
+                gcnew UnebSubjectPaperManagement();
+
+            form->ShowDialog(this);
+            LoadSubjects(
+                this->txtSearch->Text->Trim()
+            );
+        }
+
 
         System::Void btnSearch_Click(
             System::Object^ sender,
@@ -2177,6 +2193,9 @@ void InitializeComponent(void)
             this->btnRegisterSubject =
                 gcnew System::Windows::Forms::Button();
 
+            this->btnUnebSetup =
+                gcnew System::Windows::Forms::Button();
+
             this->lblSearch =
                 gcnew System::Windows::Forms::Label();
 
@@ -2461,6 +2480,48 @@ void InitializeComponent(void)
                 );
 
 
+            this->btnUnebSetup->Text =
+                L"UNEB Subject && Papers";
+
+            this->btnUnebSetup->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI",
+                    9.5F
+                );
+
+            this->btnUnebSetup->Location =
+                System::Drawing::Point(
+                    200,
+                    13
+                );
+
+            this->btnUnebSetup->Size =
+                System::Drawing::Size(
+                    180,
+                    42
+                );
+
+            this->btnUnebSetup->BackColor =
+                System::Drawing::Color::FromArgb(
+                    226,
+                    232,
+                    240
+                );
+
+            this->btnUnebSetup->ForeColor =
+                System::Drawing::Color::FromArgb(
+                    30,
+                    41,
+                    59
+                );
+
+            this->btnUnebSetup->FlatStyle =
+                System::Windows::Forms::FlatStyle::Flat;
+
+            this->btnUnebSetup->FlatAppearance->BorderSize =
+                0;
+
+
             this->lblSearch->AutoSize =
                 true;
 
@@ -2532,6 +2593,10 @@ void InitializeComponent(void)
 
             this->actionPanel->Controls->Add(
                 this->btnRegisterSubject
+            );
+
+            this->actionPanel->Controls->Add(
+                this->btnUnebSetup
             );
 
             this->actionPanel->Controls->Add(
@@ -2923,6 +2988,12 @@ void InitializeComponent(void)
                 gcnew System::EventHandler(
                     this,
                     &SubjectManagement::btnRegisterSubject_Click
+                );
+
+            this->btnUnebSetup->Click +=
+                gcnew System::EventHandler(
+                    this,
+                    &SubjectManagement::btnUnebSetup_Click
                 );
 
             this->btnSearch->Click +=
