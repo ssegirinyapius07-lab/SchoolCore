@@ -629,13 +629,13 @@ namespace SchoolCore
             editor->ShowInTaskbar = false;
 
             editor->ClientSize =
-                Drawing::Size(
+                System::Drawing::Size(
                     760,
                     560
                 );
 
             editor->MinimumSize =
-                Drawing::Size(
+                System::Drawing::Size(
                     760,
                     560
                 );
@@ -684,7 +684,7 @@ namespace SchoolCore
                 : L"New Examination";
 
             title->Font =
-                gcnew Drawing::Font(
+                gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
                     18.0F,
                     FontStyle::Bold
@@ -706,7 +706,7 @@ namespace SchoolCore
                 Color::Gainsboro;
 
             subtitle->Font =
-                gcnew Drawing::Font(
+                gcnew System::Drawing::Font(
                     L"Segoe UI",
                     9.5F
                 );
@@ -1027,7 +1027,7 @@ namespace SchoolCore
 
             btnCancel->Text = L"Cancel";
             btnCancel->Size =
-                Drawing::Size(
+                System::Drawing::Size(
                     110,
                     38
                 );
@@ -1046,7 +1046,7 @@ namespace SchoolCore
                 : L"Create Examination";
 
             btnSave->Size =
-                Drawing::Size(
+                System::Drawing::Size(
                     160,
                     38
                 );
@@ -1600,13 +1600,13 @@ namespace SchoolCore
             dialog->MinimizeBox = true;
             dialog->ShowInTaskbar = false;
             dialog->ClientSize =
-                Drawing::Size(
+                System::Drawing::Size(
                     950,
                     620
                 );
 
             dialog->MinimumSize =
-                Drawing::Size(
+                System::Drawing::Size(
                     850,
                     560
                 );
@@ -1666,7 +1666,7 @@ namespace SchoolCore
                 L"Examination Subjects";
 
             title->Font =
-                gcnew Drawing::Font(
+                gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
                     18.0F,
                     FontStyle::Bold
@@ -1957,7 +1957,7 @@ namespace SchoolCore
                 L"Add Subject";
 
             btnAdd->Size =
-                Drawing::Size(
+                System::Drawing::Size(
                     130,
                     38
                 );
@@ -1970,7 +1970,7 @@ namespace SchoolCore
                 L"Remove Subject";
 
             btnRemove->Size =
-                Drawing::Size(
+                System::Drawing::Size(
                     130,
                     38
                 );
@@ -1983,7 +1983,7 @@ namespace SchoolCore
                 L"Close";
 
             btnClose->Size =
-                Drawing::Size(
+                System::Drawing::Size(
                     110,
                     38
                 );
@@ -2348,13 +2348,13 @@ namespace SchoolCore
             this->MinimizeBox = true;
 
             this->ClientSize =
-                Drawing::Size(
+                System::Drawing::Size(
                     1180,
                     760
                 );
 
             this->MinimumSize =
-                Drawing::Size(
+                System::Drawing::Size(
                     1000,
                     650
                 );
@@ -2461,7 +2461,7 @@ namespace SchoolCore
                 L"Examinations & Results";
 
             this->lblTitle->Font =
-                gcnew Drawing::Font(
+                gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
                     17.0F,
                     FontStyle::Bold
@@ -2484,7 +2484,7 @@ namespace SchoolCore
                 L"Create examinations, configure their subjects and manage results.";
 
             this->lblSubtitle->Font =
-                gcnew Drawing::Font(
+                gcnew System::Drawing::Font(
                     L"Segoe UI",
                     9.5F
                 );
@@ -2635,7 +2635,7 @@ namespace SchoolCore
                 L"Refresh";
 
             this->btnRefresh->Size =
-                Drawing::Size(
+                System::Drawing::Size(
                     90,
                     34
                 );
@@ -2773,7 +2773,7 @@ namespace SchoolCore
             this->examinationsGrid
                 ->ColumnHeadersDefaultCellStyle
                 ->Font =
-                gcnew Drawing::Font(
+                gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
                     9.5F,
                     FontStyle::Bold
@@ -2936,7 +2936,7 @@ namespace SchoolCore
                 L"New Examination";
 
             this->btnNew->Size =
-                Drawing::Size(
+                System::Drawing::Size(
                     140,
                     38
                 );
@@ -2952,7 +2952,7 @@ namespace SchoolCore
                 false;
 
             this->btnEdit->Size =
-                Drawing::Size(
+                System::Drawing::Size(
                     95,
                     38
                 );
@@ -2968,7 +2968,7 @@ namespace SchoolCore
                 false;
 
             this->btnSubjects->Size =
-                Drawing::Size(
+                System::Drawing::Size(
                     140,
                     38
                 );
@@ -2984,7 +2984,7 @@ namespace SchoolCore
                 false;
 
             this->btnMarks->Size =
-                Drawing::Size(
+                System::Drawing::Size(
                     115,
                     38
                 );
@@ -3000,7 +3000,7 @@ namespace SchoolCore
                 false;
 
             this->btnResults->Size =
-                Drawing::Size(
+                System::Drawing::Size(
                     115,
                     38
                 );
@@ -3013,7 +3013,7 @@ namespace SchoolCore
                 L"Back to Dashboard";
 
             this->btnBack->Size =
-                Drawing::Size(
+                System::Drawing::Size(
                     150,
                     38
                 );
