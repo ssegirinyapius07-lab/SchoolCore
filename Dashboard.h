@@ -45,6 +45,12 @@ namespace SchoolCore {
 					&Dashboard::btnSubjects_Click
 				);
 
+			this->btnAttendance->Click +=
+				gcnew System::EventHandler(
+					this,
+					&Dashboard::btnAttendance_Click
+				);
+
 			ApplyRolePermissions();
 			ShowDashboardOverview();
 		}
@@ -131,6 +137,13 @@ namespace SchoolCore {
 		System::Windows::Forms::Button^ btnUsers;
 		System::Windows::Forms::Button^ btnSettings;
 
+		System::Void embeddedModule_FormClosed(
+			System::Object^ sender,
+			System::Windows::Forms::FormClosedEventArgs^ e)
+		{
+			ShowDashboardOverview();
+		}
+
 		System::Void btnTeachers_Click(
 			System::Object^ sender,
 			System::EventArgs^ e)
@@ -157,11 +170,25 @@ namespace SchoolCore {
 			System::Object^ sender,
 			System::EventArgs^ e)
 		{
+			this->contentPanel->Controls->Clear();
+
 			SchoolCore::Timetable^ form =
 				gcnew SchoolCore::Timetable();
 
-			form->ShowDialog(this);
-			ShowDashboardOverview();
+			form->TopLevel = false;
+			form->FormBorderStyle =
+				System::Windows::Forms::FormBorderStyle::None;
+			form->Dock = DockStyle::Fill;
+			form->WindowState = FormWindowState::Normal;
+
+			form->FormClosed +=
+				gcnew FormClosedEventHandler(
+					this,
+					&Dashboard::embeddedModule_FormClosed
+				);
+
+			this->contentPanel->Controls->Add(form);
+			form->Show();
 		}
 
 		System::Void btnStudents_Click(
@@ -179,11 +206,25 @@ namespace SchoolCore {
 			System::Object^ sender,
 			System::EventArgs^ e)
 		{
+			this->contentPanel->Controls->Clear();
+
 			SchoolCore::Attendance^ form =
 				gcnew SchoolCore::Attendance();
 
-			form->ShowDialog(this);
-			ShowDashboardOverview();
+			form->TopLevel = false;
+			form->FormBorderStyle =
+				System::Windows::Forms::FormBorderStyle::None;
+			form->Dock = DockStyle::Fill;
+			form->WindowState = FormWindowState::Normal;
+
+			form->FormClosed +=
+				gcnew FormClosedEventHandler(
+					this,
+					&Dashboard::embeddedModule_FormClosed
+				);
+
+			this->contentPanel->Controls->Add(form);
+			form->Show();
 		}
 
 		System::Void btnClasses_Click(
