@@ -339,17 +339,18 @@ namespace SchoolCore
 				L"Segoe UI", 9.5F, FontStyle::Bold);
 			label->ForeColor = Color::FromArgb(71, 85, 105);
 			label->TextAlign = ContentAlignment::MiddleLeft;
-			label->Margin = System::Windows::Forms::Padding(0, 0, 12, 0);
+			label->Margin = System::Windows::Forms::Padding(0, 3, 12, 3);
 
 			Label^ value = gcnew Label();
 			value->Text =
 				String::IsNullOrWhiteSpace(valueText)
-					? L"—"
+					? L"Not provided"
 					: valueText;
 			value->Dock = DockStyle::Fill;
 			value->Font = gcnew System::Drawing::Font(
 				L"Segoe UI", 9.5F, FontStyle::Regular);
 			value->ForeColor = Color::FromArgb(30, 41, 59);
+			value->Margin = System::Windows::Forms::Padding(0, 3, 0, 3);
 			value->TextAlign = ContentAlignment::MiddleLeft;
 
 			layout->Controls->Add(label, 0, row);
@@ -617,11 +618,11 @@ namespace SchoolCore
 				GroupBox^ studentSection = gcnew GroupBox();
 				studentSection->Text = L"Student Information";
 				studentSection->Dock = DockStyle::Top;
-				studentSection->Height = 220;
+				studentSection->Height = 240;
 				studentSection->Padding =
 					System::Windows::Forms::Padding(14, 18, 14, 10);
 				studentSection->Margin =
-					System::Windows::Forms::Padding(0, 0, 0, 12);
+					System::Windows::Forms::Padding(0, 0, 0, 16);
 
 				TableLayoutPanel^ studentLayout = gcnew TableLayoutPanel();
 				studentLayout->Dock = DockStyle::Fill;
@@ -635,7 +636,7 @@ namespace SchoolCore
 				for (int i = 0; i < 6; i++)
 				{
 					studentLayout->RowStyles->Add(
-						gcnew RowStyle(SizeType::Absolute, 30.0F));
+						gcnew RowStyle(SizeType::Absolute, 36.0F));
 				}
 
 				AddProfileField(studentLayout, 0, L"Full Name", fullName);
@@ -652,7 +653,7 @@ namespace SchoolCore
 				GroupBox^ enrollmentSection = gcnew GroupBox();
 				enrollmentSection->Text = L"Enrollment Information";
 				enrollmentSection->Dock = DockStyle::Top;
-				enrollmentSection->Height = 150;
+				enrollmentSection->Height = 170;
 				enrollmentSection->Padding =
 					System::Windows::Forms::Padding(14, 18, 14, 10);
 				enrollmentSection->Margin =
@@ -685,7 +686,7 @@ namespace SchoolCore
 				GroupBox^ guardianSection = gcnew GroupBox();
 				guardianSection->Text = L"Guardian Information";
 				guardianSection->Dock = DockStyle::Top;
-				guardianSection->Height = 205;
+				guardianSection->Height = 235;
 				guardianSection->Padding =
 					System::Windows::Forms::Padding(14, 18, 14, 10);
 
