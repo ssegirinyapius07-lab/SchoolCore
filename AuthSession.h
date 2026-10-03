@@ -1,10 +1,8 @@
 #pragma once
 
-using namespace System;
-using namespace System::Collections::Generic;
-
 namespace SchoolCore
 {
+    using namespace System;
     public ref class AuthSession abstract sealed
     {
     public:
