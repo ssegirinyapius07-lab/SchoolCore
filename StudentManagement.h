@@ -98,6 +98,7 @@ namespace SchoolCore
 		System::Windows::Forms::FlowLayoutPanel^ buttonPanel;
 		System::Windows::Forms::Button^ btnViewProfile;
 		System::Windows::Forms::Button^ btnEditStudent;
+		System::Windows::Forms::Button^ btnPromoteStudent;
 		System::Windows::Forms::Button^ btnBack;
 
 		System::Void btnRegisterStudent_Click(
