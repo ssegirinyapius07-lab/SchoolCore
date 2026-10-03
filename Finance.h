@@ -40,6 +40,7 @@ namespace SchoolCore
             title->Text = L"Fees & Finance";
             title->Dock = DockStyle::Top;
             title->Height = 42;
+            title->UseMnemonic = false;
             title->Font = gcnew Drawing::Font(L"Segoe UI Semibold", 21.0F, FontStyle::Bold);
             title->ForeColor = Color::FromArgb(15, 23, 42);
 
@@ -95,7 +96,7 @@ namespace SchoolCore
                 name->ForeColor = Color::FromArgb(71, 85, 105);
 
                 Label^ value = gcnew Label();
-                value->Text = L"—";
+                value->Text = L"UGX 0.00";
                 value->Dock = DockStyle::Fill;
                 value->Font = gcnew Drawing::Font(L"Segoe UI Semibold", 18.0F, FontStyle::Bold);
                 value->ForeColor = Color::FromArgb(15, 23, 42);
@@ -115,11 +116,13 @@ namespace SchoolCore
 
             TableLayoutPanel^ actions = gcnew TableLayoutPanel();
             actions->Dock = DockStyle::Top;
-            actions->Height = 155;
+            actions->Height = 180;
             actions->ColumnCount = 2;
             actions->RowCount = 2;
             actions->ColumnStyles->Add(gcnew ColumnStyle(SizeType::Percent, 50.0F));
             actions->ColumnStyles->Add(gcnew ColumnStyle(SizeType::Percent, 50.0F));
+            actions->RowStyles->Add(gcnew RowStyle(SizeType::Percent, 50.0F));
+            actions->RowStyles->Add(gcnew RowStyle(SizeType::Percent, 50.0F));
 
             this->btnFeeStructures = gcnew Button();
             this->btnStudentCharges = gcnew Button();
