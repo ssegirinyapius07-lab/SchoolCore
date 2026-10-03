@@ -153,14 +153,14 @@ namespace SchoolCore
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
                     SizeType::Percent,
-                    42.0F
+                    50.0F
                 )
             );
 
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
                     SizeType::Percent,
-                    51.0F
+                    50.0F
                 )
             );
 
@@ -216,7 +216,7 @@ namespace SchoolCore
             this->lblSubtitle->AutoSize = true;
 
             this->lblSubtitle->Text =
-                L"Manage the Senior 1–Senior 6 classes and monitor live student enrollment.";
+                L"Manage the Senior 1â€“Senior 6 classes and monitor live student enrollment.";
 
             this->lblSubtitle->ForeColor =
                 Color::FromArgb(
