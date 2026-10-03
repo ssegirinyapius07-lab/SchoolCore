@@ -461,7 +461,7 @@ namespace SchoolCore
             subtitle->Text =
                 editMode
                 ? L"Update the teacher's staff and contact information."
-                : L"Enter the teacher's staff and contact information.";
+                : L"Enter the teacher's details. Staff number is generated automatically.";
 
             subtitle->Dock = DockStyle::Fill;
             subtitle->Font =
@@ -521,6 +521,8 @@ namespace SchoolCore
 
 
             this->txtStaffNumber = gcnew TextBox();
+            this->txtStaffNumber->ReadOnly = true;
+            this->txtStaffNumber->BackColor = Color::WhiteSmoke;
             this->txtFirstName = gcnew TextBox();
             this->txtMiddleName = gcnew TextBox();
             this->txtLastName = gcnew TextBox();
@@ -560,9 +562,6 @@ namespace SchoolCore
             );
             this->cmbGender->Items->Add(
                 L"Female"
-            );
-            this->cmbGender->Items->Add(
-                L"Other"
             );
 
             this->cmbGender->SelectedIndex = 0;
@@ -679,6 +678,11 @@ namespace SchoolCore
                     &TeacherManagement::btnEditorSave_Click
                 );
 
+
+            this->txtStaffNumber->Text =
+                editMode
+                ? this->txtStaffNumber->Text
+                : L"Generated automatically";
 
             this->editorForm->Controls->Add(layout);
             this->editorForm->Controls->Add(footer);
@@ -858,23 +862,6 @@ namespace SchoolCore
         {
             if (
                 String::IsNullOrWhiteSpace(
-                    this->txtStaffNumber->Text
-                )
-            )
-            {
-                MessageBox::Show(
-                    L"Please enter the staff number.",
-                    L"Validation",
-                    MessageBoxButtons::OK,
-                    MessageBoxIcon::Warning
-                );
-
-                this->txtStaffNumber->Focus();
-                return;
-            }
-
-            if (
-                String::IsNullOrWhiteSpace(
                     this->txtFirstName->Text
                 )
             )
@@ -907,60 +894,12 @@ namespace SchoolCore
                 return;
             }
 
+            std::unique_ptr<sql::Connection> con;
+
             try
             {
-                auto con =
+                con =
                     DbConnection::GetConnection();
-
-                std::unique_ptr<sql::PreparedStatement>
-                    checkStmt(
-                        con->prepareStatement(
-                            editorEditMode
-                            ? "SELECT teacher_id "
-                              "FROM teachers "
-                              "WHERE staff_number = ? "
-                              "AND teacher_id <> ? "
-                              "LIMIT 1"
-                            : "SELECT teacher_id "
-                              "FROM teachers "
-                              "WHERE staff_number = ? "
-                              "LIMIT 1"
-                        )
-                    );
-
-                checkStmt->setString(
-                    1,
-                    msclr::interop::marshal_as<std::string>(
-                        this->txtStaffNumber->Text->Trim()
-                    )
-                );
-
-                if (editorEditMode)
-                {
-                    checkStmt->setInt64(
-                        2,
-                        this->editingTeacherId
-                    );
-                }
-
-                std::unique_ptr<sql::ResultSet>
-                    checkResult(
-                        checkStmt->executeQuery()
-                    );
-
-                if (checkResult->next())
-                {
-                    MessageBox::Show(
-                        L"That staff number is already assigned to another teacher.",
-                        L"Validation",
-                        MessageBoxButtons::OK,
-                        MessageBoxIcon::Warning
-                    );
-
-                    this->txtStaffNumber->Focus();
-                    return;
-                }
-
 
                 std::string firstName =
                     msclr::interop::marshal_as<std::string>(
@@ -1006,8 +945,7 @@ namespace SchoolCore
                         stmt(
                             con->prepareStatement(
                                 "UPDATE teachers "
-                                "SET staff_number = ?, "
-                                "first_name = ?, "
+                                "SET first_name = ?, "
                                 "middle_name = ?, "
                                 "last_name = ?, "
                                 "gender = ?, "
@@ -1018,16 +956,14 @@ namespace SchoolCore
                             )
                         );
 
-                    stmt->setString(1, msclr::interop::marshal_as<std::string>(
-                        this->txtStaffNumber->Text->Trim()));
-                    stmt->setString(2, firstName);
-                    stmt->setString(3, middleName);
-                    stmt->setString(4, lastName);
-                    stmt->setString(5, gender);
-                    stmt->setString(6, phone);
-                    stmt->setString(7, email);
-                    stmt->setString(8, address);
-                    stmt->setInt64(9, this->editingTeacherId);
+                    stmt->setString(1, firstName);
+                    stmt->setString(2, middleName);
+                    stmt->setString(3, lastName);
+                    stmt->setString(4, gender);
+                    stmt->setString(5, phone);
+                    stmt->setString(6, email);
+                    stmt->setString(7, address);
+                    stmt->setInt64(8, this->editingTeacherId);
 
                     stmt->executeUpdate();
 
@@ -1040,6 +976,157 @@ namespace SchoolCore
                 }
                 else
                 {
+                    // -------------------------------------------------
+                    // GENERATE STAFF NUMBER IN A DATABASE TRANSACTION
+                    // -------------------------------------------------
+
+                    con->setAutoCommit(false);
+
+                    int staffYear =
+                        DateTime::Now.Year;
+
+                    std::string yearPattern =
+                        "TCH/" +
+                        std::to_string(staffYear) +
+                        "/%";
+
+                    // Find the highest staff sequence already stored
+                    // for this year so existing records are not repeated.
+                    std::unique_ptr<sql::PreparedStatement>
+                        maxStmt(
+                            con->prepareStatement(
+                                "SELECT "
+                                "COALESCE("
+                                "MAX("
+                                "CAST("
+                                "SUBSTRING_INDEX(staff_number, '/', -1) "
+                                "AS UNSIGNED)"
+                                "), "
+                                "0"
+                                ") AS max_sequence "
+                                "FROM teachers "
+                                "WHERE staff_number LIKE ?"
+                            )
+                        );
+
+                    maxStmt->setString(
+                        1,
+                        yearPattern
+                    );
+
+                    std::unique_ptr<sql::ResultSet>
+                        maxResult(
+                            maxStmt->executeQuery()
+                        );
+
+                    int maxExistingSequence = 0;
+
+                    if (maxResult->next())
+                    {
+                        maxExistingSequence =
+                            maxResult->getInt(
+                                "max_sequence"
+                            );
+                    }
+
+                    // Keep the sequence in its own database table.
+                    // The row is locked/updated inside this transaction.
+                    std::unique_ptr<sql::PreparedStatement>
+                        sequenceInit(
+                            con->prepareStatement(
+                                "INSERT INTO "
+                                "teacher_staff_number_sequences "
+                                "(staff_year, last_sequence) "
+                                "VALUES (?, ?) "
+                                "ON DUPLICATE KEY UPDATE "
+                                "last_sequence = "
+                                "GREATEST("
+                                "last_sequence, "
+                                "VALUES(last_sequence)"
+                                ")"
+                            )
+                        );
+
+                    sequenceInit->setInt(
+                        1,
+                        staffYear
+                    );
+
+                    sequenceInit->setInt(
+                        2,
+                        maxExistingSequence
+                    );
+
+                    sequenceInit->executeUpdate();
+
+
+                    std::unique_ptr<sql::PreparedStatement>
+                        sequenceUpdate(
+                            con->prepareStatement(
+                                "UPDATE "
+                                "teacher_staff_number_sequences "
+                                "SET last_sequence = last_sequence + 1 "
+                                "WHERE staff_year = ?"
+                            )
+                        );
+
+                    sequenceUpdate->setInt(
+                        1,
+                        staffYear
+                    );
+
+                    sequenceUpdate->executeUpdate();
+
+
+                    std::unique_ptr<sql::PreparedStatement>
+                        sequenceSelect(
+                            con->prepareStatement(
+                                "SELECT last_sequence "
+                                "FROM teacher_staff_number_sequences "
+                                "WHERE staff_year = ? "
+                                "FOR UPDATE"
+                            )
+                        );
+
+                    sequenceSelect->setInt(
+                        1,
+                        staffYear
+                    );
+
+                    std::unique_ptr<sql::ResultSet>
+                        sequenceResult(
+                            sequenceSelect->executeQuery()
+                        );
+
+                    if (!sequenceResult->next())
+                    {
+                        throw std::runtime_error(
+                            "Unable to generate teacher staff number."
+                        );
+                    }
+
+                    int sequenceNumber =
+                        sequenceResult->getInt(
+                            "last_sequence"
+                        );
+
+                    String^ generatedStaffNumber =
+                        String::Format(
+                            L"TCH/{0}/{1:D4}",
+                            staffYear,
+                            sequenceNumber
+                        );
+
+                    std::string staffNumber =
+                        msclr::interop::marshal_as<std::string>(
+                            generatedStaffNumber
+                        );
+
+
+                    // -------------------------------------------------
+                    // INSERT TEACHER
+                    // -------------------------------------------------
+
                     std::unique_ptr<sql::PreparedStatement>
                         stmt(
                             con->prepareStatement(
@@ -1059,8 +1146,10 @@ namespace SchoolCore
                             )
                         );
 
-                    stmt->setString(1, msclr::interop::marshal_as<std::string>(
-                        this->txtStaffNumber->Text->Trim()));
+                    stmt->setString(
+                        1,
+                        staffNumber
+                    );
                     stmt->setString(2, firstName);
                     stmt->setString(3, middleName);
                     stmt->setString(4, lastName);
@@ -1071,8 +1160,12 @@ namespace SchoolCore
 
                     stmt->executeUpdate();
 
+                    con->commit();
+
                     MessageBox::Show(
-                        L"Teacher registered successfully.",
+                        L"Teacher registered successfully.\n\n"
+                        L"Staff Number: " +
+                        generatedStaffNumber,
                         L"Teachers",
                         MessageBoxButtons::OK,
                         MessageBoxIcon::Information
@@ -1086,6 +1179,37 @@ namespace SchoolCore
             }
             catch (sql::SQLException& ex)
             {
+                if (con && !editorEditMode)
+                {
+                    try
+                    {
+                        con->rollback();
+                    }
+                    catch (...)
+                    {
+                    }
+                }
+
+                MessageBox::Show(
+                    gcnew String(ex.what()),
+                    L"Database Error",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+            catch (std::exception& ex)
+            {
+                if (con && !editorEditMode)
+                {
+                    try
+                    {
+                        con->rollback();
+                    }
+                    catch (...)
+                    {
+                    }
+                }
+
                 MessageBox::Show(
                     gcnew String(ex.what()),
                     L"Database Error",
