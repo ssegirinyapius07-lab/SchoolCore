@@ -180,6 +180,8 @@ namespace SchoolCore
 							"OR s.middle_name LIKE ? "
 							"OR s.last_name LIKE ? "
 							"OR CONCAT_WS(' ', s.first_name, s.middle_name, s.last_name) LIKE ? "
+							"OR c.class_name LIKE ? "
+							"OR st.stream_name LIKE ? "
 							"ORDER BY s.student_id DESC").c_str()
 						)
 					);
@@ -189,7 +191,7 @@ namespace SchoolCore
 							searchPattern
 						);
 
-					for (int i = 1; i <= 5; i++)
+					for (int i = 1; i <= 7; i++)
 					{
 						stmt->setString(i, pattern);
 					}
@@ -1203,6 +1205,8 @@ namespace SchoolCore
 				System::Windows::Forms::Padding(
 					15, 12, 15, 10
 				);
+			this->actionPanel->MinimumSize =
+				System::Drawing::Size(0, 58);
 
 
 			// Register Student
@@ -1235,67 +1239,60 @@ namespace SchoolCore
 				System::Drawing::Size(170, 42);
 
 
-			// Search label
-			this->lblSearch->AutoSize = true;
+			// Responsive search area
+			FlowLayoutPanel^ searchPanel =
+				gcnew FlowLayoutPanel();
 
-			this->lblSearch->Font =
-				regularFont;
+			searchPanel->Dock =
+				System::Windows::Forms::DockStyle::Right;
 
-			this->lblSearch->Text =
-				L"Search";
+			searchPanel->AutoSize = true;
+			searchPanel->WrapContents = false;
+			searchPanel->FlowDirection =
+				System::Windows::Forms::FlowDirection::LeftToRight;
 
-			this->lblSearch->Location =
-				System::Drawing::Point(440, 24);
-			this->lblSearch->Anchor =
-				System::Windows::Forms::AnchorStyles::Top |
-				System::Windows::Forms::AnchorStyles::Right;
+			searchPanel->Padding =
+				System::Windows::Forms::Padding(8, 4, 0, 2);
 
+			this->lblSearch->AutoSize = false;
+			this->lblSearch->Width = 55;
+			this->lblSearch->Height = 34;
+			this->lblSearch->Font = regularFont;
+			this->lblSearch->Text = L"Search";
+			this->lblSearch->TextAlign =
+				System::Drawing::ContentAlignment::MiddleLeft;
+			this->lblSearch->Margin =
+				System::Windows::Forms::Padding(0, 0, 6, 0);
 
-			// Search box
-			this->txtSearch->Font =
-				regularFont;
+			this->txtSearch->Font = regularFont;
+			this->txtSearch->Width = 360;
+			this->txtSearch->Height = 34;
+			this->txtSearch->Margin =
+				System::Windows::Forms::Padding(0, 0, 6, 0);
 
-			this->txtSearch->Location =
-				System::Drawing::Point(495, 19);
-			this->txtSearch->Anchor =
-				System::Windows::Forms::AnchorStyles::Top |
-				System::Windows::Forms::AnchorStyles::Right;
+			this->btnSearch->Text = L"Search";
+			this->btnSearch->Font = regularFont;
+			this->btnSearch->Width = 90;
+			this->btnSearch->Height = 34;
+			this->btnSearch->Margin =
+				System::Windows::Forms::Padding(0);
 
-			this->txtSearch->Size =
-				System::Drawing::Size(360, 30);
+			searchPanel->Controls->Add(this->lblSearch);
+			searchPanel->Controls->Add(this->txtSearch);
+			searchPanel->Controls->Add(this->btnSearch);
 
+			this->btnRegisterStudent->Dock =
+				System::Windows::Forms::DockStyle::Left;
 
-			// Search button
-			this->btnSearch->Text =
-				L"Search";
+			this->btnRegisterStudent->Margin =
+				System::Windows::Forms::Padding(0, 0, 10, 0);
 
-			this->btnSearch->Font =
-				regularFont;
-
-			this->btnSearch->Location =
-				System::Drawing::Point(865, 18);
-			this->btnSearch->Anchor =
-				System::Windows::Forms::AnchorStyles::Top |
-				System::Windows::Forms::AnchorStyles::Right;
-
-			this->btnSearch->Size =
-				System::Drawing::Size(90, 32);
-
+			this->actionPanel->Controls->Add(
+				searchPanel
+			);
 
 			this->actionPanel->Controls->Add(
 				this->btnRegisterStudent
-			);
-
-			this->actionPanel->Controls->Add(
-				this->lblSearch
-			);
-
-			this->actionPanel->Controls->Add(
-				this->txtSearch
-			);
-
-			this->actionPanel->Controls->Add(
-				this->btnSearch
 			);
 
 
