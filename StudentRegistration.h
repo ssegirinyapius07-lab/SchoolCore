@@ -3444,14 +3444,14 @@ namespace SchoolCore
                 }
 
                 studentStmt->setString(
-                    5,
+                    4,
                     msclr::interop::marshal_as<std::string>(
                         storedPhotoPath
                     )
                 );
 
                 studentStmt->setString(
-                    4,
+                    5,
                     msclr::interop::marshal_as<std::string>(
                         this->txtFirstName->Text->Trim()
                     )
