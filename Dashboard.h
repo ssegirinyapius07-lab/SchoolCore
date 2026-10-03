@@ -735,7 +735,9 @@ namespace SchoolCore {
 						gcnew Panel();
 
 					item->Width =
-						420;
+						activityList->ClientSize.Width > 20
+						? activityList->ClientSize.Width - 10
+						: 300;
 
 					item->Height =
 						52;
