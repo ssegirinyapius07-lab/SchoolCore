@@ -357,6 +357,42 @@ namespace SchoolCore
             }
         }
 
+        void CenterLoginCard()
+        {
+            if (this->card == nullptr)
+            {
+                return;
+            }
+
+            int x =
+                (this->ClientSize.Width -
+                    this->card->Width) / 2;
+
+            int y =
+                (this->ClientSize.Height -
+                    this->card->Height) / 2;
+
+            if (x < 20)
+            {
+                x = 20;
+            }
+
+            if (y < 20)
+            {
+                y = 20;
+            }
+
+            this->card->Location =
+                Point(x, y);
+        }
+
+        System::Void LoginForm_Resize(
+            System::Object^ sender,
+            System::EventArgs^ e)
+        {
+            CenterLoginCard();
+        }
+
         void InitializeComponent()
         {
             this->SuspendLayout();
@@ -372,16 +408,13 @@ namespace SchoolCore
                 FormStartPosition::CenterScreen;
 
             this->FormBorderStyle =
-                System::Windows::Forms::FormBorderStyle::FixedSingle;
+                System::Windows::Forms::FormBorderStyle::None;
 
             this->MaximizeBox = false;
             this->MinimizeBox = false;
 
-            this->ClientSize =
-                System::Drawing::Size(
-                    520,
-                    600
-                );
+            this->WindowState =
+                FormWindowState::Maximized;
 
             this->BackColor =
                 Color::FromArgb(
@@ -881,7 +914,15 @@ namespace SchoolCore
             this->AcceptButton =
                 this->btnLogin;
 
+            this->Resize +=
+                gcnew EventHandler(
+                    this,
+                    &LoginForm::LoginForm_Resize
+                );
+
             this->ResumeLayout(false);
+
+            CenterLoginCard();
         }
 
     public:
