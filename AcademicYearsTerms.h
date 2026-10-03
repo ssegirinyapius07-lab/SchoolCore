@@ -9,13 +9,56 @@
 #include <string>
 
 using namespace System;
+using namespace System::ComponentModel;
 using namespace System::Drawing;
 using namespace System::Windows::Forms;
 
 namespace SchoolCore
 {
-    public ref class AcademicYearsTerms : public Form
+    public ref class AcademicYearsTerms : public System::Windows::Forms::Form
     {
+    public:
+                AcademicYearsTerms()
+                {
+                    InitializeComponent();
+        
+        
+                    this->btnAddYear->Click +=
+                        gcnew System::EventHandler(
+                            this,
+                            &AcademicYearsTerms::btnAddYear_Click
+                        );
+        
+        
+                    this->btnToggleYear->Click +=
+                        gcnew System::EventHandler(
+                            this,
+                            &AcademicYearsTerms::btnToggleYear_Click
+                        );
+        
+        
+                    this->yearsGrid->SelectionChanged +=
+                        gcnew System::EventHandler(
+                            this,
+                            &AcademicYearsTerms::yearsGrid_SelectionChanged
+                        );
+        
+        
+                    this->btnToggleTerm->Click +=
+                        gcnew System::EventHandler(
+                            this,
+                            &AcademicYearsTerms::btnToggleTerm_Click
+                        );
+        
+        
+                   
+        
+                    if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
+                    {
+                        LoadAcademicYears();
+                    }
+                }
+
     private:
 
         // =========================================================
@@ -51,7 +94,6 @@ namespace SchoolCore
 
         // Bottom
         Panel^ buttonPanel;
-
 
 
         void StyleProfessionalGrid(
@@ -109,7 +151,9 @@ namespace SchoolCore
         // INITIALIZE COMPONENTS
         // =========================================================
 
-        void InitializeComponent()
+        #pragma region Windows Form Designer generated code
+
+void InitializeComponent()
         {
             this->SuspendLayout();
 
@@ -484,7 +528,6 @@ namespace SchoolCore
                 false;
 
 
-
             yearLayout->Controls->Add(
                 this->lblYearName,
                 0, 0
@@ -736,7 +779,6 @@ namespace SchoolCore
                 false;
 
 
-
             termLayout->Controls->Add(
                 this->lblSelectedYear,
                 0, 0
@@ -813,6 +855,8 @@ namespace SchoolCore
 
             this->ResumeLayout(false);
         }
+
+#pragma endregion
 
 
         // =========================================================
@@ -1566,45 +1610,6 @@ namespace SchoolCore
         // CONSTRUCTOR
         // =========================================================
 
-        AcademicYearsTerms()
-        {
-            InitializeComponent();
 
-
-            this->btnAddYear->Click +=
-                gcnew System::EventHandler(
-                    this,
-                    &AcademicYearsTerms::btnAddYear_Click
-                );
-
-
-            this->btnToggleYear->Click +=
-                gcnew System::EventHandler(
-                    this,
-                    &AcademicYearsTerms::btnToggleYear_Click
-                );
-
-
-            this->yearsGrid->SelectionChanged +=
-                gcnew System::EventHandler(
-                    this,
-                    &AcademicYearsTerms::yearsGrid_SelectionChanged
-                );
-
-
-            this->btnToggleTerm->Click +=
-                gcnew System::EventHandler(
-                    this,
-                    &AcademicYearsTerms::btnToggleTerm_Click
-                );
-
-
-           
-
-            if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
-            {
-                LoadAcademicYears();
-            }
-        }
     };
 }
