@@ -18,6 +18,7 @@ namespace SchoolCore
     public ref class SubjectManagement : public Form
     {
     private:
+        System::ComponentModel::Container^ components;
         // =========================================================
         // MAIN FORM
         // =========================================================
