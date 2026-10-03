@@ -21,14 +21,14 @@ namespace SchoolCore
     {
     private:
         Panel^ card;
-        Label^ lblTitle;
-        Label^ lblSubtitle;
-        Label^ lblUsername;
-        Label^ lblPassword;
+        System::Windows::Forms::Label^ lblTitle;
+        System::Windows::Forms::Label^ lblSubtitle;
+        System::Windows::Forms::Label^ lblUsername;
+        System::Windows::Forms::Label^ lblPassword;
         TextBox^ txtUsername;
         TextBox^ txtPassword;
         Button^ btnLogin;
-        Label^ lblMessage;
+        System::Windows::Forms::Label^ lblMessage;
         CheckBox^ chkShowPassword;
         Button^ btnClose;
 
@@ -542,7 +542,7 @@ namespace SchoolCore
                 );
 
 
-            Label^ brandMark =
+            System::Windows::Forms::Label^ brandMark =
                 gcnew Label();
 
             brandMark->Text =
@@ -883,7 +883,7 @@ namespace SchoolCore
             // FOOTER
             // =====================================================
 
-            Label^ footer =
+            System::Windows::Forms::Label^ footer =
                 gcnew Label();
 
             footer->Text =
