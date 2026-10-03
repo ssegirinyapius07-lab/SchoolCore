@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AuthSession.h"
+#include "ThemeManager.h"
 
 namespace SchoolCore
 {
@@ -44,7 +45,8 @@ namespace SchoolCore
         Finance()
         {
             InitializeComponent();
-        }
+                            ThemeManager::ApplyToForm(this);
+                    }
 
     private:
         literal String^ PermView = L"fees.view";
