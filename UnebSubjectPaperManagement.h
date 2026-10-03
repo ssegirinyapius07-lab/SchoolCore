@@ -1255,8 +1255,7 @@ namespace SchoolCore
 
             Controls->Add(mainLayout);
 
-            new EventHandler(this, &UnebSubjectPaperManagement::NewSubjectClicked);
-            btnNewSubject->Click += gcnew EventHandler(this, &UnebSubjectPaperManagement::NewSubjectClicked);
+                        btnNewSubject->Click += gcnew EventHandler(this, &UnebSubjectPaperManagement::NewSubjectClicked);
             btnEditSubject->Click += gcnew EventHandler(this, &UnebSubjectPaperManagement::EditSubjectClicked);
             btnManagePapers->Click += gcnew EventHandler(this, &UnebSubjectPaperManagement::ManagePapersClicked);
             btnToggleSubject->Click += gcnew EventHandler(this, &UnebSubjectPaperManagement::ToggleSubjectClicked);
