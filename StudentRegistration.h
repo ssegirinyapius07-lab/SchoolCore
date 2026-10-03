@@ -2079,7 +2079,7 @@ namespace SchoolCore
                             result->getString("date_of_birth").c_str()
                         ),
                         L"yyyy-MM-dd",
-                        Globalization::CultureInfo::InvariantCulture
+                        System::Globalization::CultureInfo::InvariantCulture
                     );
 
                 String^ gender =
@@ -2109,7 +2109,7 @@ namespace SchoolCore
                             result->getString("admission_date").c_str()
                         ),
                         L"yyyy-MM-dd",
-                        Globalization::CultureInfo::InvariantCulture
+                        System::Globalization::CultureInfo::InvariantCulture
                     );
 
                 this->txtHomeAddress->Text =
