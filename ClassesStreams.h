@@ -82,6 +82,58 @@ namespace SchoolCore
         };
 
 
+
+        void StyleProfessionalGrid(
+            DataGridView^ grid)
+        {
+            grid->BackgroundColor =
+                Color::White;
+
+            grid->BorderStyle =
+                BorderStyle::None;
+
+            grid->EnableHeadersVisualStyles =
+                false;
+
+            grid->ColumnHeadersDefaultCellStyle->BackColor =
+                Color::FromArgb(30, 41, 59);
+
+            grid->ColumnHeadersDefaultCellStyle->ForeColor =
+                Color::White;
+
+            grid->ColumnHeadersDefaultCellStyle->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI Semibold",
+                    9.0F,
+                    FontStyle::Bold
+                );
+
+            grid->ColumnHeadersHeight =
+                36;
+
+            grid->DefaultCellStyle->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI",
+                    9.5F,
+                    FontStyle::Regular
+                );
+
+            grid->DefaultCellStyle->SelectionBackColor =
+                Color::FromArgb(219, 234, 254);
+
+            grid->DefaultCellStyle->SelectionForeColor =
+                Color::FromArgb(30, 41, 59);
+
+            grid->AlternatingRowsDefaultCellStyle->BackColor =
+                Color::FromArgb(248, 250, 252);
+
+            grid->RowTemplate->Height =
+                32;
+
+            grid->RowHeadersVisible =
+                false;
+        }
+
         // =========================================================
         // INITIALIZE COMPONENTS
         // =========================================================
@@ -130,7 +182,7 @@ namespace SchoolCore
             this->mainLayout->RowCount = 3;
 
             this->mainLayout->Padding =
-                System::Windows::Forms::Padding(20);
+                System::Windows::Forms::Padding(18);
 
             this->mainLayout->BackColor =
                 Color::WhiteSmoke;
@@ -255,6 +307,17 @@ namespace SchoolCore
 
             this->classGroup->Text =
                 L"Classes";
+
+            this->classGroup->BackColor =
+                Color::White;
+
+            this->classGroup->ForeColor =
+                Color::FromArgb(30, 41, 59);
+
+            this->classGroup->Margin =
+                System::Windows::Forms::Padding(
+                    0, 0, 0, 10
+                );
 
             this->classGroup->Padding =
                 System::Windows::Forms::Padding(12);
@@ -454,6 +517,14 @@ namespace SchoolCore
                 L"Status"
             );
 
+            StyleProfessionalGrid(
+                this->classesGrid
+            );
+
+            this->classesGrid->Columns[0]->Visible =
+                false;
+
+
 
             // Add controls
 
@@ -506,6 +577,17 @@ namespace SchoolCore
 
             this->streamGroup->Text =
                 L"Streams";
+
+            this->streamGroup->BackColor =
+                Color::White;
+
+            this->streamGroup->ForeColor =
+                Color::FromArgb(30, 41, 59);
+
+            this->streamGroup->Margin =
+                System::Windows::Forms::Padding(
+                    0
+                );
 
             this->streamGroup->Padding =
                 System::Windows::Forms::Padding(12);
@@ -784,6 +866,14 @@ namespace SchoolCore
                 L"status",
                 L"Status"
             );
+
+            StyleProfessionalGrid(
+                this->streamsGrid
+            );
+
+            this->streamsGrid->Columns[0]->Visible =
+                false;
+
 
 
             // Row 0
