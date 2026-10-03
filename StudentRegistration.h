@@ -1525,11 +1525,6 @@ void InitializeComponent(void)
                 2
             );
 
-            enrollmentLayout->SetColumnSpan(
-                this->lblStreamInfo,
-                2
-            );
-
 
             this->enrollmentGroup->Controls->Add(
                 enrollmentLayout
