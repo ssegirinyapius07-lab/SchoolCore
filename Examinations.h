@@ -46,8 +46,8 @@ namespace SchoolCore
 
         TableLayoutPanel^ mainLayout;
         Panel^ headerPanel;
-        Label^ lblTitle;
-        Label^ lblSubtitle;
+        System::Windows::Forms::Label^ lblTitle;
+        System::Windows::Forms::Label^ lblSubtitle;
 
         Panel^ filterPanel;
         ComboBox^ cmbAcademicYear;
@@ -56,7 +56,7 @@ namespace SchoolCore
         ComboBox^ cmbStatus;
         Button^ btnRefresh;
 
-        Label^ lblExamCount;
+        System::Windows::Forms::Label^ lblExamCount;
         DataGridView^ examinationsGrid;
 
         FlowLayoutPanel^ actionPanel;
@@ -145,8 +145,8 @@ namespace SchoolCore
             int column,
             int row)
         {
-            Label^ label =
-                gcnew Label();
+            System::Windows::Forms::Label^ label =
+                gcnew System::Windows::Forms::Label();
 
             label->Text = text;
             label->Dock = DockStyle::Fill;
@@ -1230,8 +1230,8 @@ namespace SchoolCore
                     10
                 );
 
-            Label^ title =
-                gcnew Label();
+            System::Windows::Forms::Label^ title =
+                gcnew System::Windows::Forms::Label();
 
             title->Dock =
                 DockStyle::Top;
@@ -1253,8 +1253,8 @@ namespace SchoolCore
             title->ForeColor =
                 Color::White;
 
-            Label^ subtitle =
-                gcnew Label();
+            System::Windows::Forms::Label^ subtitle =
+                gcnew System::Windows::Forms::Label();
 
             subtitle->Dock =
                 DockStyle::Fill;
@@ -2055,8 +2055,8 @@ namespace SchoolCore
             );
 
 
-            Label^ title =
-                gcnew Label();
+            System::Windows::Forms::Label^ title =
+                gcnew System::Windows::Forms::Label();
 
             title->Dock =
                 DockStyle::Fill;
@@ -2119,8 +2119,8 @@ namespace SchoolCore
             }
 
 
-            Label^ subjectLabel =
-                gcnew Label();
+            System::Windows::Forms::Label^ subjectLabel =
+                gcnew System::Windows::Forms::Label();
 
             subjectLabel->Text = L"Subject";
             subjectLabel->Dock = DockStyle::Fill;
@@ -2136,8 +2136,8 @@ namespace SchoolCore
             this->subjectCombo->DropDownStyle =
                 ComboBoxStyle::DropDownList;
 
-            Label^ maxLabel =
-                gcnew Label();
+            System::Windows::Forms::Label^ maxLabel =
+                gcnew System::Windows::Forms::Label();
 
             maxLabel->Text =
                 L"Max Score";
@@ -2166,8 +2166,8 @@ namespace SchoolCore
             this->subjectMaxScore->Dock =
                 DockStyle::Fill;
 
-            Label^ passLabel =
-                gcnew Label();
+            System::Windows::Forms::Label^ passLabel =
+                gcnew System::Windows::Forms::Label();
 
             passLabel->Text =
                 L"Pass Mark";
@@ -2691,7 +2691,7 @@ namespace SchoolCore
 
 
             this->lblTitle =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblTitle->Dock =
                 DockStyle::Top;
@@ -2717,7 +2717,7 @@ namespace SchoolCore
 
 
             this->lblSubtitle =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblSubtitle->Dock =
                 DockStyle::Fill;
@@ -2849,8 +2849,8 @@ namespace SchoolCore
             );
 
 
-            Label^ yearLabel =
-                gcnew Label();
+            System::Windows::Forms::Label^ yearLabel =
+                gcnew System::Windows::Forms::Label();
 
             yearLabel->Text =
                 L"Academic Year";
@@ -2860,8 +2860,8 @@ namespace SchoolCore
                 ContentAlignment::MiddleLeft;
 
 
-            Label^ termLabel =
-                gcnew Label();
+            System::Windows::Forms::Label^ termLabel =
+                gcnew System::Windows::Forms::Label();
 
             termLabel->Text =
                 L"Term";
@@ -2871,8 +2871,8 @@ namespace SchoolCore
                 ContentAlignment::MiddleLeft;
 
 
-            Label^ classLabel =
-                gcnew Label();
+            System::Windows::Forms::Label^ classLabel =
+                gcnew System::Windows::Forms::Label();
 
             classLabel->Text =
                 L"Class";
@@ -2882,8 +2882,8 @@ namespace SchoolCore
                 ContentAlignment::MiddleLeft;
 
 
-            Label^ statusLabel =
-                gcnew Label();
+            System::Windows::Forms::Label^ statusLabel =
+                gcnew System::Windows::Forms::Label();
 
             statusLabel->Text =
                 L"Status";
@@ -3011,7 +3011,7 @@ namespace SchoolCore
             // ---------------------------------------------------------
 
             this->lblExamCount =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblExamCount->Dock =
                 DockStyle::Fill;
