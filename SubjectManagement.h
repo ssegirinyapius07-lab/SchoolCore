@@ -25,16 +25,16 @@ namespace SchoolCore
 
         TableLayoutPanel^ mainLayout;
         Panel^ headerPanel;
-        Label^ lblTitle;
-        Label^ lblSubtitle;
+        System::Windows::Forms::Label^ lblTitle;
+        System::Windows::Forms::Label^ lblSubtitle;
 
         Panel^ actionPanel;
         Button^ btnRegisterSubject;
-        Label^ lblSearch;
+        System::Windows::Forms::Label^ lblSearch;
         TextBox^ txtSearch;
         Button^ btnSearch;
 
-        Label^ lblSubjectCount;
+        System::Windows::Forms::Label^ lblSubjectCount;
         DataGridView^ subjectsGrid;
 
         FlowLayoutPanel^ buttonPanel;
@@ -111,7 +111,7 @@ namespace SchoolCore
             String^ labelText,
             String^ valueText)
         {
-            Label^ label =
+            System::Windows::Forms::Label^ label =
                 gcnew Label();
 
             label->Text =
@@ -146,7 +146,7 @@ namespace SchoolCore
                 );
 
 
-            Label^ value =
+            System::Windows::Forms::Label^ value =
                 gcnew Label();
 
             value->Text =
@@ -201,7 +201,7 @@ namespace SchoolCore
             String^ text,
             int row)
         {
-            Label^ label =
+            System::Windows::Forms::Label^ label =
                 gcnew Label();
 
             label->Text =
@@ -598,7 +598,7 @@ namespace SchoolCore
                 );
 
 
-            Label^ title =
+            System::Windows::Forms::Label^ title =
                 gcnew Label();
 
             title->Text =
@@ -623,7 +623,7 @@ namespace SchoolCore
                 Color::White;
 
 
-            Label^ subtitle =
+            System::Windows::Forms::Label^ subtitle =
                 gcnew Label();
 
             subtitle->Text =
@@ -1482,7 +1482,7 @@ namespace SchoolCore
                     );
 
 
-                Label^ nameLabel =
+                System::Windows::Forms::Label^ nameLabel =
                     gcnew Label();
 
                 nameLabel->Text =
@@ -1508,7 +1508,7 @@ namespace SchoolCore
                     ContentAlignment::MiddleLeft;
 
 
-                Label^ codeLabel =
+                System::Windows::Forms::Label^ codeLabel =
                     gcnew Label();
 
                 codeLabel->Text =
@@ -1531,7 +1531,7 @@ namespace SchoolCore
                     Color::Gainsboro;
 
 
-                Label^ statusLabel =
+                System::Windows::Forms::Label^ statusLabel =
                     gcnew Label();
 
                 statusLabel->Text =
@@ -2881,9 +2881,10 @@ namespace SchoolCore
         SubjectManagement()
         {
             InitializeComponent();
-            LoadSubjects(
-                L""
-            );
+            if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
+            {
+                LoadSubjects(L"");
+            }
         }
 
 
