@@ -129,6 +129,7 @@
     <ClCompile Include="StudentRegistration.cpp" />
     <ClCompile Include="TeacherManagement.cpp" />
     <ClCompile Include="SubjectManagement.cpp" />
+    <ClCompile Include="Finance.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AuthSession.h" />
@@ -173,6 +174,9 @@
       <FileType>CppForm</FileType>
     </ClInclude>
     <ClInclude Include="Attendance.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
+    <ClInclude Include="Finance.h">
       <FileType>CppForm</FileType>
     </ClInclude>
     <ClInclude Include="Examinations.h">
