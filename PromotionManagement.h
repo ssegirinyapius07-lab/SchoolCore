@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <string>
+#include <stdexcept>
 
 namespace SchoolCore
 {
@@ -811,9 +812,10 @@ namespace SchoolCore
                 return;
             }
 
+            auto con = DbConnection::GetConnection();
+
             try
             {
-                auto con = DbConnection::GetConnection();
                 con->setAutoCommit(false);
 
                 // Confirm the current class is Senior 2.
@@ -831,9 +833,14 @@ namespace SchoolCore
                     std::unique_ptr<sql::ResultSet> result(
                         stmt->executeQuery());
 
-                    if (!result->next() ||
-                        String(gcnew String(result->getString("class_name").c_str()))
-                            ->Equals(L"Senior 2", StringComparison::OrdinalIgnoreCase) == false)
+                    String^ className = result->next()
+                        ? gcnew String(result->getString("class_name").c_str())
+                        : L"";
+
+                    if (String::IsNullOrWhiteSpace(className) ||
+                        !className->Equals(
+                            L"Senior 2",
+                            StringComparison::OrdinalIgnoreCase))
                     {
                         con->rollback();
 
@@ -861,9 +868,14 @@ namespace SchoolCore
                     std::unique_ptr<sql::ResultSet> result(
                         stmt->executeQuery());
 
-                    if (!result->next() ||
-                        String(gcnew String(result->getString("class_name").c_str()))
-                            ->Equals(L"Senior 3", StringComparison::OrdinalIgnoreCase) == false)
+                    String^ className = result->next()
+                        ? gcnew String(result->getString("class_name").c_str())
+                        : L"";
+
+                    if (String::IsNullOrWhiteSpace(className) ||
+                        !className->Equals(
+                            L"Senior 3",
+                            StringComparison::OrdinalIgnoreCase))
                     {
                         con->rollback();
 
@@ -1017,6 +1029,15 @@ namespace SchoolCore
             }
             catch (std::exception& ex)
             {
+                try
+                {
+                    con->rollback();
+                    con->setAutoCommit(true);
+                }
+                catch (...)
+                {
+                }
+
                 MessageBox::Show(
                     gcnew String(ex.what()),
                     L"Promotion Error",
