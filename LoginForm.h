@@ -476,7 +476,7 @@ namespace SchoolCore
                 gcnew Button();
 
             this->btnClose->Text =
-                L"×";
+                L"\u00D7";
 
             this->btnClose->Size =
                 System::Drawing::Size(
