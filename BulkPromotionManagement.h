@@ -402,6 +402,7 @@ namespace SchoolCore
             }
         }
 
+        void LoadAcademicYears()
         {
             try
             {
