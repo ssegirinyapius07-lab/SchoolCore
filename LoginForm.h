@@ -361,41 +361,61 @@ namespace SchoolCore
         {
             this->SuspendLayout();
 
-            this->Text = L"SchoolCore Login";
+            // =====================================================
+            // FORM
+            // =====================================================
+
+            this->Text =
+                L"SchoolCore | Sign In";
+
             this->StartPosition =
                 FormStartPosition::CenterScreen;
+
             this->FormBorderStyle =
                 System::Windows::Forms::FormBorderStyle::FixedSingle;
+
             this->MaximizeBox = false;
             this->MinimizeBox = false;
+
             this->ClientSize =
                 System::Drawing::Size(
-                    460,
-                    470
+                    520,
+                    600
                 );
+
             this->BackColor =
                 Color::FromArgb(
                     241,
                     245,
                     249
                 );
+
             this->Font =
                 gcnew System::Drawing::Font(
                     L"Segoe UI",
-                    10.0F
+                    10.0F,
+                    FontStyle::Regular
                 );
+
+
+            // =====================================================
+            // MAIN CARD
+            // =====================================================
 
             this->card =
                 gcnew Panel();
 
             this->card->Size =
                 System::Drawing::Size(
-                    390,
-                    400
+                    420,
+                    520
                 );
 
             this->card->Location =
-                Point(35, 35);
+                Point(
+                    50,
+                    40
+                );
 
             this->card->BackColor =
                 Color::White;
@@ -403,165 +423,447 @@ namespace SchoolCore
             this->card->BorderStyle =
                 BorderStyle::FixedSingle;
 
+
+            // =====================================================
+            // BRANDING
+            // =====================================================
+
+            Panel^ brandPanel =
+                gcnew Panel();
+
+            brandPanel->Dock =
+                DockStyle::Top;
+
+            brandPanel->Height =
+                145;
+
+            brandPanel->BackColor =
+                Color::FromArgb(
+                    30,
+                    41,
+                    59
+                );
+
+
+            Label^ brandMark =
+                gcnew Label();
+
+            brandMark->Text =
+                L"SC";
+
+            brandMark->Size =
+                System::Drawing::Size(
+                    58,
+                    58
+                );
+
+            brandMark->Location =
+                Point(
+                    181,
+                    18
+                );
+
+            brandMark->BackColor =
+                Color::FromArgb(
+                    59,
+                    130,
+                    246
+                );
+
+            brandMark->ForeColor =
+                Color::White;
+
+            brandMark->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI Semibold",
+                    20.0F,
+                    FontStyle::Bold
+                );
+
+            brandMark->TextAlign =
+                ContentAlignment::MiddleCenter;
+
+
             this->lblTitle =
                 gcnew Label();
 
             this->lblTitle->Text =
                 L"SchoolCore";
 
-            this->lblTitle->AutoSize = true;
+            this->lblTitle->Dock =
+                DockStyle::Bottom;
+
+            this->lblTitle->Height =
+                42;
+
             this->lblTitle->Font =
                 gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
-                    24.0F,
+                    22.0F,
                     FontStyle::Bold
                 );
+
             this->lblTitle->ForeColor =
-                Color::FromArgb(
-                    30,
-                    41,
-                    59
-                );
-            this->lblTitle->Location =
-                Point(35, 28);
+                Color::White;
+
+            this->lblTitle->TextAlign =
+                ContentAlignment::MiddleCenter;
+
+
+            brandPanel->Controls->Add(
+                this->lblTitle
+            );
+
+            brandPanel->Controls->Add(
+                brandMark
+            );
+
+
+            // =====================================================
+            // SUBTITLE
+            // =====================================================
 
             this->lblSubtitle =
                 gcnew Label();
 
             this->lblSubtitle->Text =
-                L"Sign in to the Secondary School Management System";
-            this->lblSubtitle->Size =
-                System::Drawing::Size(
-                    320,
-                    48
+                L"Secondary School Management System";
+
+            this->lblSubtitle->Dock =
+                DockStyle::Top;
+
+            this->lblSubtitle->Height =
+                48;
+
+            this->lblSubtitle->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI",
+                    9.5F,
+                    FontStyle::Regular
                 );
-            this->lblSubtitle->Location =
-                Point(35, 72);
+
             this->lblSubtitle->ForeColor =
                 Color::DimGray;
+
+            this->lblSubtitle->TextAlign =
+                ContentAlignment::MiddleCenter;
+
+            this->lblSubtitle->Padding =
+                System::Windows::Forms::Padding(
+                    0,
+                    12,
+                    0,
+                    0
+                );
+
+
+            // =====================================================
+            // USERNAME
+            // =====================================================
 
             this->lblUsername =
                 gcnew Label();
 
             this->lblUsername->Text =
-                L"Username";
-            this->lblUsername->AutoSize = true;
+                L"USERNAME";
+
+            this->lblUsername->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI Semibold",
+                    8.5F,
+                    FontStyle::Bold
+                );
+
+            this->lblUsername->ForeColor =
+                Color::FromArgb(
+                    71,
+                    85,
+                    105
+                );
+
             this->lblUsername->Location =
-                Point(35, 135);
+                Point(
+                    45,
+                    215
+                );
+
+            this->lblUsername->AutoSize =
+                true;
+
 
             this->txtUsername =
                 gcnew TextBox();
 
+            this->txtUsername->Location =
+                Point(
+                    45,
+                    240
+                );
+
             this->txtUsername->Size =
                 System::Drawing::Size(
-                    320,
+                    330,
                     34
                 );
-            this->txtUsername->Location =
-                Point(35, 158);
+
+            this->txtUsername->BorderStyle =
+                BorderStyle::FixedSingle;
+
+            this->txtUsername->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI",
+                    10.5F
+                );
+
+
+            // =====================================================
+            // PASSWORD
+            // =====================================================
 
             this->lblPassword =
                 gcnew Label();
 
             this->lblPassword->Text =
-                L"Password";
-            this->lblPassword->AutoSize = true;
+                L"PASSWORD";
+
+            this->lblPassword->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI Semibold",
+                    8.5F,
+                    FontStyle::Bold
+                );
+
+            this->lblPassword->ForeColor =
+                Color::FromArgb(
+                    71,
+                    85,
+                    105
+                );
+
             this->lblPassword->Location =
-                Point(35, 205);
+                Point(
+                    45,
+                    292
+                );
+
+            this->lblPassword->AutoSize =
+                true;
+
 
             this->txtPassword =
                 gcnew TextBox();
 
+            this->txtPassword->Location =
+                Point(
+                    45,
+                    317
+                );
+
             this->txtPassword->Size =
                 System::Drawing::Size(
-                    320,
+                    330,
                     34
                 );
-            this->txtPassword->Location =
-                Point(35, 228);
+
+            this->txtPassword->BorderStyle =
+                BorderStyle::FixedSingle;
+
+            this->txtPassword->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI",
+                    10.5F
+                );
+
             this->txtPassword->UseSystemPasswordChar =
                 true;
+
+
+            // =====================================================
+            // SHOW PASSWORD
+            // =====================================================
 
             this->chkShowPassword =
                 gcnew CheckBox();
 
             this->chkShowPassword->Text =
                 L"Show password";
-            this->chkShowPassword->AutoSize = true;
+
+            this->chkShowPassword->AutoSize =
+                true;
+
             this->chkShowPassword->Location =
-                Point(35, 269);
+                Point(
+                    45,
+                    360
+                );
+
+            this->chkShowPassword->ForeColor =
+                Color::DimGray;
+
+
+            // =====================================================
+            // SIGN IN BUTTON
+            // =====================================================
 
             this->btnLogin =
                 gcnew Button();
 
             this->btnLogin->Text =
                 L"Sign In";
+
             this->btnLogin->Size =
                 System::Drawing::Size(
-                    320,
-                    42
+                    330,
+                    44
                 );
+
             this->btnLogin->Location =
-                Point(35, 305);
+                Point(
+                    45,
+                    394
+                );
+
             this->btnLogin->BackColor =
                 Color::FromArgb(
                     30,
                     41,
                     59
                 );
+
             this->btnLogin->ForeColor =
                 Color::White;
+
             this->btnLogin->FlatStyle =
                 FlatStyle::Flat;
+
             this->btnLogin->FlatAppearance->BorderSize =
                 0;
+
+            this->btnLogin->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI Semibold",
+                    10.5F,
+                    FontStyle::Bold
+                );
+
+            this->btnLogin->Cursor =
+                Cursors::Hand;
+
+
+            // =====================================================
+            // MESSAGE
+            // =====================================================
 
             this->lblMessage =
                 gcnew Label();
 
             this->lblMessage->Text =
                 L"";
+
             this->lblMessage->Size =
                 System::Drawing::Size(
-                    320,
-                    38
+                    330,
+                    40
                 );
+
             this->lblMessage->Location =
-                Point(35, 352);
+                Point(
+                    45,
+                    445
+                );
+
             this->lblMessage->TextAlign =
                 ContentAlignment::MiddleLeft;
+
+            this->lblMessage->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI",
+                    9.0F
+                );
+
+
+            // =====================================================
+            // FOOTER
+            // =====================================================
+
+            Label^ footer =
+                gcnew Label();
+
+            footer->Text =
+                L"Secure access • SchoolCore";
+
+            footer->Dock =
+                DockStyle::Bottom;
+
+            footer->Height =
+                32;
+
+            footer->ForeColor =
+                Color::Gray;
+
+            footer->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI",
+                    8.5F
+                );
+
+            footer->TextAlign =
+                ContentAlignment::MiddleCenter;
+
+
+            // =====================================================
+            // ADD CONTROLS
+            // =====================================================
+
+            this->card->Controls->Add(
+                footer
+            );
 
             this->card->Controls->Add(
                 this->lblMessage
             );
+
             this->card->Controls->Add(
                 this->btnLogin
             );
+
             this->card->Controls->Add(
                 this->chkShowPassword
             );
+
             this->card->Controls->Add(
                 this->txtPassword
             );
+
             this->card->Controls->Add(
                 this->lblPassword
             );
+
             this->card->Controls->Add(
                 this->txtUsername
             );
+
             this->card->Controls->Add(
                 this->lblUsername
             );
+
             this->card->Controls->Add(
                 this->lblSubtitle
             );
+
             this->card->Controls->Add(
-                this->lblTitle
+                brandPanel
             );
+
 
             this->Controls->Add(
                 this->card
             );
+
+
+            // =====================================================
+            // EVENTS
+            // =====================================================
 
             this->btnLogin->Click +=
                 gcnew EventHandler(
@@ -574,6 +876,7 @@ namespace SchoolCore
                     this,
                     &LoginForm::chkShowPassword_CheckedChanged
                 );
+
 
             this->AcceptButton =
                 this->btnLogin;
