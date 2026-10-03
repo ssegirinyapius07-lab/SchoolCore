@@ -10,7 +10,7 @@ ALTER TABLE curriculum_subjects
     AFTER subject_group;
 
 UPDATE curriculum_subjects cs
-INNER JOIN curriculums c
+INNER JOIN curricula c
     ON c.curriculum_id = cs.curriculum_id
 INNER JOIN academic_levels al
     ON al.academic_level_id = c.academic_level_id
@@ -30,7 +30,7 @@ WHERE al.level_code = 'O_LEVEL'
   );
 
 UPDATE curriculum_subjects cs
-INNER JOIN curriculums c
+INNER JOIN curricula c
     ON c.curriculum_id = cs.curriculum_id
 INNER JOIN academic_levels al
     ON al.academic_level_id = c.academic_level_id
