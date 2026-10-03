@@ -618,7 +618,7 @@ namespace SchoolCore
 				GroupBox^ studentSection = gcnew GroupBox();
 				studentSection->Text = L"Student Information";
 				studentSection->Dock = DockStyle::Top;
-				studentSection->Height = 240;
+				studentSection->Height = 285;
 				studentSection->Padding =
 					System::Windows::Forms::Padding(14, 18, 14, 10);
 				studentSection->Margin =
