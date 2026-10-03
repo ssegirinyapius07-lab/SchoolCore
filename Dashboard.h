@@ -1535,6 +1535,7 @@ namespace SchoolCore {
 			// contentPanel
 			// 
 			this->contentPanel->BackColor = System::Drawing::Color::White;
+			this->contentPanel->AutoScroll = true;
 			this->contentPanel->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->contentPanel->Location = System::Drawing::Point(280, 100);
 			this->contentPanel->Name = L"contentPanel";
