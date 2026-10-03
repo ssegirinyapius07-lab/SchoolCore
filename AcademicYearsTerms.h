@@ -25,14 +25,14 @@ namespace SchoolCore
         TableLayoutPanel^ mainLayout;
 
         Panel^ headerPanel;
-        Label^ lblTitle;
-        Label^ lblSubtitle;
+        System::Windows::Forms::Label^ lblTitle;
+        System::Windows::Forms::Label^ lblSubtitle;
 
         GroupBox^ yearGroup;
         GroupBox^ termGroup;
 
         // Academic year
-        Label^ lblYearName;
+        System::Windows::Forms::Label^ lblYearName;
         NumericUpDown^ numAcademicYear;
 
         Button^ btnAddYear;
@@ -41,9 +41,9 @@ namespace SchoolCore
         DataGridView^ yearsGrid;
 
         // Terms
-        Label^ lblSelectedYear;
-        Label^ lblSelectedYearValue;
-        Label^ lblTermNote;
+        System::Windows::Forms::Label^ lblSelectedYear;
+        System::Windows::Forms::Label^ lblSelectedYearValue;
+        System::Windows::Forms::Label^ lblTermNote;
 
         Button^ btnToggleTerm;
 
@@ -1601,7 +1601,10 @@ namespace SchoolCore
 
            
 
-            LoadAcademicYears();
+            if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
+            {
+                LoadAcademicYears();
+            }
         }
     };
 }
