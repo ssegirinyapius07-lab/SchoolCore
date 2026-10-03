@@ -68,6 +68,8 @@ namespace SchoolCore
         ComboBox^ cmbRole;
         TextBox^ txtUsername;
         TextBox^ txtFullName;
+        Form^ editorForm;
+        ComboBox^ editorRoleBox;
 
         bool editMode = false;
         int editingUserId = 0;
@@ -514,6 +516,160 @@ namespace SchoolCore
             }
         }
 
+        void SaveUserEditor()
+        {
+            String^ username =
+                txtUsername->Text->Trim();
+
+            String^ fullName =
+                txtFullName->Text->Trim();
+
+            if (String::IsNullOrWhiteSpace(username) ||
+                String::IsNullOrWhiteSpace(fullName) ||
+                editorRoleBox == nullptr ||
+                editorRoleBox->SelectedValue == nullptr)
+            {
+                MessageBox::Show(
+                    L"Username, full name and role are required.",
+                    L"Validation",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+                return;
+            }
+
+            try
+            {
+                auto con =
+                    DbConnection::GetConnection();
+
+                int roleId =
+                    Convert::ToInt32(
+                        editorRoleBox->SelectedValue
+                    );
+
+                if (!editMode)
+                {
+                    String^ temporaryPassword =
+                        GenerateTemporaryPassword();
+
+                    String^ hash =
+                        CreatePasswordHash(
+                            temporaryPassword
+                        );
+
+                    std::unique_ptr<sql::PreparedStatement> stmt(
+                        con->prepareStatement(
+                            "INSERT INTO users "
+                            "(username, password_hash, full_name, "
+                            "role_id, status, must_change_password) "
+                            "VALUES (?, ?, ?, ?, 'Active', 1)"
+                        )
+                    );
+
+                    stmt->setString(
+                        1,
+                        msclr::interop::marshal_as<std::string>(
+                            username
+                        )
+                    );
+
+                    stmt->setString(
+                        2,
+                        msclr::interop::marshal_as<std::string>(
+                            hash
+                        )
+                    );
+
+                    stmt->setString(
+                        3,
+                        msclr::interop::marshal_as<std::string>(
+                            fullName
+                        )
+                    );
+
+                    stmt->setInt(4, roleId);
+                    stmt->execute();
+
+                    MessageBox::Show(
+                        L"User created successfully.\\n\\n"
+                        L"Username: " + username +
+                        L"\\nTemporary password: " +
+                        temporaryPassword +
+                        L"\\n\\n"
+                        L"Give this temporary password to the user. "
+                        L"It will not be shown again.",
+                        L"User Created",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Information
+                    );
+                }
+                else
+                {
+                    std::unique_ptr<sql::PreparedStatement> stmt(
+                        con->prepareStatement(
+                            "UPDATE users "
+                            "SET full_name = ?, role_id = ? "
+                            "WHERE user_id = ?"
+                        )
+                    );
+
+                    stmt->setString(
+                        1,
+                        msclr::interop::marshal_as<std::string>(
+                            fullName
+                        )
+                    );
+
+                    stmt->setInt(2, roleId);
+                    stmt->setInt(3, editingUserId);
+                    stmt->execute();
+
+                    MessageBox::Show(
+                        L"User details updated successfully.",
+                        L"User Updated",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Information
+                    );
+                }
+
+                editorForm->DialogResult =
+                    System::Windows::Forms::DialogResult::OK;
+
+                editorForm->Close();
+            }
+            catch (sql::SQLException& ex)
+            {
+                String^ message =
+                    gcnew String(ex.what());
+
+                if (message->IndexOf(
+                        L"Duplicate",
+                        StringComparison::OrdinalIgnoreCase
+                    ) >= 0)
+                {
+                    message =
+                        L"The username is already in use.";
+                }
+
+                MessageBox::Show(
+                    message,
+                    L"Unable to Save User",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+            catch (Exception^ ex)
+            {
+                MessageBox::Show(
+                    ex->Message,
+                    L"Unable to Save User",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+        }
+
         void ShowUserEditor(
             bool edit,
             int userId)
@@ -521,23 +677,23 @@ namespace SchoolCore
             editMode = edit;
             editingUserId = userId;
 
-            Form^ editor =
+            editorForm =
                 gcnew Form();
 
-            editor->Text =
+            editorForm->Text =
                 edit
                 ? L"Edit User"
                 : L"Add User";
 
-            editor->StartPosition =
+            editorForm->StartPosition =
                 FormStartPosition::CenterParent;
 
-            editor->FormBorderStyle =
-                FormBorderStyle::FixedDialog;
+            editorForm->FormBorderStyle =
+                System::Windows::Forms::FormBorderStyle::FixedDialog;
 
-            editor->MaximizeBox = false;
-            editor->MinimizeBox = false;
-            editor->ClientSize =
+            editorForm->MaximizeBox = false;
+            editorForm->MinimizeBox = false;
+            editorForm->ClientSize =
                 Drawing::Size(500, 330);
 
             TableLayoutPanel^ layout =
@@ -545,15 +701,17 @@ namespace SchoolCore
 
             layout->Dock = DockStyle::Fill;
             layout->Padding =
-                Padding(28, 24, 28, 24);
+                System::Windows::Forms::Padding(28, 24, 28, 24);
             layout->ColumnCount = 2;
             layout->RowCount = 5;
+
             layout->ColumnStyles->Add(
                 gcnew ColumnStyle(
                     SizeType::Absolute,
                     125
                 )
             );
+
             layout->ColumnStyles->Add(
                 gcnew ColumnStyle(
                     SizeType::Percent,
@@ -592,15 +750,17 @@ namespace SchoolCore
             lblRole->TextAlign =
                 ContentAlignment::MiddleLeft;
 
-            ComboBox^ roleBox =
+            editorRoleBox =
                 gcnew ComboBox();
-            roleBox->Dock = DockStyle::Fill;
-            roleBox->DropDownStyle =
+            editorRoleBox->Dock = DockStyle::Fill;
+            editorRoleBox->DropDownStyle =
                 ComboBoxStyle::DropDownList;
-            roleBox->DataSource =
-                cmbRole->DataSource;
-            roleBox->DisplayMember = L"role_name";
-            roleBox->ValueMember = L"role_id";
+            editorRoleBox->DataSource =
+                roleTable;
+            editorRoleBox->DisplayMember =
+                L"role_name";
+            editorRoleBox->ValueMember =
+                L"role_id";
 
             Label^ lblPasswordInfo =
                 gcnew Label();
@@ -631,7 +791,10 @@ namespace SchoolCore
 
             Button^ save =
                 gcnew Button();
-            save->Text = edit ? L"Save Changes" : L"Create User";
+            save->Text =
+                edit
+                ? L"Save Changes"
+                : L"Create User";
             save->Width = 125;
             save->Height = 36;
 
@@ -641,7 +804,13 @@ namespace SchoolCore
             cancel->Width = 90;
             cancel->Height = 36;
             cancel->DialogResult =
-                DialogResult::Cancel;
+                System::Windows::Forms::DialogResult::Cancel;
+
+            save->Click +=
+                gcnew EventHandler(
+                    this,
+                    &UsersRoles::SaveUserEditor
+                );
 
             buttons->Controls->Add(save);
             buttons->Controls->Add(cancel);
@@ -651,21 +820,22 @@ namespace SchoolCore
             layout->Controls->Add(lblName, 0, 1);
             layout->Controls->Add(txtFullName, 1, 1);
             layout->Controls->Add(lblRole, 0, 2);
-            layout->Controls->Add(roleBox, 1, 2);
+            layout->Controls->Add(editorRoleBox, 1, 2);
             layout->Controls->Add(lblPasswordInfo, 0, 3);
             layout->Controls->Add(passwordInfo, 1, 3);
             layout->Controls->Add(buttons, 0, 4);
             layout->SetColumnSpan(buttons, 2);
 
-            editor->Controls->Add(layout);
-            editor->AcceptButton = save;
-            editor->CancelButton = cancel;
+            editorForm->Controls->Add(layout);
+            editorForm->AcceptButton = save;
+            editorForm->CancelButton = cancel;
 
             if (edit)
             {
                 try
                 {
-                    auto con = DbConnection::GetConnection();
+                    auto con =
+                        DbConnection::GetConnection();
 
                     std::unique_ptr<sql::PreparedStatement> stmt(
                         con->prepareStatement(
@@ -696,7 +866,7 @@ namespace SchoolCore
                                 ).c_str()
                             );
 
-                        roleBox->SelectedValue =
+                        editorRoleBox->SelectedValue =
                             result->getInt("role_id");
                     }
                 }
@@ -709,177 +879,25 @@ namespace SchoolCore
                         MessageBoxIcon::Error
                     );
 
-                    editor->Dispose();
+                    delete editorForm;
+                    editorForm = nullptr;
                     return;
                 }
 
                 txtUsername->Enabled = false;
             }
 
-            save->Click +=
-                gcnew EventHandler(
-                    [this, editor, roleBox, save](
-                        Object^,
-                        EventArgs^)
-                    {
-                        String^ username =
-                            txtUsername->Text->Trim();
+            editorForm->ShowDialog(this);
 
-                        String^ fullName =
-                            txtFullName->Text->Trim();
-
-                        if (String::IsNullOrWhiteSpace(username) ||
-                            String::IsNullOrWhiteSpace(fullName) ||
-                            roleBox->SelectedValue == nullptr)
-                        {
-                            MessageBox::Show(
-                                L"Username, full name and role are required.",
-                                L"Validation",
-                                MessageBoxButtons::OK,
-                                MessageBoxIcon::Warning
-                            );
-                            return;
-                        }
-
-                        try
-                        {
-                            auto con =
-                                DbConnection::GetConnection();
-
-                            int roleId =
-                                Convert::ToInt32(
-                                    roleBox->SelectedValue
-                                );
-
-                            if (!editMode)
-                            {
-                                String^ temporaryPassword =
-                                    GenerateTemporaryPassword();
-
-                                String^ hash =
-                                    CreatePasswordHash(
-                                        temporaryPassword
-                                    );
-
-                                std::unique_ptr<sql::PreparedStatement> stmt(
-                                    con->prepareStatement(
-                                        "INSERT INTO users "
-                                        "(username, password_hash, full_name, "
-                                        "role_id, status, must_change_password) "
-                                        "VALUES (?, ?, ?, ?, 'Active', 1)"
-                                    )
-                                );
-
-                                stmt->setString(
-                                    1,
-                                    msclr::interop::marshal_as<std::string>(
-                                        username
-                                    )
-                                );
-
-                                stmt->setString(
-                                    2,
-                                    msclr::interop::marshal_as<std::string>(
-                                        hash
-                                    )
-                                );
-
-                                stmt->setString(
-                                    3,
-                                    msclr::interop::marshal_as<std::string>(
-                                        fullName
-                                    )
-                                );
-
-                                stmt->setInt(4, roleId);
-                                stmt->execute();
-
-                                MessageBox::Show(
-                                    L"User created successfully.\n\n"
-                                    L"Username: " + username +
-                                    L"\nTemporary password: " +
-                                    temporaryPassword +
-                                    L"\n\n"
-                                    L"Give this temporary password to the user. "
-                                    L"It will not be shown again.",
-                                    L"User Created",
-                                    MessageBoxButtons::OK,
-                                    MessageBoxIcon::Information
-                                );
-                            }
-                            else
-                            {
-                                std::unique_ptr<sql::PreparedStatement> stmt(
-                                    con->prepareStatement(
-                                        "UPDATE users "
-                                        "SET full_name = ?, role_id = ? "
-                                        "WHERE user_id = ?"
-                                    )
-                                );
-
-                                stmt->setString(
-                                    1,
-                                    msclr::interop::marshal_as<std::string>(
-                                        fullName
-                                    )
-                                );
-
-                                stmt->setInt(2, roleId);
-                                stmt->setInt(3, editingUserId);
-                                stmt->execute();
-
-                                MessageBox::Show(
-                                    L"User details updated successfully.",
-                                    L"User Updated",
-                                    MessageBoxButtons::OK,
-                                    MessageBoxIcon::Information
-                                );
-                            }
-
-                            editor->DialogResult =
-                                DialogResult::OK;
-                            editor->Close();
-                        }
-                        catch (sql::SQLException& ex)
-                        {
-                            String^ message =
-                                gcnew String(ex.what());
-
-                            if (message->IndexOf(
-                                    L"Duplicate",
-                                    StringComparison::OrdinalIgnoreCase
-                                ) >= 0)
-                            {
-                                message =
-                                    L"The username is already in use.";
-                            }
-
-                            MessageBox::Show(
-                                message,
-                                L"Unable to Save User",
-                                MessageBoxButtons::OK,
-                                MessageBoxIcon::Error
-                            );
-                        }
-                        catch (Exception^ ex)
-                        {
-                            MessageBox::Show(
-                                ex->Message,
-                                L"Unable to Save User",
-                                MessageBoxButtons::OK,
-                                MessageBoxIcon::Error
-                            );
-                        }
-                    });
-
-            editor->ShowDialog(this);
-
-            if (editor->DialogResult == DialogResult::OK)
+            if (editorForm->DialogResult ==
+                System::Windows::Forms::DialogResult::OK)
             {
                 LoadUsers();
             }
 
-            editor->Dispose();
+            delete editorForm;
+            editorForm = nullptr;
+            editorRoleBox = nullptr;
         }
 
         void ToggleSelectedUser()
@@ -962,7 +980,7 @@ namespace SchoolCore
                     L"Reset Password",
                     MessageBoxButtons::YesNo,
                     MessageBoxIcon::Question
-                ) != DialogResult::Yes)
+                ) != System::Windows::Forms::DialogResult::Yes)
             {
                 return;
             }
@@ -1113,7 +1131,7 @@ namespace SchoolCore
                 );
             button->Height = 36;
             button->Margin =
-                Padding(4, 0, 4, 0);
+                System::Windows::Forms::Padding(4, 0, 4, 0);
         }
 
         #pragma region Windows Form Designer generated code
@@ -1152,7 +1170,7 @@ namespace SchoolCore
             headerPanel->Height = 92;
             headerPanel->BackColor = Color::White;
             headerPanel->Padding =
-                Padding(28, 18, 28, 12);
+                System::Windows::Forms::Padding(28, 18, 28, 12);
 
             lblTitle = gcnew Label();
             lblTitle->Text = L"Users & Roles";
@@ -1188,7 +1206,7 @@ namespace SchoolCore
             toolbarPanel->Height = 66;
             toolbarPanel->BackColor = Color::White;
             toolbarPanel->Padding =
-                Padding(28, 12, 28, 12);
+                System::Windows::Forms::Padding(28, 12, 28, 12);
 
             FlowLayoutPanel^ actions =
                 gcnew FlowLayoutPanel();
@@ -1302,7 +1320,7 @@ namespace SchoolCore
             Panel^ gridPanel = gcnew Panel();
             gridPanel->Dock = DockStyle::Fill;
             gridPanel->Padding =
-                Padding(28, 12, 14, 20);
+                System::Windows::Forms::Padding(28, 12, 14, 20);
             gridPanel->BackColor =
                 Color::FromArgb(241, 245, 249);
 
@@ -1418,7 +1436,7 @@ namespace SchoolCore
             rolePanel->Width = 310;
             rolePanel->BackColor = Color::White;
             rolePanel->Padding =
-                Padding(20, 18, 20, 18);
+                System::Windows::Forms::Padding(20, 18, 20, 18);
 
             lblRoleTitle = gcnew Label();
             lblRoleTitle->Text = L"Role & Permissions";
