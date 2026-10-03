@@ -887,7 +887,7 @@ namespace SchoolCore
                 gcnew Label();
 
             footer->Text =
-                L"Secure access • SchoolCore";
+                L"Secure access | SchoolCore";
 
             footer->Dock =
                 DockStyle::Bottom;
