@@ -590,6 +590,11 @@ void InitializeComponent(void)
             );
 
             this->classesGrid->Columns->Add(
+                L"level_name",
+                L"Academic Level"
+            );
+
+            this->classesGrid->Columns->Add(
                 L"student_count",
                 L"Students"
             );
@@ -1085,6 +1090,75 @@ void InitializeComponent(void)
                 auto con =
                     DbConnection::GetConnection();
 
+                std::unique_ptr<sql::PreparedStatement>
+                    levelStmt(
+                        con->prepareStatement(
+                            "SELECT al.level_code "
+                            "FROM classes c "
+                            "INNER JOIN academic_levels al "
+                            "ON al.academic_level_id = c.academic_level_id "
+                            "WHERE c.class_id = ? "
+                            "LIMIT 1"
+                        )
+                    );
+
+                levelStmt->setInt(1, classId);
+
+                std::unique_ptr<sql::ResultSet> levelResult(
+                    levelStmt->executeQuery()
+                );
+
+                if (!levelResult->next())
+                {
+                    MessageBox::Show(
+                        L"The selected class does not have a valid academic level.",
+                        L"Validation",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning
+                    );
+                    return;
+                }
+
+                String^ levelCode =
+                    gcnew String(levelResult->getString("level_code").c_str());
+
+                String^ canonicalStream = nullptr;
+
+                if (String::Equals(levelCode, L"O_LEVEL", StringComparison::OrdinalIgnoreCase))
+                {
+                    if (String::Equals(streamName, L"West", StringComparison::OrdinalIgnoreCase))
+                        canonicalStream = L"West";
+                    else if (String::Equals(streamName, L"South", StringComparison::OrdinalIgnoreCase))
+                        canonicalStream = L"South";
+                    else if (String::Equals(streamName, L"East", StringComparison::OrdinalIgnoreCase))
+                        canonicalStream = L"East";
+                    else if (String::Equals(streamName, L"North", StringComparison::OrdinalIgnoreCase))
+                        canonicalStream = L"North";
+                }
+                else if (String::Equals(levelCode, L"A_LEVEL", StringComparison::OrdinalIgnoreCase))
+                {
+                    if (String::Equals(streamName, L"Sciences", StringComparison::OrdinalIgnoreCase))
+                        canonicalStream = L"Sciences";
+                    else if (String::Equals(streamName, L"Arts", StringComparison::OrdinalIgnoreCase))
+                        canonicalStream = L"Arts";
+                }
+
+                if (canonicalStream == nullptr)
+                {
+                    MessageBox::Show(
+                        String::Equals(levelCode, L"O_LEVEL", StringComparison::OrdinalIgnoreCase)
+                        ? L"O-Level streams must be West, South, East or North."
+                        : L"A-Level streams must be Sciences or Arts.",
+                        L"Validation",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning
+                    );
+                    this->txtStreamName->Focus();
+                    return;
+                }
+
+                streamName = canonicalStream;
+
 
                 std::unique_ptr<sql::PreparedStatement> stmt(
                     con->prepareStatement(
@@ -1305,10 +1379,13 @@ void InitializeComponent(void)
                             "SELECT "
                             "c.class_id, "
                             "c.class_name, "
+                            "al.level_name, "
                             "c.status, "
                             "COUNT(DISTINCT e.student_id) "
                             "AS student_count "
                             "FROM classes c "
+                            "INNER JOIN academic_levels al "
+                            "ON al.academic_level_id = c.academic_level_id "
                             "LEFT JOIN enrollments e "
                             "ON e.class_id = c.class_id "
                             "AND e.academic_year_id = ? "
@@ -1317,6 +1394,7 @@ void InitializeComponent(void)
                             "GROUP BY "
                             "c.class_id, "
                             "c.class_name, "
+                            "al.level_name, "
                             "c.status "
                             "ORDER BY c.class_name"
                         )
@@ -1366,6 +1444,11 @@ void InitializeComponent(void)
                         gcnew String(
                             result->getString(
                                 "class_name"
+                            ).c_str()
+                        ),
+                        gcnew String(
+                            result->getString(
+                                "level_name"
                             ).c_str()
                         ),
                         result->getInt(
@@ -1631,22 +1714,55 @@ void InitializeComponent(void)
 
 
                 std::unique_ptr<sql::PreparedStatement>
-                    insertStmt(
+                    levelStmt(
                         con->prepareStatement(
-                            "INSERT INTO classes "
-                            "(class_name, status) "
-                            "VALUES (?, 'Active')"
+                            "SELECT academic_level_id "
+                            "FROM academic_levels "
+                            "WHERE level_code = CASE "
+                            "WHEN ? IN ('Senior 1','Senior 2','Senior 3','Senior 4') "
+                            "THEN 'O_LEVEL' "
+                            "WHEN ? IN ('Senior 5','Senior 6') "
+                            "THEN 'A_LEVEL' "
+                            "ELSE NULL END "
+                            "LIMIT 1"
                         )
                     );
 
+                std::string classNameStd =
+                    msclr::interop::marshal_as<std::string>(className);
 
-                insertStmt->setString(
-                    1,
-                    msclr::interop::marshal_as<std::string>(
-                        className
-                    )
+                levelStmt->setString(1, classNameStd);
+                levelStmt->setString(2, classNameStd);
+
+                std::unique_ptr<sql::ResultSet> levelResult(
+                    levelStmt->executeQuery()
                 );
 
+                if (!levelResult->next())
+                {
+                    MessageBox::Show(
+                        L"Only Senior 1 to Senior 6 can be configured as secondary-school classes.",
+                        L"Validation",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning
+                    );
+                    return;
+                }
+
+                int academicLevelId =
+                    levelResult->getInt("academic_level_id");
+
+                std::unique_ptr<sql::PreparedStatement>
+                    insertStmt(
+                        con->prepareStatement(
+                            "INSERT INTO classes "
+                            "(class_name, academic_level_id, status) "
+                            "VALUES (?, ?, 'Active')"
+                        )
+                    );
+
+                insertStmt->setString(1, classNameStd);
+                insertStmt->setInt(2, academicLevelId);
 
                 insertStmt->executeUpdate();
 
