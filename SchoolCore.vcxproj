@@ -131,6 +131,10 @@
     <ClCompile Include="SubjectManagement.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AuthSession.h" />
+    <ClInclude Include="LoginForm.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
     <ClInclude Include="AcademicYearsTerms.h">
       <FileType>CppForm</FileType>
     </ClInclude>
