@@ -231,22 +231,50 @@ namespace SchoolCore {
 			System::Object^ sender,
 			System::EventArgs^ e)
 		{
+			this->contentPanel->Controls->Clear();
+
 			ClassesStreams^ form =
 				gcnew ClassesStreams();
 
-			form->ShowDialog(this);
-			ShowDashboardOverview();
+			form->TopLevel = false;
+			form->FormBorderStyle =
+				System::Windows::Forms::FormBorderStyle::None;
+			form->Dock = DockStyle::Fill;
+			form->WindowState = FormWindowState::Normal;
+
+			form->FormClosed +=
+				gcnew FormClosedEventHandler(
+					this,
+					&Dashboard::embeddedModule_FormClosed
+				);
+
+			this->contentPanel->Controls->Add(form);
+			form->Show();
 		}
 
 		System::Void btnAcademic_Click(
 			System::Object^ sender,
 			System::EventArgs^ e)
 		{
+			this->contentPanel->Controls->Clear();
+
 			SchoolCore::AcademicYearsTerms^ form =
 				gcnew SchoolCore::AcademicYearsTerms();
 
-			form->ShowDialog(this);
-			ShowDashboardOverview();
+			form->TopLevel = false;
+			form->FormBorderStyle =
+				System::Windows::Forms::FormBorderStyle::None;
+			form->Dock = DockStyle::Fill;
+			form->WindowState = FormWindowState::Normal;
+
+			form->FormClosed +=
+				gcnew FormClosedEventHandler(
+					this,
+					&Dashboard::embeddedModule_FormClosed
+				);
+
+			this->contentPanel->Controls->Add(form);
+			form->Show();
 		}
 
 
