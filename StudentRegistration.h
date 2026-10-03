@@ -28,6 +28,7 @@ namespace SchoolCore
                     if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
                     {
                         LoadAcademicYears();
+                        LoadAcademicLevels();
                         LoadClasses();
                     }
                 }
@@ -50,6 +51,7 @@ namespace SchoolCore
                         L"Loading student information...";
         
                     LoadAcademicYears();
+                    LoadAcademicLevels();
                     LoadClasses();
                     LoadStudentForEdit(studentId);
                 }
@@ -112,12 +114,14 @@ namespace SchoolCore
         // Enrollment controls
         System::Windows::Forms::Label^ lblAcademicYear;
         System::Windows::Forms::Label^ lblTerm;
+        System::Windows::Forms::Label^ lblAcademicLevel;
         System::Windows::Forms::Label^ lblClass;
         System::Windows::Forms::Label^ lblStream;
         System::Windows::Forms::Label^ lblStreamInfo;
 
         System::Windows::Forms::ComboBox^ cmbAcademicYear;
         System::Windows::Forms::ComboBox^ cmbTerm;
+        System::Windows::Forms::ComboBox^ cmbAcademicLevel;
         System::Windows::Forms::ComboBox^ cmbClass;
         System::Windows::Forms::ComboBox^ cmbStream;
 
@@ -434,7 +438,7 @@ void InitializeComponent(void)
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
                     System::Windows::Forms::SizeType::Absolute,
-                    165.0F
+                    205.0F
                 )
             );
 
@@ -1203,7 +1207,7 @@ void InitializeComponent(void)
                 System::Windows::Forms::DockStyle::Fill;
 
             enrollmentLayout->ColumnCount = 4;
-            enrollmentLayout->RowCount = 3;
+            enrollmentLayout->RowCount = 4;
 
             enrollmentLayout->Padding =
                 System::Windows::Forms::Padding(5);
@@ -1258,6 +1262,38 @@ void InitializeComponent(void)
                     34.0F
                 )
             );
+
+
+            // Academic Level
+
+            this->lblAcademicLevel =
+                gcnew System::Windows::Forms::Label();
+
+            this->lblAcademicLevel->Text =
+                L"Academic Level";
+
+            this->lblAcademicLevel->Dock =
+                System::Windows::Forms::DockStyle::Fill;
+
+            this->lblAcademicLevel->AutoSize = false;
+
+            this->lblAcademicLevel->TextAlign =
+                System::Drawing::ContentAlignment::MiddleLeft;
+
+            this->lblAcademicLevel->Margin =
+                System::Windows::Forms::Padding(3, 0, 3, 0);
+
+            this->cmbAcademicLevel =
+                gcnew System::Windows::Forms::ComboBox();
+
+            this->cmbAcademicLevel->Dock =
+                System::Windows::Forms::DockStyle::Fill;
+
+            this->cmbAcademicLevel->DropDownStyle =
+                System::Windows::Forms::ComboBoxStyle::DropDownList;
+
+            this->cmbAcademicLevel->Margin =
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
 
             // Academic Year
@@ -1449,34 +1485,49 @@ void InitializeComponent(void)
 
 
             enrollmentLayout->Controls->Add(
-                this->lblClass,
+                this->lblAcademicLevel,
                 0, 1
             );
 
             enrollmentLayout->Controls->Add(
-                this->cmbClass,
+                this->cmbAcademicLevel,
                 1, 1
             );
 
             enrollmentLayout->Controls->Add(
-                this->lblStream,
+                this->lblClass,
                 2, 1
             );
 
             enrollmentLayout->Controls->Add(
-                this->cmbStream,
+                this->cmbClass,
                 3, 1
             );
 
 
             enrollmentLayout->Controls->Add(
-                this->lblStreamInfo,
+                this->lblStream,
                 0, 2
+            );
+
+            enrollmentLayout->Controls->Add(
+                this->cmbStream,
+                1, 2
+            );
+
+            enrollmentLayout->Controls->Add(
+                this->lblStreamInfo,
+                2, 2
             );
 
             enrollmentLayout->SetColumnSpan(
                 this->lblStreamInfo,
-                4
+                2
+            );
+
+            enrollmentLayout->SetColumnSpan(
+                this->lblStreamInfo,
+                2
             );
 
 
@@ -2231,6 +2282,54 @@ void InitializeComponent(void)
 
 
         // =========================================================
+        // LOAD ACADEMIC LEVELS
+        // =========================================================
+
+        void LoadAcademicLevels()
+        {
+            try
+            {
+                auto con = DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT academic_level_id, level_name "
+                        "FROM academic_levels "
+                        "WHERE status = 'Active' "
+                        "ORDER BY academic_level_id"
+                    )
+                );
+
+                std::unique_ptr<sql::ResultSet> result(stmt->executeQuery());
+
+                this->cmbAcademicLevel->Items->Clear();
+                this->cmbAcademicLevel->Items->Add(L"Select Academic Level");
+
+                while (result->next())
+                {
+                    this->cmbAcademicLevel->Items->Add(
+                        gcnew ComboItem(
+                            result->getInt("academic_level_id"),
+                            gcnew String(result->getString("level_name").c_str())
+                        )
+                    );
+                }
+
+                this->cmbAcademicLevel->SelectedIndex = 0;
+            }
+            catch (sql::SQLException& ex)
+            {
+                MessageBox::Show(
+                    gcnew String(ex.what()),
+                    L"Database Error",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+        }
+
+
+        // =========================================================
         // LOAD CLASSES
         // =========================================================
 
@@ -2240,14 +2339,31 @@ void InitializeComponent(void)
             {
                 auto con = DbConnection::GetConnection();
 
+                if (this->cmbAcademicLevel->SelectedIndex <= 0)
+                {
+                    this->cmbClass->Items->Clear();
+                    this->cmbClass->Items->Add(L"Select Class");
+                    this->cmbClass->SelectedIndex = 0;
+                    this->LoadStreams();
+                    return;
+                }
+
+                ComboItem^ levelItem =
+                    safe_cast<ComboItem^>(
+                        this->cmbAcademicLevel->SelectedItem
+                    );
+
                 std::unique_ptr<sql::PreparedStatement> stmt(
                     con->prepareStatement(
                         "SELECT class_id, class_name "
                         "FROM classes "
                         "WHERE status = 'Active' "
-                        "ORDER BY class_name"
+                        "AND academic_level_id = ? "
+                        "ORDER BY class_id"
                     )
                 );
+
+                stmt->setInt(1, levelItem->Id);
 
                 std::unique_ptr<sql::ResultSet> result(
                     stmt->executeQuery()
@@ -2350,6 +2466,10 @@ void InitializeComponent(void)
                         "s.stream_name, "
                         "COUNT(e.enrollment_id) AS student_count "
                         "FROM streams s "
+                        "INNER JOIN classes c "
+                        "ON c.class_id = s.class_id "
+                        "INNER JOIN academic_levels al "
+                        "ON al.academic_level_id = c.academic_level_id "
                         "LEFT JOIN enrollments e "
                         "ON e.stream_id = s.stream_id "
                         "AND e.academic_year_id = ? "
@@ -2358,6 +2478,11 @@ void InitializeComponent(void)
                         "AND e.status = 'Active' "
                         "WHERE s.class_id = ? "
                         "AND s.status = 'Active' "
+                        "AND ("
+                        "(al.level_code = 'O_LEVEL' AND s.stream_name IN ('West','South','East','North')) "
+                        "OR "
+                        "(al.level_code = 'A_LEVEL' AND s.stream_name IN ('Sciences','Arts'))"
+                        ") "
                         "GROUP BY "
                         "s.stream_id, "
                         "s.stream_name "
@@ -2443,6 +2568,23 @@ void InitializeComponent(void)
         {
             LoadTerms();
             LoadStreams();
+        }
+
+
+        // =========================================================
+        // ACADEMIC LEVEL CHANGED
+        // =========================================================
+
+        System::Void cmbAcademicLevel_SelectedIndexChanged(
+            System::Object^ sender,
+            System::EventArgs^ e)
+        {
+            LoadClasses();
+
+            this->cmbStream->Items->Clear();
+            this->cmbStream->Items->Add(L"Select Stream");
+            this->cmbStream->SelectedIndex = 0;
+            this->cmbStream->Enabled = false;
         }
 
 
@@ -2558,6 +2700,7 @@ void InitializeComponent(void)
                         "e.academic_year_id, "
                         "e.term_id, "
                         "e.class_id, "
+                        "c.academic_level_id, "
                         "e.stream_id, "
                         "g.guardian_id, "
                         "g.full_name AS guardian_name, "
@@ -2576,6 +2719,8 @@ void InitializeComponent(void)
                             "ORDER BY e2.enrollment_date DESC, e2.enrollment_id DESC "
                             "LIMIT 1"
                         ") "
+                        "LEFT JOIN classes c "
+                        "ON c.class_id = e.class_id "
                         "LEFT JOIN student_guardians sg "
                         "ON sg.student_id = s.student_id "
                         "AND sg.is_primary = 1 "
@@ -2772,6 +2917,11 @@ void InitializeComponent(void)
                     ? 0
                     : result->getInt("class_id");
 
+                int academicLevelId =
+                    result->isNull("academic_level_id")
+                    ? 0
+                    : result->getInt("academic_level_id");
+
                 int academicYearId =
                     result->isNull("academic_year_id")
                     ? 0
@@ -2787,7 +2937,17 @@ void InitializeComponent(void)
                     ? 0
                     : result->getInt("stream_id");
 
-                // Select the class first.
+                // Select academic level first so the class list is filtered.
+                if (academicLevelId > 0)
+                {
+                    SelectComboItemById(
+                        this->cmbAcademicLevel,
+                        academicLevelId
+                    );
+
+                    LoadClasses();
+                }
+
                 if (classId > 0)
                 {
                     SelectComboItemById(
@@ -3504,6 +3664,20 @@ void InitializeComponent(void)
             }
 
 
+            if (this->cmbAcademicLevel->SelectedIndex <= 0)
+            {
+                MessageBox::Show(
+                    L"Please select an academic level.",
+                    L"Validation",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+
+                this->cmbAcademicLevel->Focus();
+                return;
+            }
+
+
             if (this->cmbClass->SelectedIndex <= 0)
             {
                 MessageBox::Show(
@@ -4147,6 +4321,7 @@ void InitializeComponent(void)
 
 
             this->cmbAcademicYear->SelectedIndex = 0;
+            this->cmbAcademicLevel->SelectedIndex = 0;
             this->cmbClass->SelectedIndex = 0;
 
             this->cmbTerm->Items->Clear();
@@ -4225,6 +4400,12 @@ void InitializeComponent(void)
                 gcnew System::EventHandler(
                     this,
                     &StudentRegistration::cmbTerm_SelectedIndexChanged
+                );
+
+            this->cmbAcademicLevel->SelectedIndexChanged +=
+                gcnew System::EventHandler(
+                    this,
+                    &StudentRegistration::cmbAcademicLevel_SelectedIndexChanged
                 );
 
             this->cmbClass->SelectedIndexChanged +=
