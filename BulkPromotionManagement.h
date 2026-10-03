@@ -414,6 +414,12 @@ namespace SchoolCore
 
         void LoadOptionalSubjects()
         {
+            for each (DataGridViewRow^ row in this->studentsGrid->Rows)
+            {
+                row->Cells["Option1"]->Value = nullptr;
+                row->Cells["Option2"]->Value = nullptr;
+            }
+
             this->option1Column->Items->Clear();
             this->option2Column->Items->Clear();
 
@@ -476,6 +482,11 @@ namespace SchoolCore
 
         void LoadStreams()
         {
+            for each (DataGridViewRow^ row in this->studentsGrid->Rows)
+            {
+                row->Cells["TargetStream"]->Value = nullptr;
+            }
+
             this->streamColumn->Items->Clear();
 
             if (this->cmbTargetClass->SelectedIndex < 0)
