@@ -2809,10 +2809,6 @@ namespace SchoolCore
             this->ResumeLayout(
                 false
             );
-
-            LoadSubjects(
-                L""
-            );
         }
 
 
@@ -2821,6 +2817,9 @@ namespace SchoolCore
         SubjectManagement()
         {
             InitializeComponent();
+            LoadSubjects(
+                L""
+            );
         }
 
 
