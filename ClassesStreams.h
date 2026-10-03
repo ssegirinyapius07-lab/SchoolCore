@@ -51,6 +51,12 @@ namespace SchoolCore
                             this,
                             &ClassesStreams::cmbTerm_SelectedIndexChanged
                         );
+
+                    this->cmbAcademicLevel->SelectedIndexChanged +=
+                        gcnew System::EventHandler(
+                            this,
+                            &ClassesStreams::cmbAcademicLevel_SelectedIndexChanged
+                        );
         
                     this->btnAddStream->Click +=
                         gcnew System::EventHandler(
@@ -76,6 +82,7 @@ namespace SchoolCore
                     if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
                     {
                         LoadAcademicYears();
+                        LoadAcademicLevels();
                         LoadClasses();
                     }
                 }
@@ -108,6 +115,8 @@ namespace SchoolCore
         System::Windows::Forms::GroupBox^ streamGroup;
 
         // Classes
+        System::Windows::Forms::Label^ lblAcademicLevel;
+        System::Windows::Forms::ComboBox^ cmbAcademicLevel;
         System::Windows::Forms::Label^ lblClassName;
         System::Windows::Forms::ComboBox^ cmbClassName;
         System::Windows::Forms::Button^ btnAddClass;
@@ -418,7 +427,7 @@ void InitializeComponent(void)
             classLayout->Dock =
                 System::Windows::Forms::DockStyle::Fill;
 
-            classLayout->ColumnCount = 4;
+            classLayout->ColumnCount = 6;
             classLayout->RowCount = 2;
 
             classLayout->Padding =
@@ -428,28 +437,42 @@ void InitializeComponent(void)
             classLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
                     System::Windows::Forms::SizeType::Absolute,
-                    110.0F
+                    105.0F
                 )
             );
 
             classLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
                     System::Windows::Forms::SizeType::Percent,
-                    55.0F
+                    30.0F
                 )
             );
 
             classLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
                     System::Windows::Forms::SizeType::Absolute,
-                    150.0F
+                    95.0F
                 )
             );
 
             classLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
                     System::Windows::Forms::SizeType::Percent,
-                    45.0F
+                    30.0F
+                )
+            );
+
+            classLayout->ColumnStyles->Add(
+                gcnew ColumnStyle(
+                    System::Windows::Forms::SizeType::Absolute,
+                    125.0F
+                )
+            );
+
+            classLayout->ColumnStyles->Add(
+                gcnew ColumnStyle(
+                    System::Windows::Forms::SizeType::Absolute,
+                    145.0F
                 )
             );
 
@@ -467,6 +490,42 @@ void InitializeComponent(void)
                     100.0F
                 )
             );
+
+
+            // Academic level label
+
+            this->lblAcademicLevel =
+                gcnew System::Windows::Forms::Label();
+
+            this->lblAcademicLevel->Text =
+                L"Academic Level";
+
+            this->lblAcademicLevel->Dock =
+                System::Windows::Forms::DockStyle::Fill;
+
+            this->lblAcademicLevel->TextAlign =
+                System::Drawing::ContentAlignment::MiddleLeft;
+
+
+            // Academic level input
+
+            this->cmbAcademicLevel =
+                gcnew System::Windows::Forms::ComboBox();
+
+            this->cmbAcademicLevel->Dock =
+                System::Windows::Forms::DockStyle::Fill;
+
+            this->cmbAcademicLevel->DropDownStyle =
+                System::Windows::Forms::ComboBoxStyle::DropDownList;
+
+            this->cmbAcademicLevel->Items->Add(
+                L"Select Academic Level"
+            );
+
+            this->cmbAcademicLevel->SelectedIndex = 0;
+
+            this->cmbAcademicLevel->Margin =
+                System::Windows::Forms::Padding(3);
 
 
             // Class label
@@ -496,30 +555,12 @@ void InitializeComponent(void)
                 System::Windows::Forms::ComboBoxStyle::DropDownList;
 
             this->cmbClassName->Items->Add(
-                L"Senior 1"
-            );
-
-            this->cmbClassName->Items->Add(
-                L"Senior 2"
-            );
-
-            this->cmbClassName->Items->Add(
-                L"Senior 3"
-            );
-
-            this->cmbClassName->Items->Add(
-                L"Senior 4"
-            );
-
-            this->cmbClassName->Items->Add(
-                L"Senior 5"
-            );
-
-            this->cmbClassName->Items->Add(
-                L"Senior 6"
+                L"Select Class"
             );
 
             this->cmbClassName->SelectedIndex = 0;
+
+            this->cmbClassName->Enabled = false;
 
             this->cmbClassName->Margin =
                 System::Windows::Forms::Padding(3);
@@ -615,23 +656,33 @@ void InitializeComponent(void)
             // Add controls
 
             classLayout->Controls->Add(
-                this->lblClassName,
+                this->lblAcademicLevel,
                 0, 0
             );
 
             classLayout->Controls->Add(
-                this->cmbClassName,
+                this->cmbAcademicLevel,
                 1, 0
             );
 
             classLayout->Controls->Add(
-                this->btnAddClass,
+                this->lblClassName,
                 2, 0
             );
 
             classLayout->Controls->Add(
-                this->btnToggleClass,
+                this->cmbClassName,
                 3, 0
+            );
+
+            classLayout->Controls->Add(
+                this->btnAddClass,
+                4, 0
+            );
+
+            classLayout->Controls->Add(
+                this->btnToggleClass,
+                5, 0
             );
 
 
@@ -1243,6 +1294,95 @@ void InitializeComponent(void)
 
 
         // =========================================================
+        // LOAD ACADEMIC LEVELS
+        // =========================================================
+
+        void LoadAcademicLevels()
+        {
+            try
+            {
+                auto con = DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT academic_level_id, level_name "
+                        "FROM academic_levels "
+                        "WHERE status = 'Active' "
+                        "ORDER BY academic_level_id"
+                    )
+                );
+
+                std::unique_ptr<sql::ResultSet> result(stmt->executeQuery());
+
+                this->cmbAcademicLevel->Items->Clear();
+                this->cmbAcademicLevel->Items->Add(L"Select Academic Level");
+
+                while (result->next())
+                {
+                    this->cmbAcademicLevel->Items->Add(
+                        gcnew ComboItem(
+                            result->getInt("academic_level_id"),
+                            gcnew String(result->getString("level_name").c_str())
+                        )
+                    );
+                }
+
+                this->cmbAcademicLevel->SelectedIndex = 0;
+            }
+            catch (sql::SQLException& ex)
+            {
+                MessageBox::Show(
+                    gcnew String(ex.what()),
+                    L"Database Error",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+        }
+
+
+        // =========================================================
+        // LOAD AVAILABLE CLASS NAMES FOR SELECTED LEVEL
+        // =========================================================
+
+        void LoadAvailableClassNames()
+        {
+            this->cmbClassName->Items->Clear();
+            this->cmbClassName->Items->Add(L"Select Class");
+            this->cmbClassName->SelectedIndex = 0;
+            this->cmbClassName->Enabled = false;
+
+            if (this->cmbAcademicLevel->SelectedIndex <= 0)
+                return;
+
+            ComboItem^ levelItem =
+                safe_cast<ComboItem^>(
+                    this->cmbAcademicLevel->SelectedItem
+                );
+
+            if (levelItem->Text->Equals(
+                    L"O-Level",
+                    StringComparison::OrdinalIgnoreCase))
+            {
+                this->cmbClassName->Items->Add(L"Senior 1");
+                this->cmbClassName->Items->Add(L"Senior 2");
+                this->cmbClassName->Items->Add(L"Senior 3");
+                this->cmbClassName->Items->Add(L"Senior 4");
+            }
+            else if (levelItem->Text->Equals(
+                         L"A-Level",
+                         StringComparison::OrdinalIgnoreCase))
+            {
+                this->cmbClassName->Items->Add(L"Senior 5");
+                this->cmbClassName->Items->Add(L"Senior 6");
+            }
+
+            this->cmbClassName->Enabled =
+                this->cmbClassName->Items->Count > 1;
+        }
+
+
+        // =========================================================
         // LOAD CLASSES
         // =========================================================
 
@@ -1580,34 +1720,44 @@ void InitializeComponent(void)
             System::Object^ sender,
             System::EventArgs^ e)
         {
-            String^ className =
-                this->cmbClassName->SelectedItem->ToString();
-
-
-            if (
-                String::IsNullOrWhiteSpace(
-                    className
-                )
-                )
+            if (this->cmbAcademicLevel->SelectedIndex <= 0)
             {
                 MessageBox::Show(
-                    L"Please enter a class name.",
+                    L"Please select an academic level.",
+                    L"Validation",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+
+                this->cmbAcademicLevel->Focus();
+                return;
+            }
+
+            if (this->cmbClassName->SelectedIndex <= 0)
+            {
+                MessageBox::Show(
+                    L"Please select a class.",
                     L"Validation",
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Warning
                 );
 
                 this->cmbClassName->Focus();
-
                 return;
             }
 
+            ComboItem^ levelItem =
+                safe_cast<ComboItem^>(
+                    this->cmbAcademicLevel->SelectedItem
+                );
+
+            String^ className =
+                this->cmbClassName->SelectedItem->ToString();
 
             try
             {
                 auto con =
                     DbConnection::GetConnection();
-
 
                 std::unique_ptr<sql::PreparedStatement>
                     checkStmt(
@@ -1618,20 +1768,13 @@ void InitializeComponent(void)
                         )
                     );
 
-
                 checkStmt->setString(
                     1,
-                    msclr::interop::marshal_as<std::string>(
-                        className
-                    )
+                    msclr::interop::marshal_as<std::string>(className)
                 );
 
-
                 std::unique_ptr<sql::ResultSet>
-                    checkResult(
-                        checkStmt->executeQuery()
-                    );
-
+                    checkResult(checkStmt->executeQuery());
 
                 if (checkResult->next())
                 {
@@ -1645,46 +1788,6 @@ void InitializeComponent(void)
                     return;
                 }
 
-
-                std::unique_ptr<sql::PreparedStatement>
-                    levelStmt(
-                        con->prepareStatement(
-                            "SELECT academic_level_id "
-                            "FROM academic_levels "
-                            "WHERE level_code = CASE "
-                            "WHEN ? IN ('Senior 1','Senior 2','Senior 3','Senior 4') "
-                            "THEN 'O_LEVEL' "
-                            "WHEN ? IN ('Senior 5','Senior 6') "
-                            "THEN 'A_LEVEL' "
-                            "ELSE NULL END "
-                            "LIMIT 1"
-                        )
-                    );
-
-                std::string classNameStd =
-                    msclr::interop::marshal_as<std::string>(className);
-
-                levelStmt->setString(1, classNameStd);
-                levelStmt->setString(2, classNameStd);
-
-                std::unique_ptr<sql::ResultSet> levelResult(
-                    levelStmt->executeQuery()
-                );
-
-                if (!levelResult->next())
-                {
-                    MessageBox::Show(
-                        L"Only Senior 1 to Senior 6 can be configured as secondary-school classes.",
-                        L"Validation",
-                        MessageBoxButtons::OK,
-                        MessageBoxIcon::Warning
-                    );
-                    return;
-                }
-
-                int academicLevelId =
-                    levelResult->getInt("academic_level_id");
-
                 std::unique_ptr<sql::PreparedStatement>
                     insertStmt(
                         con->prepareStatement(
@@ -1694,16 +1797,21 @@ void InitializeComponent(void)
                         )
                     );
 
-                insertStmt->setString(1, classNameStd);
-                insertStmt->setInt(2, academicLevelId);
+                insertStmt->setString(
+                    1,
+                    msclr::interop::marshal_as<std::string>(className)
+                );
+
+                insertStmt->setInt(
+                    2,
+                    levelItem->Id
+                );
 
                 insertStmt->executeUpdate();
-
 
                 this->cmbClassName->SelectedIndex = 0;
 
                 LoadClasses();
-
 
                 MessageBox::Show(
                     L"Class added successfully.",
@@ -1712,15 +1820,12 @@ void InitializeComponent(void)
                     MessageBoxIcon::Information
                 );
             }
-            catch (sql::SQLException& ex)
-            {
-                MessageBox::Show(
-                    gcnew String(ex.what()),
-                    L"Database Error",
-                    MessageBoxButtons::OK,
-                    MessageBoxIcon::Error
-                );
-            }
+        // =========================================================
+        System::Void cmbAcademicLevel_SelectedIndexChanged(
+            System::Object^ sender,
+            System::EventArgs^ e)
+        {
+            LoadAvailableClassNames();
         }
 
 
