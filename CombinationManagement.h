@@ -1195,7 +1195,7 @@ namespace SchoolCore
                 gcnew System::Windows::Forms::Label();
 
             this->actionPanel =
-                gcnew System::Windows::Forms::Panel();
+                gcnew System::Windows::Forms::FlowLayoutPanel();
 
             this->btnNew =
                 gcnew System::Windows::Forms::Button();
@@ -1338,6 +1338,9 @@ namespace SchoolCore
                 this->lblTitle
             );
 
+            this->actionPanel =
+                gcnew System::Windows::Forms::FlowLayoutPanel();
+
             this->actionPanel->Dock =
                 System::Windows::Forms::DockStyle::Fill;
 
@@ -1348,6 +1351,19 @@ namespace SchoolCore
                     20,
                     8
                 );
+
+            safe_cast<System::Windows::Forms::FlowLayoutPanel^>(
+                this->actionPanel
+            )->FlowDirection =
+                System::Windows::Forms::FlowDirection::LeftToRight;
+
+            safe_cast<System::Windows::Forms::FlowLayoutPanel^>(
+                this->actionPanel
+            )->WrapContents = false;
+
+            safe_cast<System::Windows::Forms::FlowLayoutPanel^>(
+                this->actionPanel
+            )->AutoScroll = true;
 
             ConfigureButton(this->btnNew, L"New Combination");
             ConfigureButton(this->btnEdit, L"Edit");
