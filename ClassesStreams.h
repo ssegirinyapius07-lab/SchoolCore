@@ -1060,12 +1060,12 @@ void InitializeComponent(void)
             );
 
             streamLayout->Controls->Add(
-                this->txtStreamName,
+                this->cmbStreamName,
                 1, 1
             );
 
             streamLayout->SetColumnSpan(
-                this->txtStreamName,
+                this->cmbStreamName,
                 2
             );
 
