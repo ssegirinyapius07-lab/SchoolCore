@@ -84,36 +84,48 @@ namespace SchoolCore
             }
         };
 
+        System::ComponentModel::Container^ components;
+
+
+    protected:
+        ~Attendance()
+        {
+            if (this->components)
+            {
+                delete this->components;
+            }
+        }
+
     private:
-        TableLayoutPanel^ mainLayout;
-        Panel^ headerPanel;
+        System::Windows::Forms::TableLayoutPanel^ mainLayout;
+        System::Windows::Forms::Panel^ headerPanel;
         System::Windows::Forms::Label^ lblTitle;
         System::Windows::Forms::Label^ lblSubtitle;
 
-        Panel^ filterPanel;
+        System::Windows::Forms::Panel^ filterPanel;
         System::Windows::Forms::Label^ lblYear;
         System::Windows::Forms::Label^ lblTerm;
         System::Windows::Forms::Label^ lblClass;
         System::Windows::Forms::Label^ lblStream;
         System::Windows::Forms::Label^ lblDate;
 
-        ComboBox^ cmbAcademicYear;
-        ComboBox^ cmbTerm;
-        ComboBox^ cmbClass;
-        ComboBox^ cmbStream;
-        DateTimePicker^ dtpAttendanceDate;
+        System::Windows::Forms::ComboBox^ cmbAcademicYear;
+        System::Windows::Forms::ComboBox^ cmbTerm;
+        System::Windows::Forms::ComboBox^ cmbClass;
+        System::Windows::Forms::ComboBox^ cmbStream;
+        System::Windows::Forms::DateTimePicker^ dtpAttendanceDate;
 
         System::Windows::Forms::Label^ lblSessionInfo;
-        Button^ btnLoadStudents;
-        Button^ btnSaveAttendance;
-        Button^ btnRefresh;
-        Button^ btnBack;
+        System::Windows::Forms::Button^ btnLoadStudents;
+        System::Windows::Forms::Button^ btnSaveAttendance;
+        System::Windows::Forms::Button^ btnRefresh;
+        System::Windows::Forms::Button^ btnBack;
 
-        DataGridView^ attendanceGrid;
+        System::Windows::Forms::DataGridView^ attendanceGrid;
         System::Windows::Forms::Label^ lblStudentCount;
         System::Windows::Forms::Label^ lblStatus;
 
-        void StyleCombo(ComboBox^ combo)
+        void StyleCombo(System::Windows::Forms::ComboBox^ combo)
         {
             combo->DropDownStyle = ComboBoxStyle::DropDownList;
             combo->Font = gcnew System::Drawing::Font(
@@ -139,121 +151,122 @@ namespace SchoolCore
 
 void InitializeComponent()
         {
+            this->components = gcnew System::ComponentModel::Container();
             this->SuspendLayout();
 
             this->Text = L"Attendance";
-            this->StartPosition = FormStartPosition::CenterScreen;
-            this->WindowState = FormWindowState::Normal;
+            this->StartPosition = System::Windows::Forms::FormStartPosition::CenterScreen;
+            this->WindowState = System::Windows::Forms::FormWindowState::Normal;
             this->ClientSize = System::Drawing::Size(1000, 560);
             this->MinimumSize = System::Drawing::Size(900, 520);
-            this->BackColor = Color::FromArgb(248, 250, 252);
+            this->BackColor = System::Drawing::Color::FromArgb(248, 250, 252);
 
-            this->mainLayout = gcnew TableLayoutPanel();
-            this->mainLayout->Dock = DockStyle::Fill;
+            this->mainLayout = gcnew System::Windows::Forms::TableLayoutPanel();
+            this->mainLayout->Dock = System::Windows::Forms::DockStyle::Fill;
             this->mainLayout->AutoScroll = true;
             this->mainLayout->ColumnCount = 1;
             this->mainLayout->RowCount = 4;
             this->mainLayout->Padding = System::Windows::Forms::Padding(14);
-            this->mainLayout->BackColor = Color::FromArgb(248, 250, 252);
+            this->mainLayout->BackColor = System::Drawing::Color::FromArgb(248, 250, 252);
 
             this->mainLayout->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 70.0F)
+                gcnew RowStyle(System::Windows::Forms::SizeType::Absolute, 70.0F)
             );
             this->mainLayout->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 112.0F)
+                gcnew RowStyle(System::Windows::Forms::SizeType::Absolute, 112.0F)
             );
             this->mainLayout->RowStyles->Add(
-                gcnew RowStyle(SizeType::Percent, 100.0F)
+                gcnew RowStyle(System::Windows::Forms::SizeType::Percent, 100.0F)
             );
             this->mainLayout->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 54.0F)
+                gcnew RowStyle(System::Windows::Forms::SizeType::Absolute, 54.0F)
             );
 
             // Header
-            this->headerPanel = gcnew Panel();
-            this->headerPanel->Dock = DockStyle::Fill;
-            this->headerPanel->BackColor = Color::FromArgb(30, 41, 59);
+            this->headerPanel = gcnew System::Windows::Forms::Panel();
+            this->headerPanel->Dock = System::Windows::Forms::DockStyle::Fill;
+            this->headerPanel->BackColor = System::Drawing::Color::FromArgb(30, 41, 59);
             this->headerPanel->Padding =
                 System::Windows::Forms::Padding(20, 9, 20, 8);
 
-            this->lblTitle = gcnew Label();
-            this->lblTitle->Dock = DockStyle::Top;
+            this->lblTitle = gcnew System::Windows::Forms::Label();
+            this->lblTitle->Dock = System::Windows::Forms::DockStyle::Top;
             this->lblTitle->Height = 38;
             this->lblTitle->Text = L"Attendance";
-            this->lblTitle->ForeColor = Color::White;
+            this->lblTitle->ForeColor = System::Drawing::Color::White;
             this->lblTitle->Font = gcnew System::Drawing::Font(
-                L"Segoe UI Semibold", 17.0F, FontStyle::Bold
+                L"Segoe UI Semibold", 17.0F, System::Drawing::FontStyle::Bold
             );
-            this->lblTitle->TextAlign = ContentAlignment::MiddleLeft;
+            this->lblTitle->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 
-            this->lblSubtitle = gcnew Label();
-            this->lblSubtitle->Dock = DockStyle::Fill;
+            this->lblSubtitle = gcnew System::Windows::Forms::Label();
+            this->lblSubtitle->Dock = System::Windows::Forms::DockStyle::Fill;
             this->lblSubtitle->Text =
                 L"Record daily student attendance by academic period, class and stream.";
-            this->lblSubtitle->ForeColor = Color::Gainsboro;
+            this->lblSubtitle->ForeColor = System::Drawing::Color::Gainsboro;
             this->lblSubtitle->Font = gcnew System::Drawing::Font(
-                L"Segoe UI", 9.5F, FontStyle::Regular
+                L"Segoe UI", 9.5F, System::Drawing::FontStyle::Regular
             );
-            this->lblSubtitle->TextAlign = ContentAlignment::MiddleLeft;
+            this->lblSubtitle->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 
             this->headerPanel->Controls->Add(this->lblSubtitle);
             this->headerPanel->Controls->Add(this->lblTitle);
 
             // Filters
-            this->filterPanel = gcnew Panel();
-            this->filterPanel->Dock = DockStyle::Fill;
-            this->filterPanel->BackColor = Color::White;
+            this->filterPanel = gcnew System::Windows::Forms::Panel();
+            this->filterPanel->Dock = System::Windows::Forms::DockStyle::Fill;
+            this->filterPanel->BackColor = System::Drawing::Color::White;
             this->filterPanel->Padding =
                 System::Windows::Forms::Padding(15, 10, 15, 10);
 
-            TableLayoutPanel^ filterLayout = gcnew TableLayoutPanel();
-            filterLayout->Dock = DockStyle::Fill;
+            System::Windows::Forms::TableLayoutPanel^ filterLayout = gcnew System::Windows::Forms::TableLayoutPanel();
+            filterLayout->Dock = System::Windows::Forms::DockStyle::Fill;
             filterLayout->ColumnCount = 10;
             filterLayout->RowCount = 2;
             filterLayout->Padding = System::Windows::Forms::Padding(0);
 
             filterLayout->ColumnStyles->Add(
-                gcnew ColumnStyle(SizeType::Absolute, 105.0F));
+                gcnew ColumnStyle(System::Windows::Forms::SizeType::Absolute, 105.0F));
             filterLayout->ColumnStyles->Add(
-                gcnew ColumnStyle(SizeType::Percent, 20.0F));
+                gcnew ColumnStyle(System::Windows::Forms::SizeType::Percent, 20.0F));
             filterLayout->ColumnStyles->Add(
-                gcnew ColumnStyle(SizeType::Absolute, 75.0F));
+                gcnew ColumnStyle(System::Windows::Forms::SizeType::Absolute, 75.0F));
             filterLayout->ColumnStyles->Add(
-                gcnew ColumnStyle(SizeType::Percent, 20.0F));
+                gcnew ColumnStyle(System::Windows::Forms::SizeType::Percent, 20.0F));
             filterLayout->ColumnStyles->Add(
-                gcnew ColumnStyle(SizeType::Absolute, 65.0F));
+                gcnew ColumnStyle(System::Windows::Forms::SizeType::Absolute, 65.0F));
             filterLayout->ColumnStyles->Add(
-                gcnew ColumnStyle(SizeType::Percent, 20.0F));
+                gcnew ColumnStyle(System::Windows::Forms::SizeType::Percent, 20.0F));
             filterLayout->ColumnStyles->Add(
-                gcnew ColumnStyle(SizeType::Absolute, 65.0F));
+                gcnew ColumnStyle(System::Windows::Forms::SizeType::Absolute, 65.0F));
             filterLayout->ColumnStyles->Add(
-                gcnew ColumnStyle(SizeType::Percent, 20.0F));
+                gcnew ColumnStyle(System::Windows::Forms::SizeType::Percent, 20.0F));
             filterLayout->ColumnStyles->Add(
-                gcnew ColumnStyle(SizeType::Absolute, 55.0F));
+                gcnew ColumnStyle(System::Windows::Forms::SizeType::Absolute, 55.0F));
             filterLayout->ColumnStyles->Add(
-                gcnew ColumnStyle(SizeType::Absolute, 130.0F));
+                gcnew ColumnStyle(System::Windows::Forms::SizeType::Absolute, 130.0F));
 
             filterLayout->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 42.0F));
+                gcnew RowStyle(System::Windows::Forms::SizeType::Absolute, 42.0F));
             filterLayout->RowStyles->Add(
-                gcnew RowStyle(SizeType::Percent, 100.0F));
+                gcnew RowStyle(System::Windows::Forms::SizeType::Percent, 100.0F));
 
-            this->cmbAcademicYear = gcnew ComboBox();
-            this->cmbTerm = gcnew ComboBox();
-            this->cmbClass = gcnew ComboBox();
-            this->cmbStream = gcnew ComboBox();
-            this->dtpAttendanceDate = gcnew DateTimePicker();
+            this->cmbAcademicYear = gcnew System::Windows::Forms::ComboBox();
+            this->cmbTerm = gcnew System::Windows::Forms::ComboBox();
+            this->cmbClass = gcnew System::Windows::Forms::ComboBox();
+            this->cmbStream = gcnew System::Windows::Forms::ComboBox();
+            this->dtpAttendanceDate = gcnew System::Windows::Forms::DateTimePicker();
 
             StyleCombo(this->cmbAcademicYear);
             StyleCombo(this->cmbTerm);
             StyleCombo(this->cmbClass);
             StyleCombo(this->cmbStream);
 
-            this->dtpAttendanceDate->Format = DateTimePickerFormat::Short;
+            this->dtpAttendanceDate->Format = System::Windows::Forms::DateTimePickerFormat::Short;
             this->dtpAttendanceDate->Font = gcnew System::Drawing::Font(
-                L"Segoe UI", 9.5F, FontStyle::Regular
+                L"Segoe UI", 9.5F, System::Drawing::FontStyle::Regular
             );
-            this->dtpAttendanceDate->Dock = DockStyle::Fill;
+            this->dtpAttendanceDate->Dock = System::Windows::Forms::DockStyle::Fill;
 
             this->cmbAcademicYear->Items->Add(L"Select year");
             this->cmbTerm->Items->Add(L"Select term");
@@ -286,27 +299,27 @@ void InitializeComponent()
             filterLayout->Controls->Add(
                 this->dtpAttendanceDate, 9, 0);
 
-            this->lblSessionInfo = gcnew Label();
-            this->lblSessionInfo->Dock = DockStyle::Fill;
+            this->lblSessionInfo = gcnew System::Windows::Forms::Label();
+            this->lblSessionInfo->Dock = System::Windows::Forms::DockStyle::Fill;
             this->lblSessionInfo->Text =
                 L"Select the academic year, term and class, then load students.";
-            this->lblSessionInfo->ForeColor = Color::DimGray;
-            this->lblSessionInfo->TextAlign = ContentAlignment::MiddleLeft;
+            this->lblSessionInfo->ForeColor = System::Drawing::Color::DimGray;
+            this->lblSessionInfo->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
             this->lblSessionInfo->Font = gcnew System::Drawing::Font(
-                L"Segoe UI", 9.0F, FontStyle::Regular
+                L"Segoe UI", 9.0F, System::Drawing::FontStyle::Regular
             );
 
             filterLayout->Controls->Add(
                 this->lblSessionInfo, 0, 1);
             filterLayout->SetColumnSpan(this->lblSessionInfo, 8);
 
-            this->btnLoadStudents = gcnew Button();
+            this->btnLoadStudents = gcnew System::Windows::Forms::Button();
             this->btnLoadStudents->Text = L"Load Students";
-            this->btnLoadStudents->Dock = DockStyle::Fill;
+            this->btnLoadStudents->Dock = System::Windows::Forms::DockStyle::Fill;
             this->btnLoadStudents->BackColor =
-                Color::FromArgb(30, 41, 59);
-            this->btnLoadStudents->ForeColor = Color::White;
-            this->btnLoadStudents->FlatStyle = FlatStyle::Flat;
+                System::Drawing::Color::FromArgb(30, 41, 59);
+            this->btnLoadStudents->ForeColor = System::Drawing::Color::White;
+            this->btnLoadStudents->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
             this->btnLoadStudents->FlatAppearance->BorderSize = 0;
             this->btnLoadStudents->Cursor = Cursors::Hand;
             filterLayout->Controls->Add(
@@ -317,10 +330,10 @@ void InitializeComponent()
             this->filterPanel->Controls->Add(filterLayout);
 
             // Attendance grid
-            this->attendanceGrid = gcnew DataGridView();
-            this->attendanceGrid->Dock = DockStyle::Fill;
-            this->attendanceGrid->BackgroundColor = Color::White;
-            this->attendanceGrid->BorderStyle = BorderStyle::None;
+            this->attendanceGrid = gcnew System::Windows::Forms::DataGridView();
+            this->attendanceGrid->Dock = System::Windows::Forms::DockStyle::Fill;
+            this->attendanceGrid->BackgroundColor = System::Drawing::Color::White;
+            this->attendanceGrid->BorderStyle = System::Windows::Forms::BorderStyle::None;
             this->attendanceGrid->AllowUserToAddRows = false;
             this->attendanceGrid->AllowUserToDeleteRows = false;
             this->attendanceGrid->AllowUserToResizeRows = false;
@@ -329,24 +342,24 @@ void InitializeComponent()
             this->attendanceGrid->RowHeadersVisible = false;
             this->attendanceGrid->MultiSelect = false;
             this->attendanceGrid->SelectionMode =
-                DataGridViewSelectionMode::FullRowSelect;
+                System::Windows::Forms::DataGridViewSelectionMode::FullRowSelect;
             this->attendanceGrid->ColumnHeadersHeight = 40;
             this->attendanceGrid->RowTemplate->Height = 36;
             this->attendanceGrid->EnableHeadersVisualStyles = false;
             this->attendanceGrid->ColumnHeadersDefaultCellStyle->BackColor =
-                Color::FromArgb(30, 41, 59);
+                System::Drawing::Color::FromArgb(30, 41, 59);
             this->attendanceGrid->ColumnHeadersDefaultCellStyle->ForeColor =
-                Color::White;
+                System::Drawing::Color::White;
             this->attendanceGrid->ColumnHeadersDefaultCellStyle->Font =
                 gcnew System::Drawing::Font(
-                    L"Segoe UI Semibold", 9.5F, FontStyle::Bold);
+                    L"Segoe UI Semibold", 9.5F, System::Drawing::FontStyle::Bold);
             
             this->attendanceGrid->DefaultCellStyle->SelectionBackColor =
-                Color::FromArgb(219, 234, 254);
+                System::Drawing::Color::FromArgb(219, 234, 254);
             this->attendanceGrid->DefaultCellStyle->SelectionForeColor =
-                Color::FromArgb(30, 41, 59);
+                System::Drawing::Color::FromArgb(30, 41, 59);
             this->attendanceGrid->AlternatingRowsDefaultCellStyle->BackColor =
-                Color::FromArgb(248, 250, 252);
+                System::Drawing::Color::FromArgb(248, 250, 252);
 
             DataGridViewTextBoxColumn^ studentIdColumn =
                 gcnew DataGridViewTextBoxColumn();
@@ -373,7 +386,7 @@ void InitializeComponent()
             statusColumn->Name = L"AttendanceStatus";
             statusColumn->HeaderText = L"Attendance";
             statusColumn->Width = 150;
-            statusColumn->FlatStyle = FlatStyle::Flat;
+            statusColumn->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
             statusColumn->Items->Add(L"Present");
             statusColumn->Items->Add(L"Absent");
             statusColumn->Items->Add(L"Late");
@@ -392,45 +405,45 @@ void InitializeComponent()
             this->attendanceGrid->Columns->Add(remarksColumn);
 
             // Footer
-            Panel^ footerPanel = gcnew Panel();
-            footerPanel->Dock = DockStyle::Fill;
-            footerPanel->BackColor = Color::White;
+            System::Windows::Forms::Panel^ footerPanel = gcnew System::Windows::Forms::Panel();
+            footerPanel->Dock = System::Windows::Forms::DockStyle::Fill;
+            footerPanel->BackColor = System::Drawing::Color::White;
             footerPanel->Padding =
                 System::Windows::Forms::Padding(10, 5, 10, 5);
 
-            this->lblStudentCount = gcnew Label();
-            this->lblStudentCount->Dock = DockStyle::Left;
+            this->lblStudentCount = gcnew System::Windows::Forms::Label();
+            this->lblStudentCount->Dock = System::Windows::Forms::DockStyle::Left;
             this->lblStudentCount->Width = 220;
             this->lblStudentCount->Text = L"Students: 0";
-            this->lblStudentCount->ForeColor = Color::DimGray;
+            this->lblStudentCount->ForeColor = System::Drawing::Color::DimGray;
             this->lblStudentCount->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
-            FlowLayoutPanel^ actions = gcnew FlowLayoutPanel();
-            actions->Dock = DockStyle::Right;
+            System::Windows::Forms::FlowLayoutPanel^ actions = gcnew System::Windows::Forms::FlowLayoutPanel();
+            actions->Dock = System::Windows::Forms::DockStyle::Right;
             actions->FlowDirection = FlowDirection::RightToLeft;
             actions->WrapContents = false;
             actions->AutoSize = false;
             actions->Width = 440;
 
-            this->btnBack = gcnew Button();
+            this->btnBack = gcnew System::Windows::Forms::Button();
             this->btnBack->Text = L"Back to Dashboard";
             this->btnBack->Size = System::Drawing::Size(145, 38);
             this->btnBack->Margin = System::Windows::Forms::Padding(4, 0, 0, 0);
 
-            this->btnRefresh = gcnew Button();
+            this->btnRefresh = gcnew System::Windows::Forms::Button();
             this->btnRefresh->Text = L"Clear / Refresh";
             this->btnRefresh->Size = System::Drawing::Size(125, 38);
             this->btnRefresh->Margin = System::Windows::Forms::Padding(4, 0, 0, 0);
 
-            this->btnSaveAttendance = gcnew Button();
+            this->btnSaveAttendance = gcnew System::Windows::Forms::Button();
             this->btnSaveAttendance->Text = L"Save Attendance";
             this->btnSaveAttendance->Size = System::Drawing::Size(140, 38);
             this->btnSaveAttendance->Margin = System::Windows::Forms::Padding(4, 0, 0, 0);
             this->btnSaveAttendance->BackColor =
-                Color::FromArgb(30, 41, 59);
-            this->btnSaveAttendance->ForeColor = Color::White;
-            this->btnSaveAttendance->FlatStyle = FlatStyle::Flat;
+                System::Drawing::Color::FromArgb(30, 41, 59);
+            this->btnSaveAttendance->ForeColor = System::Drawing::Color::White;
+            this->btnSaveAttendance->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
             this->btnSaveAttendance->FlatAppearance->BorderSize = 0;
 
             actions->Controls->Add(this->btnBack);
