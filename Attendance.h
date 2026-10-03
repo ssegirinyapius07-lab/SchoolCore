@@ -1231,16 +1231,7 @@ namespace SchoolCore
             System::Object^ sender,
             EventArgs^ e)
         {
-            if (this->Parent != nullptr)
-            {
-                Control^ parent = this->Parent;
-                parent->Controls->Remove(this);
-                this->Hide();
-            }
-            else
-            {
-                this->Close();
-            }
+            this->Close();
         }
 
     public:
