@@ -1076,9 +1076,10 @@ namespace SchoolCore
             this->SuspendLayout();
 
             this->Text = L"Timetable";
-            this->StartPosition = FormStartPosition::CenterParent;
-            this->WindowState = FormWindowState::Maximized;
-            this->MinimumSize = System::Drawing::Size(1000, 650);
+            this->StartPosition = FormStartPosition::CenterScreen;
+            this->WindowState = FormWindowState::Normal;
+            this->ClientSize = System::Drawing::Size(1120, 650);
+            this->MinimumSize = System::Drawing::Size(1000, 600);
             this->BackColor = Color::FromArgb(248, 250, 252);
             this->Font = gcnew System::Drawing::Font(
                 L"Segoe UI", 9.5F);
