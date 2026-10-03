@@ -526,6 +526,11 @@ namespace SchoolCore
 							result->getString("enrollment_date").c_str()
 						);
 
+				String^ enrollmentStatus =
+					result->isNull("enrollment_date")
+						? L"Not assigned"
+						: L"Active";
+
 				String^ status =
 					gcnew String(result->getString("status").c_str());
 
@@ -670,7 +675,7 @@ namespace SchoolCore
 				AddProfileField(enrollmentLayout, 0, L"Class", className);
 				AddProfileField(enrollmentLayout, 1, L"Stream", streamName);
 				AddProfileField(enrollmentLayout, 2, L"Enrollment Date", enrollmentDate);
-				AddProfileField(enrollmentLayout, 3, L"Enrollment Status", L"Active");
+				AddProfileField(enrollmentLayout, 3, L"Enrollment Status", enrollmentStatus);
 
 				enrollmentSection->Controls->Add(enrollmentLayout);
 
