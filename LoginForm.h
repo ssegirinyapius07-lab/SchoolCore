@@ -26,18 +26,30 @@ using namespace System::Drawing;
                     InitializeComponent();
                 }
 
+        System::ComponentModel::Container^ components;
+
+
+    protected:
+        ~LoginForm()
+        {
+            if (this->components)
+            {
+                delete this->components;
+            }
+        }
+
     private:
-        Panel^ card;
+        System::Windows::Forms::Panel^ card;
         System::Windows::Forms::Label^ lblTitle;
         System::Windows::Forms::Label^ lblSubtitle;
         System::Windows::Forms::Label^ lblUsername;
         System::Windows::Forms::Label^ lblPassword;
-        TextBox^ txtUsername;
-        TextBox^ txtPassword;
-        Button^ btnLogin;
+        System::Windows::Forms::TextBox^ txtUsername;
+        System::Windows::Forms::TextBox^ txtPassword;
+        System::Windows::Forms::Button^ btnLogin;
         System::Windows::Forms::Label^ lblMessage;
-        CheckBox^ chkShowPassword;
-        Button^ btnClose;
+        System::Windows::Forms::CheckBox^ chkShowPassword;
+        System::Windows::Forms::Button^ btnClose;
 
         static array<Byte>^ Base64Decode(String^ value)
         {
@@ -415,6 +427,7 @@ using namespace System::Drawing;
 
 void InitializeComponent()
         {
+            this->components = gcnew System::ComponentModel::Container();
             this->SuspendLayout();
 
             // =====================================================
@@ -425,7 +438,7 @@ void InitializeComponent()
                 L"SchoolCore | Sign In";
 
             this->StartPosition =
-                FormStartPosition::CenterScreen;
+                System::Windows::Forms::FormStartPosition::CenterScreen;
 
             this->FormBorderStyle =
                 System::Windows::Forms::FormBorderStyle::None;
@@ -434,10 +447,10 @@ void InitializeComponent()
             this->MinimizeBox = false;
 
             this->WindowState =
-                FormWindowState::Maximized;
+                System::Windows::Forms::FormWindowState::Maximized;
 
             this->BackColor =
-                Color::FromArgb(
+                System::Drawing::Color::FromArgb(
                     241,
                     245,
                     249
@@ -447,7 +460,7 @@ void InitializeComponent()
                 gcnew System::Drawing::Font(
                     L"Segoe UI",
                     10.0F,
-                    FontStyle::Regular
+                    System::Drawing::FontStyle::Regular
                 );
 
 
@@ -456,7 +469,7 @@ void InitializeComponent()
             // =====================================================
 
             this->card =
-                gcnew Panel();
+                gcnew System::Windows::Forms::Panel();
 
             this->card->Size =
                 System::Drawing::Size(
@@ -465,16 +478,16 @@ void InitializeComponent()
                 );
 
             this->card->Location =
-                Point(
+                System::Drawing::Point(
                     50,
                     40
                 );
 
             this->card->BackColor =
-                Color::White;
+                System::Drawing::Color::White;
 
             this->card->BorderStyle =
-                BorderStyle::FixedSingle;
+                System::Windows::Forms::BorderStyle::FixedSingle;
 
 
             // =====================================================
@@ -482,7 +495,7 @@ void InitializeComponent()
             // =====================================================
 
             this->btnClose =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->btnClose->Text =
                 L"\u00D7";
@@ -494,34 +507,34 @@ void InitializeComponent()
                 );
 
             this->btnClose->Location =
-                Point(
+                System::Drawing::Point(
                     this->ClientSize.Width - 58,
                     18
                 );
 
             this->btnClose->Anchor =
-                AnchorStyles::Top |
-                AnchorStyles::Right;
+                System::Windows::Forms::AnchorStyles::Top |
+                System::Windows::Forms::AnchorStyles::Right;
 
             this->btnClose->Font =
                 gcnew System::Drawing::Font(
                     L"Segoe UI",
                     18.0F,
-                    FontStyle::Regular
+                    System::Drawing::FontStyle::Regular
                 );
 
             this->btnClose->ForeColor =
-                Color::FromArgb(
+                System::Drawing::Color::FromArgb(
                     71,
                     85,
                     105
                 );
 
             this->btnClose->BackColor =
-                Color::Transparent;
+                System::Drawing::Color::Transparent;
 
             this->btnClose->FlatStyle =
-                FlatStyle::Flat;
+                System::Windows::Forms::FlatStyle::Flat;
 
             this->btnClose->FlatAppearance->BorderSize =
                 0;
@@ -534,17 +547,17 @@ void InitializeComponent()
             // BRANDING
             // =====================================================
 
-            Panel^ brandPanel =
-                gcnew Panel();
+            System::Windows::Forms::Panel^ brandPanel =
+                gcnew System::Windows::Forms::Panel();
 
             brandPanel->Dock =
-                DockStyle::Top;
+                System::Windows::Forms::DockStyle::Top;
 
             brandPanel->Height =
                 145;
 
             brandPanel->BackColor =
-                Color::FromArgb(
+                System::Drawing::Color::FromArgb(
                     30,
                     41,
                     59
@@ -552,7 +565,7 @@ void InitializeComponent()
 
 
             System::Windows::Forms::Label^ brandMark =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             brandMark->Text =
                 L"SC";
@@ -564,40 +577,40 @@ void InitializeComponent()
                 );
 
             brandMark->Location =
-                Point(
+                System::Drawing::Point(
                     181,
                     18
                 );
 
             brandMark->BackColor =
-                Color::FromArgb(
+                System::Drawing::Color::FromArgb(
                     59,
                     130,
                     246
                 );
 
             brandMark->ForeColor =
-                Color::White;
+                System::Drawing::Color::White;
 
             brandMark->Font =
                 gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
                     20.0F,
-                    FontStyle::Bold
+                    System::Drawing::FontStyle::Bold
                 );
 
             brandMark->TextAlign =
-                ContentAlignment::MiddleCenter;
+                System::Drawing::ContentAlignment::MiddleCenter;
 
 
             this->lblTitle =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblTitle->Text =
                 L"SchoolCore";
 
             this->lblTitle->Dock =
-                DockStyle::Bottom;
+                System::Windows::Forms::DockStyle::Bottom;
 
             this->lblTitle->Height =
                 42;
@@ -606,14 +619,14 @@ void InitializeComponent()
                 gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
                     22.0F,
-                    FontStyle::Bold
+                    System::Drawing::FontStyle::Bold
                 );
 
             this->lblTitle->ForeColor =
-                Color::White;
+                System::Drawing::Color::White;
 
             this->lblTitle->TextAlign =
-                ContentAlignment::MiddleCenter;
+                System::Drawing::ContentAlignment::MiddleCenter;
 
 
             brandPanel->Controls->Add(
@@ -630,13 +643,13 @@ void InitializeComponent()
             // =====================================================
 
             this->lblSubtitle =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblSubtitle->Text =
                 L"Secondary School Management System";
 
             this->lblSubtitle->Dock =
-                DockStyle::Top;
+                System::Windows::Forms::DockStyle::Top;
 
             this->lblSubtitle->Height =
                 48;
@@ -645,14 +658,14 @@ void InitializeComponent()
                 gcnew System::Drawing::Font(
                     L"Segoe UI",
                     9.5F,
-                    FontStyle::Regular
+                    System::Drawing::FontStyle::Regular
                 );
 
             this->lblSubtitle->ForeColor =
-                Color::DimGray;
+                System::Drawing::Color::DimGray;
 
             this->lblSubtitle->TextAlign =
-                ContentAlignment::MiddleCenter;
+                System::Drawing::ContentAlignment::MiddleCenter;
 
             this->lblSubtitle->Padding =
                 System::Windows::Forms::Padding(
@@ -668,7 +681,7 @@ void InitializeComponent()
             // =====================================================
 
             this->lblUsername =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblUsername->Text =
                 L"USERNAME";
@@ -677,18 +690,18 @@ void InitializeComponent()
                 gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
                     8.5F,
-                    FontStyle::Bold
+                    System::Drawing::FontStyle::Bold
                 );
 
             this->lblUsername->ForeColor =
-                Color::FromArgb(
+                System::Drawing::Color::FromArgb(
                     71,
                     85,
                     105
                 );
 
             this->lblUsername->Location =
-                Point(
+                System::Drawing::Point(
                     45,
                     215
                 );
@@ -698,10 +711,10 @@ void InitializeComponent()
 
 
             this->txtUsername =
-                gcnew TextBox();
+                gcnew System::Windows::Forms::TextBox();
 
             this->txtUsername->Location =
-                Point(
+                System::Drawing::Point(
                     45,
                     240
                 );
@@ -713,7 +726,7 @@ void InitializeComponent()
                 );
 
             this->txtUsername->BorderStyle =
-                BorderStyle::FixedSingle;
+                System::Windows::Forms::BorderStyle::FixedSingle;
 
             this->txtUsername->Font =
                 gcnew System::Drawing::Font(
@@ -727,7 +740,7 @@ void InitializeComponent()
             // =====================================================
 
             this->lblPassword =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblPassword->Text =
                 L"PASSWORD";
@@ -736,18 +749,18 @@ void InitializeComponent()
                 gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
                     8.5F,
-                    FontStyle::Bold
+                    System::Drawing::FontStyle::Bold
                 );
 
             this->lblPassword->ForeColor =
-                Color::FromArgb(
+                System::Drawing::Color::FromArgb(
                     71,
                     85,
                     105
                 );
 
             this->lblPassword->Location =
-                Point(
+                System::Drawing::Point(
                     45,
                     292
                 );
@@ -757,10 +770,10 @@ void InitializeComponent()
 
 
             this->txtPassword =
-                gcnew TextBox();
+                gcnew System::Windows::Forms::TextBox();
 
             this->txtPassword->Location =
-                Point(
+                System::Drawing::Point(
                     45,
                     317
                 );
@@ -772,7 +785,7 @@ void InitializeComponent()
                 );
 
             this->txtPassword->BorderStyle =
-                BorderStyle::FixedSingle;
+                System::Windows::Forms::BorderStyle::FixedSingle;
 
             this->txtPassword->Font =
                 gcnew System::Drawing::Font(
@@ -789,7 +802,7 @@ void InitializeComponent()
             // =====================================================
 
             this->chkShowPassword =
-                gcnew CheckBox();
+                gcnew System::Windows::Forms::CheckBox();
 
             this->chkShowPassword->Text =
                 L"Show password";
@@ -798,13 +811,13 @@ void InitializeComponent()
                 true;
 
             this->chkShowPassword->Location =
-                Point(
+                System::Drawing::Point(
                     45,
                     360
                 );
 
             this->chkShowPassword->ForeColor =
-                Color::DimGray;
+                System::Drawing::Color::DimGray;
 
 
             // =====================================================
@@ -812,7 +825,7 @@ void InitializeComponent()
             // =====================================================
 
             this->btnLogin =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->btnLogin->Text =
                 L"Sign In";
@@ -824,23 +837,23 @@ void InitializeComponent()
                 );
 
             this->btnLogin->Location =
-                Point(
+                System::Drawing::Point(
                     45,
                     394
                 );
 
             this->btnLogin->BackColor =
-                Color::FromArgb(
+                System::Drawing::Color::FromArgb(
                     30,
                     41,
                     59
                 );
 
             this->btnLogin->ForeColor =
-                Color::White;
+                System::Drawing::Color::White;
 
             this->btnLogin->FlatStyle =
-                FlatStyle::Flat;
+                System::Windows::Forms::FlatStyle::Flat;
 
             this->btnLogin->FlatAppearance->BorderSize =
                 0;
@@ -849,7 +862,7 @@ void InitializeComponent()
                 gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
                     10.5F,
-                    FontStyle::Bold
+                    System::Drawing::FontStyle::Bold
                 );
 
             this->btnLogin->Cursor =
@@ -861,7 +874,7 @@ void InitializeComponent()
             // =====================================================
 
             this->lblMessage =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblMessage->Text =
                 L"";
@@ -873,13 +886,13 @@ void InitializeComponent()
                 );
 
             this->lblMessage->Location =
-                Point(
+                System::Drawing::Point(
                     45,
                     445
                 );
 
             this->lblMessage->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
             this->lblMessage->Font =
                 gcnew System::Drawing::Font(
@@ -893,19 +906,19 @@ void InitializeComponent()
             // =====================================================
 
             System::Windows::Forms::Label^ footer =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             footer->Text =
                 L"Secure access | SchoolCore";
 
             footer->Dock =
-                DockStyle::Bottom;
+                System::Windows::Forms::DockStyle::Bottom;
 
             footer->Height =
                 32;
 
             footer->ForeColor =
-                Color::Gray;
+                System::Drawing::Color::Gray;
 
             footer->Font =
                 gcnew System::Drawing::Font(
@@ -914,7 +927,7 @@ void InitializeComponent()
                 );
 
             footer->TextAlign =
-                ContentAlignment::MiddleCenter;
+                System::Drawing::ContentAlignment::MiddleCenter;
 
 
             // =====================================================
