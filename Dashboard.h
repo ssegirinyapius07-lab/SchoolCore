@@ -258,9 +258,25 @@ namespace SchoolCore {
 				return;
 			}
 
-			Finance^ form = gcnew Finance();
-			form->ShowDialog(this);
-			ShowDashboardOverview();
+			this->contentPanel->Controls->Clear();
+
+			SchoolCore::Finance^ form =
+				gcnew SchoolCore::Finance();
+
+			form->TopLevel = false;
+			form->FormBorderStyle =
+				System::Windows::Forms::FormBorderStyle::None;
+			form->Dock = DockStyle::Fill;
+			form->WindowState = FormWindowState::Normal;
+
+			form->FormClosed +=
+				gcnew FormClosedEventHandler(
+					this,
+					&Dashboard::embeddedModule_FormClosed
+				);
+
+			this->contentPanel->Controls->Add(form);
+			form->Show();
 		}
 
 		System::Void btnUsers_Click(
