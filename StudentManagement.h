@@ -1025,7 +1025,7 @@ namespace SchoolCore
 				System::Windows::Forms::FormStartPosition::CenterScreen;
 
 			this->WindowState =
-				System::Windows::Forms::FormWindowState::Maximized;
+				System::Windows::Forms::FormWindowState::Normal;
 
 			this->Name =
 				L"StudentManagement";
@@ -1241,6 +1241,9 @@ namespace SchoolCore
 
 			this->lblSearch->Location =
 				System::Drawing::Point(440, 24);
+			this->lblSearch->Anchor =
+				System::Windows::Forms::AnchorStyles::Top |
+				System::Windows::Forms::AnchorStyles::Right;
 
 
 			// Search box
@@ -1249,6 +1252,9 @@ namespace SchoolCore
 
 			this->txtSearch->Location =
 				System::Drawing::Point(495, 19);
+			this->txtSearch->Anchor =
+				System::Windows::Forms::AnchorStyles::Top |
+				System::Windows::Forms::AnchorStyles::Right;
 
 			this->txtSearch->Size =
 				System::Drawing::Size(360, 30);
@@ -1263,6 +1269,9 @@ namespace SchoolCore
 
 			this->btnSearch->Location =
 				System::Drawing::Point(865, 18);
+			this->btnSearch->Anchor =
+				System::Windows::Forms::AnchorStyles::Top |
+				System::Windows::Forms::AnchorStyles::Right;
 
 			this->btnSearch->Size =
 				System::Drawing::Size(90, 32);
