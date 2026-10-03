@@ -552,7 +552,7 @@ namespace SchoolCore
 				profileForm->MaximizeBox = false;
 				profileForm->MinimizeBox = false;
 				profileForm->ShowInTaskbar = false;
-				profileForm->ClientSize = System::Drawing::Size(720, 760);
+				profileForm->ClientSize = System::Drawing::Size(720, 680);
 				profileForm->BackColor = Color::FromArgb(248, 250, 252);
 
 				// Header
