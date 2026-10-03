@@ -379,7 +379,7 @@ namespace SchoolCore
 				this->studentsGrid->Columns["Select"]->Index)
 			{
 				this->studentsGrid->CommitEdit(
-					DataGridViewDataErrorContexts::Commit);
+					System::Windows::Forms::DataGridViewDataErrorContexts::Commit);
 			}
 		}
 
