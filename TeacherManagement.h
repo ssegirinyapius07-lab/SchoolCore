@@ -10,13 +10,21 @@
 #include <stdexcept>
 
 using namespace System;
+using namespace System::ComponentModel;
 using namespace System::Drawing;
 using namespace System::Windows::Forms;
 
 namespace SchoolCore
 {
-    public ref class TeacherManagement : public Form
+    public ref class TeacherManagement : public System::Windows::Forms::Form
     {
+    public:
+                TeacherManagement()
+                {
+                    InitializeComponent();
+                    LoadTeachers();
+                }
+
     private:
         // =========================================================
         // MAIN FORM
@@ -520,8 +528,6 @@ namespace SchoolCore
                     100.0F
                 )
             );
-
-
 
 
             this->txtStaffNumber = gcnew TextBox();
@@ -1967,7 +1973,9 @@ namespace SchoolCore
         // INITIALIZE COMPONENTS
         // =========================================================
 
-        void InitializeComponent(void)
+        #pragma region Windows Form Designer generated code
+
+void InitializeComponent(void)
         {
             this->mainLayout =
                 gcnew TableLayoutPanel();
@@ -2647,13 +2655,11 @@ namespace SchoolCore
             this->ResumeLayout(false);
         }
 
+#pragma endregion
+
 
     public:
 
-        TeacherManagement()
-        {
-            InitializeComponent();
-            LoadTeachers();
-        }
+
     };
 }
