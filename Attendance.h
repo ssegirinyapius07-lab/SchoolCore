@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DbConnection.h"
+#include "ThemeManager.h"
 #include "AuthSession.h"
 
 #include <mariadb/conncpp.hpp>
@@ -23,6 +24,7 @@ namespace SchoolCore
                 {
                     InitializeComponent();
         
+                                        ThemeManager::ApplyToForm(this);
                     this->cmbAcademicYear->SelectedIndexChanged +=
                         gcnew EventHandler(
                             this,
