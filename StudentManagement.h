@@ -311,6 +311,8 @@ namespace SchoolCore
 
 				this->btnEditStudent->Enabled =
 					hasSelection;
+
+				UpdateBulkPromotionButtons();
 			}
 			catch (sql::SQLException& ex)
 			{
