@@ -53,6 +53,19 @@ namespace SchoolCore
         Button^ btnToggleEntry;
         Button^ btnBack;
 
+        Form^ entryDialog;
+        ComboBox^ entryYear;
+        ComboBox^ entryTerm;
+        ComboBox^ entryClass;
+        ComboBox^ entryStream;
+        ComboBox^ entrySubject;
+        ComboBox^ entryTeacher;
+        ComboBox^ entryDay;
+        TextBox^ entryStart;
+        TextBox^ entryEnd;
+        TextBox^ entryRoom;
+        TextBox^ entryNotes;
+
         void StyleGrid()
         {
             this->timetableGrid->BackgroundColor = Color::White;
@@ -565,19 +578,206 @@ namespace SchoolCore
             }
         }
 
+
+        void EntryYearChanged(Object^ sender, EventArgs^ e)
+        {
+            ComboItem^ item =
+                dynamic_cast<ComboItem^>(this->entryYear->SelectedItem);
+
+            if (item != nullptr)
+                LoadTerms(this->entryTerm, item->Id);
+        }
+
+        void EntryClassChanged(Object^ sender, EventArgs^ e)
+        {
+            ComboItem^ item =
+                dynamic_cast<ComboItem^>(this->entryClass->SelectedItem);
+
+            if (item != nullptr)
+                LoadStreams(this->entryStream, item->Id);
+        }
+
+        void SaveEntry(Object^ sender, EventArgs^ e)
+        {
+            if (this->entryYear->SelectedItem == nullptr ||
+                this->entryTerm->SelectedItem == nullptr ||
+                this->entryClass->SelectedItem == nullptr ||
+                this->entrySubject->SelectedItem == nullptr)
+            {
+                MessageBox::Show(
+                    L"Academic year, term, class and subject are required.",
+                    L"Validation",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+                return;
+            }
+
+            if (String::IsNullOrWhiteSpace(this->entryStart->Text) ||
+                String::IsNullOrWhiteSpace(this->entryEnd->Text))
+            {
+                MessageBox::Show(
+                    L"Enter both start and end times using HH:mm, for example 08:00.",
+                    L"Validation",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+                return;
+            }
+
+            TimeSpan startTime;
+            TimeSpan endTime;
+
+            if (!TimeSpan::TryParse(this->entryStart->Text->Trim(), startTime) ||
+                !TimeSpan::TryParse(this->entryEnd->Text->Trim(), endTime))
+            {
+                MessageBox::Show(
+                    L"Time must be valid. Use HH:mm, for example 08:00 or 14:30.",
+                    L"Validation",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+                return;
+            }
+
+            if (endTime <= startTime)
+            {
+                MessageBox::Show(
+                    L"End time must be later than start time.",
+                    L"Validation",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+                return;
+            }
+
+            ComboItem^ yearItem =
+                safe_cast<ComboItem^>(this->entryYear->SelectedItem);
+            ComboItem^ termItem =
+                safe_cast<ComboItem^>(this->entryTerm->SelectedItem);
+            ComboItem^ classItem =
+                safe_cast<ComboItem^>(this->entryClass->SelectedItem);
+            ComboItem^ streamItem =
+                dynamic_cast<ComboItem^>(this->entryStream->SelectedItem);
+            ComboItem^ subjectItem =
+                safe_cast<ComboItem^>(this->entrySubject->SelectedItem);
+            ComboItem^ teacherItem =
+                dynamic_cast<ComboItem^>(this->entryTeacher->SelectedItem);
+
+            try
+            {
+                auto con = DbConnection::GetConnection();
+
+                std::string sql =
+                    "INSERT INTO timetable_entries "
+                    "(academic_year_id, term_id, class_id, stream_id, "
+                    "subject_id, teacher_id, day_of_week, start_time, "
+                    "end_time, room, status, notes) "
+                    "VALUES (?, ?, ?, ";
+
+                if (streamItem != nullptr && streamItem->Id > 0)
+                    sql += "?, ";
+                else
+                    sql += "NULL, ";
+
+                sql += "?, ";
+
+                if (teacherItem != nullptr && teacherItem->Id > 0)
+                    sql += "?, ";
+                else
+                    sql += "NULL, ";
+
+                sql += "?, ?, ?, ?, 'Active', ?)";
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(sql)
+                );
+
+                int p = 1;
+                stmt->setInt(p++, yearItem->Id);
+                stmt->setInt(p++, termItem->Id);
+                stmt->setInt(p++, classItem->Id);
+
+                if (streamItem != nullptr && streamItem->Id > 0)
+                    stmt->setInt(p++, streamItem->Id);
+
+                stmt->setInt(p++, subjectItem->Id);
+
+                if (teacherItem != nullptr && teacherItem->Id > 0)
+                    stmt->setInt(p++, teacherItem->Id);
+
+                stmt->setString(
+                    p++,
+                    msclr::interop::marshal_as<std::string>(
+                        safe_cast<String^>(this->entryDay->SelectedItem)
+                    )
+                );
+
+                stmt->setString(
+                    p++,
+                    msclr::interop::marshal_as<std::string>(
+                        startTime.ToString(L"hh\\:mm\\:ss")
+                    )
+                );
+
+                stmt->setString(
+                    p++,
+                    msclr::interop::marshal_as<std::string>(
+                        endTime.ToString(L"hh\\:mm\\:ss")
+                    )
+                );
+
+                stmt->setString(
+                    p++,
+                    msclr::interop::marshal_as<std::string>(
+                        this->entryRoom->Text->Trim()
+                    )
+                );
+
+                stmt->setString(
+                    p++,
+                    msclr::interop::marshal_as<std::string>(
+                        this->entryNotes->Text->Trim()
+                    )
+                );
+
+                stmt->executeUpdate();
+
+                MessageBox::Show(
+                    L"Timetable entry added successfully.",
+                    L"Timetable",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Information
+                );
+
+                this->entryDialog->DialogResult =
+                    System::Windows::Forms::DialogResult::OK;
+                this->entryDialog->Close();
+            }
+            catch (sql::SQLException& ex)
+            {
+                MessageBox::Show(
+                    gcnew String(ex.what()),
+                    L"Database Error",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+        }
+
         void OpenEntryEditor()
         {
-            Form^ dialog = gcnew Form();
+            this->entryDialog = gcnew Form();
 
-            dialog->Text = L"Add Timetable Entry";
-            dialog->StartPosition = FormStartPosition::CenterParent;
-            dialog->FormBorderStyle =
+            this->entryDialog->Text = L"Add Timetable Entry";
+            this->entryDialog->StartPosition = FormStartPosition::CenterParent;
+            this->entryDialog->FormBorderStyle =
                 System::Windows::Forms::FormBorderStyle::FixedDialog;
-            dialog->MaximizeBox = false;
-            dialog->MinimizeBox = false;
-            dialog->ShowInTaskbar = false;
-            dialog->ClientSize = System::Drawing::Size(720, 610);
-            dialog->BackColor = Color::FromArgb(248, 250, 252);
+            this->entryDialog->MaximizeBox = false;
+            this->entryDialog->MinimizeBox = false;
+            this->entryDialog->ShowInTaskbar = false;
+            this->entryDialog->ClientSize = System::Drawing::Size(720, 610);
+            this->entryDialog->BackColor = Color::FromArgb(248, 250, 252);
 
             Panel^ header = gcnew Panel();
             header->Dock = DockStyle::Top;
@@ -625,82 +825,82 @@ namespace SchoolCore
                 form->RowStyles->Add(
                     gcnew RowStyle(SizeType::Absolute, 54.0F));
 
-            ComboBox^ year = CreateCombo();
-            ComboBox^ term = CreateCombo();
-            ComboBox^ classBox = CreateCombo();
-            ComboBox^ stream = CreateCombo();
-            ComboBox^ subject = CreateCombo();
-            ComboBox^ teacher = CreateCombo();
-            ComboBox^ day = CreateCombo();
+            this->entryYear = CreateCombo();
+            this->entryTerm = CreateCombo();
+            this->entryClass = CreateCombo();
+            this->entryStream = CreateCombo();
+            this->entrySubject = CreateCombo();
+            this->entryTeacher = CreateCombo();
+            this->entryDay = CreateCombo();
 
-            TextBox^ start = gcnew TextBox();
-            TextBox^ end = gcnew TextBox();
-            TextBox^ room = gcnew TextBox();
-            TextBox^ notes = gcnew TextBox();
+            this->entryStart = gcnew TextBox();
+            this->entryEnd = gcnew TextBox();
+            this->entryRoom = gcnew TextBox();
+            this->entryNotes = gcnew TextBox();
 
-            start->Dock = DockStyle::Fill;
-            end->Dock = DockStyle::Fill;
-            room->Dock = DockStyle::Fill;
-            notes->Dock = DockStyle::Fill;
-            notes->Multiline = true;
+            this->entryStart->Dock = DockStyle::Fill;
+            this->entryEnd->Dock = DockStyle::Fill;
+            this->entryRoom->Dock = DockStyle::Fill;
+            this->entryNotes->Dock = DockStyle::Fill;
+            this->entryNotes->Multiline = true;
 
-            day->Items->Add(L"Monday");
-            day->Items->Add(L"Tuesday");
-            day->Items->Add(L"Wednesday");
-            day->Items->Add(L"Thursday");
-            day->Items->Add(L"Friday");
-            day->Items->Add(L"Saturday");
-            day->SelectedIndex = 0;
+            this->entryDay->Items->Add(L"Monday");
+            this->entryDay->Items->Add(L"Tuesday");
+            this->entryDay->Items->Add(L"Wednesday");
+            this->entryDay->Items->Add(L"Thursday");
+            this->entryDay->Items->Add(L"Friday");
+            this->entryDay->Items->Add(L"Saturday");
+            this->entryDay->SelectedIndex = 0;
 
-            LoadYears(year);
-            LoadClasses(classBox, false);
-            LoadSubjects(subject);
-            LoadTeachers(teacher);
+            LoadYears(this->entryYear);
+            LoadClasses(this->entryClass, false);
+            LoadSubjects(this->entrySubject);
+            LoadTeachers(this->entryTeacher);
 
-            if (year->Items->Count > 0)
+            if (this->entryYear->Items->Count > 0)
                 LoadTerms(
-                    term,
-                    safe_cast<ComboItem^>(year->SelectedItem)->Id
+                    this->entryTerm,
+                    safe_cast<ComboItem^>(this->entryYear->SelectedItem)->Id
                 );
 
-            if (classBox->Items->Count > 0)
+            if (this->entryClass->Items->Count > 0)
                 LoadStreams(
-                    stream,
-                    safe_cast<ComboItem^>(classBox->SelectedItem)->Id
+                    this->entryStream,
+                    safe_cast<ComboItem^>(this->entryClass->SelectedItem)->Id
                 );
             else
-                stream->Items->Add(
+                this->entryStream->Items->Add(
                     gcnew ComboItem(0, L"All Streams")
                 );
 
             form->Controls->Add(CreateLabel(L"Academic Year"), 0, 0);
-            form->Controls->Add(year, 1, 0);
+            form->Controls->Add(this->entryYear, 1, 0);
             form->Controls->Add(CreateLabel(L"Term"), 2, 0);
-            form->Controls->Add(term, 3, 0);
+            form->Controls->Add(this->entryTerm, 3, 0);
 
             form->Controls->Add(CreateLabel(L"Class"), 0, 1);
-            form->Controls->Add(classBox, 1, 1);
+            form->Controls->Add(this->entryClass, 1, 1);
             form->Controls->Add(CreateLabel(L"Stream"), 2, 1);
-            form->Controls->Add(stream, 3, 1);
+            form->Controls->Add(this->entryStream, 3, 1);
 
             form->Controls->Add(CreateLabel(L"Subject"), 0, 2);
-            form->Controls->Add(subject, 1, 2);
+            form->Controls->Add(this->entrySubject, 1, 2);
             form->Controls->Add(CreateLabel(L"Teacher"), 2, 2);
-            form->Controls->Add(teacher, 3, 2);
+            form->Controls->Add(this->entryTeacher, 3, 2);
 
             form->Controls->Add(CreateLabel(L"Day"), 0, 3);
-            form->Controls->Add(day, 1, 3);
+            form->Controls->Add(this->entryDay, 1, 3);
             form->Controls->Add(CreateLabel(L"Start Time"), 2, 3);
-            form->Controls->Add(start, 3, 3);
+            form->Controls->Add(this->entryStart, 3, 3);
 
             form->Controls->Add(CreateLabel(L"End Time"), 0, 4);
-            form->Controls->Add(end, 1, 4);
+            form->Controls->Add(this->entryEnd, 1, 4);
             form->Controls->Add(CreateLabel(L"Room"), 2, 4);
-            form->Controls->Add(room, 3, 4);
+            form->Controls->Add(this->entryRoom, 3, 4);
 
             form->Controls->Add(CreateLabel(L"Notes"), 0, 5);
-            form->Controls->Add(notes, 1, 5);
-            form->SetColumnSpan(notes, 3);
+            form->Controls->Add(this->entryNotes, 1, 5);
+            form->SetColumnSpan(this->entryNotes, 3);
 
             Panel^ footer = gcnew Panel();
             footer->Dock = DockStyle::Bottom;
@@ -713,7 +913,8 @@ namespace SchoolCore
             cancel->Dock = DockStyle::Right;
             cancel->Width = 110;
             cancel->Height = 38;
-            cancel->DialogResult = DialogResult::Cancel;
+            cancel->DialogResult =
+                System::Windows::Forms::DialogResult::Cancel;
 
             Button^ save = gcnew Button();
             save->Text = L"Save Entry";
@@ -730,207 +931,53 @@ namespace SchoolCore
             footer->Controls->Add(cancel);
             footer->Controls->Add(save);
 
-            dialog->Controls->Add(form);
-            dialog->Controls->Add(footer);
-            dialog->Controls->Add(header);
+            this->entryDialog->Controls->Add(form);
+            this->entryDialog->Controls->Add(footer);
+            this->entryDialog->Controls->Add(header);
 
-            year->SelectedIndexChanged +=
-                gcnew EventHandler(
-                    [&](Object^, EventArgs^)
-                    {
-                        ComboItem^ item =
-                            dynamic_cast<ComboItem^>(year->SelectedItem);
-                        if (item != nullptr)
-                            LoadTerms(term, item->Id);
-                    }
-                );
+            this->entryYear->SelectedIndexChanged +=
+                gcnew EventHandler(this, &Timetable::EntryYearChanged);
 
-            classBox->SelectedIndexChanged +=
-                gcnew EventHandler(
-                    [&](Object^, EventArgs^)
-                    {
-                        ComboItem^ item =
-                            dynamic_cast<ComboItem^>(classBox->SelectedItem);
-                        if (item != nullptr)
-                            LoadStreams(stream, item->Id);
-                    }
-                );
+            this->entryClass->SelectedIndexChanged +=
+                gcnew EventHandler(this, &Timetable::EntryClassChanged);
 
             save->Click +=
-                gcnew EventHandler(
-                    [&](Object^, EventArgs^)
-                    {
-                        if (year->SelectedItem == nullptr ||
-                            term->SelectedItem == nullptr ||
-                            classBox->SelectedItem == nullptr ||
-                            subject->SelectedItem == nullptr)
-                        {
-                            MessageBox::Show(
-                                L"Academic year, term, class and subject are required.",
-                                L"Validation",
-                                MessageBoxButtons::OK,
-                                MessageBoxIcon::Warning
-                            );
-                            return;
-                        }
+                gcnew EventHandler(this, &Timetable::SaveEntry);
 
-                        if (String::IsNullOrWhiteSpace(start->Text) ||
-                            String::IsNullOrWhiteSpace(end->Text))
-                        {
-                            MessageBox::Show(
-                                L"Enter both start and end times using HH:mm, for example 08:00.",
-                                L"Validation",
-                                MessageBoxButtons::OK,
-                                MessageBoxIcon::Warning
-                            );
-                            return;
-                        }
+            this->entryDialog->AcceptButton = save;
+            this->entryDialog->CancelButton = cancel;
 
-                        TimeSpan startTime;
-                        TimeSpan endTime;
+            if (this->entryDialog->ShowDialog(this) ==
+                System::Windows::Forms::DialogResult::OK)
+            {
+                LoadTimetable();
+            }
+        }
 
-                        if (!TimeSpan::TryParse(start->Text->Trim(), startTime) ||
-                            !TimeSpan::TryParse(end->Text->Trim(), endTime))
-                        {
-                            MessageBox::Show(
-                                L"Time must be valid. Use HH:mm, for example 08:00 or 14:30.",
-                                L"Validation",
-                                MessageBoxButtons::OK,
-                                MessageBoxIcon::Warning
-                            );
-                            return;
-                        }
 
-                        if (endTime <= startTime)
-                        {
-                            MessageBox::Show(
-                                L"End time must be later than start time.",
-                                L"Validation",
-                                MessageBoxButtons::OK,
-                                MessageBoxIcon::Warning
-                            );
-                            return;
-                        }
+        System::Void YearFilterChanged(
+            Object^ sender,
+            EventArgs^ e)
+        {
+            ComboItem^ item =
+                dynamic_cast<ComboItem^>(
+                    this->cmbYearFilter->SelectedItem);
 
-                        ComboItem^ yearItem =
-                            safe_cast<ComboItem^>(year->SelectedItem);
-                        ComboItem^ termItem =
-                            safe_cast<ComboItem^>(term->SelectedItem);
-                        ComboItem^ classItem =
-                            safe_cast<ComboItem^>(classBox->SelectedItem);
-                        ComboItem^ streamItem =
-                            dynamic_cast<ComboItem^>(stream->SelectedItem);
-                        ComboItem^ subjectItem =
-                            safe_cast<ComboItem^>(subject->SelectedItem);
-                        ComboItem^ teacherItem =
-                            dynamic_cast<ComboItem^>(teacher->SelectedItem);
-
-                        try
-                        {
-                            auto con = DbConnection::GetConnection();
-
-                            std::string sql =
-                                "INSERT INTO timetable_entries "
-                                "(academic_year_id, term_id, class_id, stream_id, "
-                                "subject_id, teacher_id, day_of_week, start_time, "
-                                "end_time, room, status, notes) "
-                                "VALUES (?, ?, ?, ";
-
-                            if (streamItem != nullptr && streamItem->Id > 0)
-                                sql += "?, ";
-                            else
-                                sql += "NULL, ";
-
-                            sql += "?, ";
-
-                            if (teacherItem != nullptr && teacherItem->Id > 0)
-                                sql += "?, ";
-                            else
-                                sql += "NULL, ";
-
-                            sql += "?, ?, ?, ?, 'Active', ?)";
-
-                            std::unique_ptr<sql::PreparedStatement> stmt(
-                                con->prepareStatement(sql)
-                            );
-
-                            int p = 1;
-                            stmt->setInt(p++, yearItem->Id);
-                            stmt->setInt(p++, termItem->Id);
-                            stmt->setInt(p++, classItem->Id);
-
-                            if (streamItem != nullptr && streamItem->Id > 0)
-                                stmt->setInt(p++, streamItem->Id);
-
-                            stmt->setInt(p++, subjectItem->Id);
-
-                            if (teacherItem != nullptr && teacherItem->Id > 0)
-                                stmt->setInt(p++, teacherItem->Id);
-
-                            stmt->setString(
-                                p++,
-                                msclr::interop::marshal_as<std::string>(
-                                    safe_cast<String^>(day->SelectedItem)
-                                )
-                            );
-
-                            stmt->setString(
-                                p++,
-                                msclr::interop::marshal_as<std::string>(
-                                    startTime.ToString(L"hh\:mm\:ss")
-                                )
-                            );
-
-                            stmt->setString(
-                                p++,
-                                msclr::interop::marshal_as<std::string>(
-                                    endTime.ToString(L"hh\:mm\:ss")
-                                )
-                            );
-
-                            stmt->setString(
-                                p++,
-                                msclr::interop::marshal_as<std::string>(
-                                    room->Text->Trim()
-                                )
-                            );
-
-                            stmt->setString(
-                                p++,
-                                msclr::interop::marshal_as<std::string>(
-                                    notes->Text->Trim()
-                                )
-                            );
-
-                            stmt->executeUpdate();
-
-                            MessageBox::Show(
-                                L"Timetable entry added successfully.",
-                                L"Timetable",
-                                MessageBoxButtons::OK,
-                                MessageBoxIcon::Information
-                            );
-
-                            dialog->DialogResult = DialogResult::OK;
-                            dialog->Close();
-                        }
-                        catch (sql::SQLException& ex)
-                        {
-                            MessageBox::Show(
-                                gcnew String(ex.what()),
-                                L"Database Error",
-                                MessageBoxButtons::OK,
-                                MessageBoxIcon::Error
-                            );
-                        }
-                    }
+            if (item != nullptr)
+                LoadTerms(
+                    this->cmbTermFilter,
+                    item->Id
                 );
 
-            dialog->AcceptButton = save;
-            dialog->CancelButton = cancel;
+            LoadTimetable();
+        }
 
-            if (dialog->ShowDialog(this) == DialogResult::OK)
-                LoadTimetable();
+        System::Void GridSelectionChanged(
+            Object^ sender,
+            EventArgs^ e)
+        {
+            this->btnToggleEntry->Enabled =
+                this->timetableGrid->SelectedRows->Count > 0;
         }
 
         System::Void FilterChanged(
@@ -1244,22 +1291,7 @@ namespace SchoolCore
             this->Controls->Add(this->mainLayout);
 
             this->cmbYearFilter->SelectedIndexChanged +=
-                gcnew EventHandler(
-                    [&](Object^, EventArgs^)
-                    {
-                        ComboItem^ item =
-                            dynamic_cast<ComboItem^>(
-                                this->cmbYearFilter->SelectedItem);
-
-                        if (item != nullptr)
-                            LoadTerms(
-                                this->cmbTermFilter,
-                                item->Id
-                            );
-
-                        LoadTimetable();
-                    }
-                );
+                gcnew EventHandler(this, &Timetable::YearFilterChanged);
 
             this->cmbTermFilter->SelectedIndexChanged +=
                 gcnew EventHandler(this, &Timetable::FilterChanged);
@@ -1274,14 +1306,7 @@ namespace SchoolCore
                 gcnew EventHandler(this, &Timetable::FilterChanged);
 
             this->timetableGrid->SelectionChanged +=
-                gcnew EventHandler(
-                    [&](Object^, EventArgs^)
-                    {
-                        this->btnToggleEntry->Enabled =
-                            this->timetableGrid
-                            ->SelectedRows->Count > 0;
-                    }
-                );
+                gcnew EventHandler(this, &Timetable::GridSelectionChanged);
 
             this->btnAddEntry->Click +=
                 gcnew EventHandler(
