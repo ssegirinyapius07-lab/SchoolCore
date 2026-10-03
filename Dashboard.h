@@ -7,6 +7,7 @@
 #include "AcademicYearsTerms.h"
 #include "ClassesStreams.h"
 #include "SubjectManagement.h"
+#include "Timetable.h"
 #include "AuthSession.h"
 
 namespace SchoolCore {
@@ -147,6 +148,28 @@ namespace SchoolCore {
 				gcnew SubjectManagement();
 
 			form->ShowDialog(this);
+		}
+
+		System::Void btnTimetable_Click(
+			System::Object^ sender,
+			System::EventArgs^ e)
+		{
+			this->contentPanel->Controls->Clear();
+
+			SchoolCore::Timetable^ form =
+				gcnew SchoolCore::Timetable();
+
+			form->TopLevel = false;
+			form->FormBorderStyle =
+				System::Windows::Forms::FormBorderStyle::None;
+			form->Dock =
+				System::Windows::Forms::DockStyle::Fill;
+			form->WindowState =
+				System::Windows::Forms::FormWindowState::Normal;
+
+			this->contentPanel->Controls->Add(form);
+
+			form->Show();
 		}
 
 		System::Void btnStudents_Click(
@@ -1227,6 +1250,12 @@ namespace SchoolCore {
 			this->btnTimetable->Text = L"Timetable";
 			this->btnTimetable->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			this->btnTimetable->UseVisualStyleBackColor = false;
+			this->btnTimetable->Click +=
+				gcnew System::EventHandler(
+					this,
+					&Dashboard::btnTimetable_Click
+				);
+
 			// 
 			// btnAttendance
 			// 
