@@ -59,6 +59,49 @@ namespace SchoolCore
 
 
         // =========================================================
+        // SUBJECT NAME / CODE NORMALIZATION
+        // =========================================================
+
+        String^ NormalizeSubjectName(
+            String^ value)
+        {
+            if (String::IsNullOrWhiteSpace(value))
+            {
+                return L"";
+            }
+
+            String^ trimmed =
+                value->Trim();
+
+            for (int i = 0; i < trimmed->Length; i++)
+            {
+                if (Char::IsLetter(trimmed[i]))
+                {
+                    return
+                        trimmed->Substring(0, i) +
+                        Char::ToUpper(trimmed[i]) +
+                        trimmed->Substring(i + 1);
+                }
+            }
+
+            return trimmed;
+        }
+
+
+        String^ NormalizeSubjectCode(
+            String^ value)
+        {
+            if (String::IsNullOrWhiteSpace(value))
+            {
+                return L"";
+            }
+
+            return
+                value->Trim()->ToUpperInvariant();
+        }
+
+
+        // =========================================================
         // PROFILE HELPER
         // =========================================================
 
@@ -999,6 +1042,18 @@ namespace SchoolCore
                 this->txtSubjectName->Focus();
                 return;
             }
+
+            // Normalize the naming convention before validation
+            // and database storage.
+            this->txtSubjectCode->Text =
+                NormalizeSubjectCode(
+                    this->txtSubjectCode->Text
+                );
+
+            this->txtSubjectName->Text =
+                NormalizeSubjectName(
+                    this->txtSubjectName->Text
+                );
 
             try
             {
