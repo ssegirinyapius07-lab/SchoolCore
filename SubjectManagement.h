@@ -1207,11 +1207,10 @@ namespace SchoolCore
                             )
                         );
 
-                    stmt->setString(1, subjectCode);
-                    stmt->setString(2, subjectName);
-                    stmt->setString(3, description);
+                    stmt->setString(1, subjectName);
+                    stmt->setString(2, description);
                     stmt->setInt64(
-                        4,
+                        3,
                         this->editingSubjectId
                     );
 
@@ -1232,9 +1231,8 @@ namespace SchoolCore
                             )
                         );
 
-                    stmt->setString(1, subjectCode);
-                    stmt->setString(2, subjectName);
-                    stmt->setString(3, description);
+                    stmt->setString(1, subjectName);
+                    stmt->setString(2, description);
 
                     stmt->executeUpdate();
 
