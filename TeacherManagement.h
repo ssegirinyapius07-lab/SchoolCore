@@ -333,6 +333,65 @@ namespace SchoolCore
 
 
         // =========================================================
+        // EDITOR HELPERS
+        // =========================================================
+
+        void AddEditorLabel(
+            TableLayoutPanel^ layout,
+            String^ text,
+            int row)
+        {
+            Label^ label =
+                gcnew Label();
+
+            label->Text = text;
+            label->Dock = DockStyle::Fill;
+            label->TextAlign =
+                ContentAlignment::MiddleLeft;
+            label->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI",
+                    9.5F,
+                    FontStyle::Bold
+                );
+            label->ForeColor =
+                Color::FromArgb(
+                    71, 85, 105
+                );
+
+            layout->Controls->Add(
+                label,
+                0,
+                row
+            );
+        }
+
+
+        void AddEditorTextBox(
+            TableLayoutPanel^ layout,
+            TextBox^ box,
+            int row)
+        {
+            box->Dock =
+                DockStyle::Fill;
+
+            box->Margin =
+                System::Windows::Forms::Padding(
+                    0,
+                    5,
+                    0,
+                    5
+                );
+
+            layout->Controls->Add(
+                box,
+                1,
+                row
+            );
+        }
+
+
+        // =========================================================
         // OPEN EDITOR
         // =========================================================
 
@@ -459,49 +518,6 @@ namespace SchoolCore
             );
 
 
-            auto addLabel =
-                [&](String^ text, int row)
-                {
-                    Label^ label = gcnew Label();
-
-                    label->Text = text;
-                    label->Dock = DockStyle::Fill;
-                    label->TextAlign =
-                        ContentAlignment::MiddleLeft;
-                    label->Font =
-                        gcnew System::Drawing::Font(
-                            L"Segoe UI",
-                            9.5F,
-                            FontStyle::Bold
-                        );
-                    label->ForeColor =
-                        Color::FromArgb(
-                            71, 85, 105
-                        );
-
-                    layout->Controls->Add(
-                        label,
-                        0,
-                        row
-                    );
-                };
-
-
-            auto addTextBox =
-                [&](TextBox^ box, int row)
-                {
-                    box->Dock = DockStyle::Fill;
-                    box->Margin =
-                        System::Windows::Forms::Padding(
-                            0, 5, 0, 5
-                        );
-
-                    layout->Controls->Add(
-                        box,
-                        1,
-                        row
-                    );
-                };
 
 
             this->txtStaffNumber = gcnew TextBox();
@@ -514,19 +530,19 @@ namespace SchoolCore
             this->txtAddress = gcnew TextBox();
 
 
-            addLabel(L"Staff Number", 0);
-            addTextBox(this->txtStaffNumber, 0);
+            AddEditorLabel(layout, L"Staff Number", 0);
+            AddEditorTextBox(layout, this->txtStaffNumber, 0);
 
-            addLabel(L"First Name", 1);
-            addTextBox(this->txtFirstName, 1);
+            AddEditorLabel(layout, L"First Name", 1);
+            AddEditorTextBox(layout, this->txtFirstName, 1);
 
-            addLabel(L"Middle Name", 2);
-            addTextBox(this->txtMiddleName, 2);
+            AddEditorLabel(layout, L"Middle Name", 2);
+            AddEditorTextBox(layout, this->txtMiddleName, 2);
 
-            addLabel(L"Last Name", 3);
-            addTextBox(this->txtLastName, 3);
+            AddEditorLabel(layout, L"Last Name", 3);
+            AddEditorTextBox(layout, this->txtLastName, 3);
 
-            addLabel(L"Gender", 4);
+            AddEditorLabel(layout, L"Gender", 4);
 
             this->cmbGender->Dock = DockStyle::Fill;
             this->cmbGender->Margin =
@@ -557,14 +573,14 @@ namespace SchoolCore
                 4
             );
 
-            addLabel(L"Phone Number", 5);
-            addTextBox(this->txtPhoneNumber, 5);
+            AddEditorLabel(layout, L"Phone Number", 5);
+            AddEditorTextBox(layout, this->txtPhoneNumber, 5);
 
-            addLabel(L"Email", 6);
-            addTextBox(this->txtEmail, 6);
+            AddEditorLabel(layout, L"Email", 6);
+            AddEditorTextBox(layout, this->txtEmail, 6);
 
 
-            addLabel(L"Address", 7);
+            AddEditorLabel(layout, L"Address", 7);
 
             this->txtAddress->Multiline = true;
             this->txtAddress->ScrollBars =
