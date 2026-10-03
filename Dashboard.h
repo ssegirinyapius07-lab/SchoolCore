@@ -240,11 +240,25 @@ namespace SchoolCore {
 			System::Object^ sender,
 			System::EventArgs^ e)
 		{
-			UsersRoles^ form =
-				gcnew UsersRoles();
+			this->contentPanel->Controls->Clear();
 
-			form->ShowDialog(this);
-			ShowDashboardOverview();
+			SchoolCore::UsersRoles^ form =
+				gcnew SchoolCore::UsersRoles();
+
+			form->TopLevel = false;
+			form->FormBorderStyle =
+				System::Windows::Forms::FormBorderStyle::None;
+			form->Dock = DockStyle::Fill;
+			form->WindowState = FormWindowState::Normal;
+
+			form->FormClosed +=
+				gcnew FormClosedEventHandler(
+					this,
+					&Dashboard::embeddedModule_FormClosed
+				);
+
+			this->contentPanel->Controls->Add(form);
+			form->Show();
 		}
 
 		System::Void btnAttendance_Click(
