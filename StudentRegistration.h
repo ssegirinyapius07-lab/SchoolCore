@@ -918,7 +918,7 @@ namespace SchoolCore
                 DockStyle::Right;
 
             this->photoPanel->Width =
-                165;
+                135;
 
             this->photoPanel->Padding =
                 System::Windows::Forms::Padding(
@@ -933,13 +933,13 @@ namespace SchoolCore
 
             this->picStudentPhoto->Size =
                 System::Drawing::Size(
-                    125,
-                    125
+                    105,
+                    105
                 );
 
             this->picStudentPhoto->Location =
                 System::Drawing::Point(
-                    18,
+                    15,
                     4
                 );
 
@@ -965,14 +965,14 @@ namespace SchoolCore
 
             this->btnChoosePhoto->Size =
                 System::Drawing::Size(
-                    125,
-                    32
+                    105,
+                    30
                 );
 
             this->btnChoosePhoto->Location =
                 System::Drawing::Point(
-                    18,
-                    135
+                    15,
+                    113
                 );
 
             this->btnChoosePhoto->FlatStyle =
@@ -1003,14 +1003,14 @@ namespace SchoolCore
 
             this->lblPhotoHint->Size =
                 System::Drawing::Size(
-                    145,
-                    35
+                    125,
+                    32
                 );
 
             this->lblPhotoHint->Location =
                 System::Drawing::Point(
-                    8,
-                    169
+                    5,
+                    146
                 );
 
             this->lblPhotoHint->TextAlign =
