@@ -469,7 +469,10 @@ namespace SchoolCore {
 
 			// Title
 			System::Windows::Forms::Label^ title = gcnew Label();
-			title->Text = L"Dashboard  •  " +\n\t\t\t\t(String::IsNullOrWhiteSpace(AuthSession::RoleName)\n\t\t\t\t\t? L"User"\n\t\t\t\t\t: AuthSession::RoleName);
+			title->Text = L"Dashboard  •  " +
+				(String::IsNullOrWhiteSpace(AuthSession::RoleName)
+					? L"User"
+					: AuthSession::RoleName);
 			title->Dock = DockStyle::Fill;
 			title->Font = gcnew System::Drawing::Font(L"Segoe UI Semibold", 22.0F, FontStyle::Bold);
 			title->ForeColor = Color::FromArgb(30, 41, 59);
