@@ -59,7 +59,6 @@ namespace SchoolCore
         // =========================================================
 
         Form^ editorForm;
-        System::Windows::Forms::TextBox^ txtSubjectCode;
         System::Windows::Forms::TextBox^ txtSubjectName;
         System::Windows::Forms::TextBox^ txtDescription;
         System::Windows::Forms::ComboBox^ cmbAcademicLevel;
@@ -683,7 +682,7 @@ namespace SchoolCore
                 2;
 
             layout->RowCount =
-                4;
+                3;
 
             layout->ColumnStyles->Add(
                 gcnew ColumnStyle(
@@ -699,21 +698,18 @@ namespace SchoolCore
                 )
             );
 
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 3; i++)
             {
                 layout->RowStyles->Add(
                     gcnew RowStyle(
                         SizeType::Absolute,
-                        i == 3
+                        i == 2
                         ? 130.0F
                         : 44.0F
                     )
                 );
             }
 
-
-            this->txtSubjectCode =
-                gcnew TextBox();
 
             this->txtSubjectName =
                 gcnew TextBox();
@@ -758,46 +754,33 @@ namespace SchoolCore
 
             AddEditorLabel(
                 layout,
-                L"Subject Code",
-                0
-            );
-
-            AddEditorTextBox(
-                layout,
-                this->txtSubjectCode,
-                0
-            );
-
-
-            AddEditorLabel(
-                layout,
                 L"Subject Name",
-                1
+                0
             );
 
             AddEditorTextBox(
                 layout,
                 this->txtSubjectName,
-                1
+                0
             );
 
 
             AddEditorLabel(
                 layout,
                 L"Academic Level",
-                2
+                1
             );
 
             layout->Controls->Add(
                 this->cmbAcademicLevel,
                 1,
-                2
+                1
             );
 
             AddEditorLabel(
                 layout,
                 L"Description",
-                3
+                2
             );
 
             this->txtDescription->Multiline =
@@ -820,7 +803,7 @@ namespace SchoolCore
             layout->Controls->Add(
                 this->txtDescription,
                 1,
-                3
+                2
             );
 
 
@@ -1124,23 +1107,6 @@ namespace SchoolCore
         {
             if (
                 String::IsNullOrWhiteSpace(
-                    this->txtSubjectCode->Text
-                )
-            )
-            {
-                MessageBox::Show(
-                    L"Please enter the subject code.",
-                    L"Validation",
-                    MessageBoxButtons::OK,
-                    MessageBoxIcon::Warning
-                );
-
-                this->txtSubjectCode->Focus();
-                return;
-            }
-
-            if (
-                String::IsNullOrWhiteSpace(
                     this->txtSubjectName->Text
                 )
             )
@@ -1171,11 +1137,6 @@ namespace SchoolCore
 
             // Normalize the naming convention before validation
             // and database storage.
-            this->txtSubjectCode->Text =
-                NormalizeSubjectCode(
-                    this->txtSubjectCode->Text
-                );
-
             this->txtSubjectName->Text =
                 NormalizeSubjectName(
                     this->txtSubjectName->Text
@@ -1192,21 +1153,14 @@ namespace SchoolCore
                             editorEditMode
                             ? "SELECT subject_id "
                               "FROM subjects "
-                              "WHERE (subject_code = ? "
-                              "OR subject_name = ?) "
+                              "WHERE subject_name = ? "
                               "AND subject_id <> ? "
                               "LIMIT 1"
                             : "SELECT subject_id "
                               "FROM subjects "
-                              "WHERE subject_code = ? "
-                              "OR subject_name = ? "
+                              "WHERE subject_name = ? "
                               "LIMIT 1"
                         )
-                    );
-
-                std::string subjectCode =
-                    msclr::interop::marshal_as<std::string>(
-                        this->txtSubjectCode->Text->Trim()
                     );
 
                 std::string subjectName =
@@ -1214,13 +1168,15 @@ namespace SchoolCore
                         this->txtSubjectName->Text->Trim()
                     );
 
-                checkStmt->setString(1, subjectCode);
-                checkStmt->setString(2, subjectName);
+                checkStmt->setString(
+                    1,
+                    subjectName
+                );
 
                 if (editorEditMode)
                 {
                     checkStmt->setInt64(
-                        3,
+                        2,
                         this->editingSubjectId
                     );
                 }
@@ -1233,7 +1189,7 @@ namespace SchoolCore
                 if (checkResult->next())
                 {
                     MessageBox::Show(
-                        L"That subject code or subject name is already in use.",
+                        L"That subject name is already in use.",
                         L"Validation",
                         MessageBoxButtons::OK,
                         MessageBoxIcon::Warning
@@ -1260,8 +1216,7 @@ namespace SchoolCore
                         stmt(
                             con->prepareStatement(
                                 "UPDATE subjects "
-                                "SET subject_code = ?, "
-                                "subject_name = ?, "
+                                "SET subject_name = ?, "
                                 "description = ? "
                                 "WHERE subject_id = ?"
                             )
@@ -1284,12 +1239,11 @@ namespace SchoolCore
                             con->prepareStatement(
                                 "INSERT INTO subjects "
                                 "("
-                                "subject_code, "
                                 "subject_name, "
                                 "description, "
                                 "status"
                                 ") "
-                                "VALUES (?, ?, ?, 'Active')"
+                                "VALUES (?, ?, 'Active')"
                             )
                         );
 
