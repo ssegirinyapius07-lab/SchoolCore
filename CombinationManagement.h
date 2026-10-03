@@ -127,6 +127,18 @@ namespace SchoolCore
 
         System::Windows::Forms::DataGridView^ grid;
         System::Windows::Forms::FlowLayoutPanel^ bottomPanel;
+
+        System::Windows::Forms::Form^ editorForm;
+        System::Windows::Forms::TextBox^ editorCodeBox;
+        System::Windows::Forms::TextBox^ editorNameBox;
+        System::Windows::Forms::ComboBox^ editorPrincipal1;
+        System::Windows::Forms::ComboBox^ editorPrincipal2;
+        System::Windows::Forms::ComboBox^ editorPrincipal3;
+        System::Windows::Forms::ComboBox^ editorSubsidiary;
+
+        bool editorEditMode = false;
+        int editingCombinationId = 0;
+
         System::Windows::Forms::Button^ btnBack;
 
         void ConfigureButton(
@@ -147,6 +159,27 @@ namespace SchoolCore
                     9.5F,
                     System::Drawing::FontStyle::Bold
                 );
+        }
+
+        System::Windows::Forms::Label^ CreateFormLabel(
+            String^ text)
+        {
+            System::Windows::Forms::Label^ label =
+                gcnew System::Windows::Forms::Label();
+
+            label->Text = text;
+            label->Dock =
+                System::Windows::Forms::DockStyle::Fill;
+            label->TextAlign =
+                System::Drawing::ContentAlignment::MiddleLeft;
+            label->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI Semibold",
+                    9.5F,
+                    System::Drawing::FontStyle::Bold
+                );
+
+            return label;
         }
 
         String^ NormalizeText(String^ value)
@@ -599,13 +632,16 @@ namespace SchoolCore
             }
             catch (sql::SQLException& ex)
             {
-                try
+                if (con != nullptr)
                 {
-                    con->rollback();
-                    con->setAutoCommit(true);
-                }
-                catch (...)
-                {
+                    try
+                    {
+                        con->rollback();
+                        con->setAutoCommit(true);
+                    }
+                    catch (...)
+                    {
+                    }
                 }
 
                 MessageBox::Show(
@@ -619,109 +655,40 @@ namespace SchoolCore
             }
         }
 
-        void LoadSelectedCombinationIntoDialog(
-            int combinationId,
-            System::Windows::Forms::Form^ form,
-            System::Windows::Forms::TextBox^ codeBox,
-            System::Windows::Forms::TextBox^ nameBox,
-            System::Windows::Forms::ComboBox^ p1,
-            System::Windows::Forms::ComboBox^ p2,
-            System::Windows::Forms::ComboBox^ p3,
-            System::Windows::Forms::ComboBox^ subsidiary)
-        {
-            nameBox->Text = L"";
-            codeBox->Text = L"";
-
-            try
-            {
-                auto con = DbConnection::GetConnection();
-
-                std::unique_ptr<sql::PreparedStatement> stmt(
-                    con->prepareStatement(
-                        "SELECT "
-                        "sc.combination_code, "
-                        "sc.combination_name, "
-                        "MAX(CASE WHEN cs.subject_role='Principal' "
-                        "THEN cs.subject_id END) AS p1, "
-                        "NULL AS p2, "
-                        "NULL AS p3, "
-                        "MAX(CASE WHEN cs.subject_role='Subsidiary' "
-                        "THEN cs.subject_id END) AS sub "
-                        "FROM subject_combinations sc "
-                        "LEFT JOIN combination_subjects cs "
-                        "ON cs.combination_id = sc.combination_id "
-                        "WHERE sc.combination_id = ? "
-                        "GROUP BY sc.combination_id, "
-                        "sc.combination_code, "
-                        "sc.combination_name"
-                    )
-                );
-
-                stmt->setInt(1, combinationId);
-
-                std::unique_ptr<sql::ResultSet> result(
-                    stmt->executeQuery()
-                );
-
-                if (!result->next())
-                    return;
-
-                codeBox->Text =
-                    gcnew String(
-                        result->getString(
-                            "combination_code"
-                        ).c_str()
-                    );
-
-                nameBox->Text =
-                    gcnew String(
-                        result->getString(
-                            "combination_name"
-                        ).c_str()
-                    );
-            }
-            catch (...)
-            {
-            }
-
-            std::unique_ptr<sql::PreparedStatement> detailStmt;
-        }
-
         void OpenEditor(int combinationId)
         {
-            bool editMode = combinationId > 0;
+            this->editorEditMode = combinationId > 0;
+            this->editingCombinationId = combinationId;
 
-            System::Windows::Forms::Form^ form =
+            this->editorForm =
                 gcnew System::Windows::Forms::Form();
 
-            form->Text =
-                editMode
+            this->editorForm->Text =
+                this->editorEditMode
                 ? L"Edit A-Level Combination"
                 : L"New A-Level Combination";
 
-            form->StartPosition =
+            this->editorForm->StartPosition =
                 FormStartPosition::CenterParent;
 
-            form->FormBorderStyle =
+            this->editorForm->FormBorderStyle =
                 System::Windows::Forms::FormBorderStyle::FixedSingle;
 
-            form->MaximizeBox = false;
-            form->MinimizeBox = false;
-            form->ShowInTaskbar = false;
-            form->ClientSize =
+            this->editorForm->MaximizeBox = false;
+            this->editorForm->MinimizeBox = false;
+            this->editorForm->ShowInTaskbar = false;
+            this->editorForm->ClientSize =
                 System::Drawing::Size(
                     720,
                     560
                 );
 
             System::Windows::Forms::TableLayoutPanel^ layout =
-                gcnew TableLayoutPanel();
+                gcnew System::Windows::Forms::TableLayoutPanel();
 
             layout->Dock = DockStyle::Fill;
             layout->Padding =
-                System::Windows::Forms::Padding(
-                    24
-                );
+                System::Windows::Forms::Padding(24);
             layout->ColumnCount = 2;
             layout->RowCount = 8;
 
@@ -749,256 +716,296 @@ namespace SchoolCore
                 );
             }
 
-            System::Windows::Forms::TextBox^ codeBox =
-                gcnew TextBox();
+            this->editorCodeBox =
+                gcnew System::Windows::Forms::TextBox();
 
-            System::Windows::Forms::TextBox^ nameBox =
-                gcnew TextBox();
+            this->editorNameBox =
+                gcnew System::Windows::Forms::TextBox();
 
-            System::Windows::Forms::ComboBox^ p1 =
-                gcnew ComboBox();
+            this->editorPrincipal1 =
+                gcnew System::Windows::Forms::ComboBox();
 
-            System::Windows::Forms::ComboBox^ p2 =
-                gcnew ComboBox();
+            this->editorPrincipal2 =
+                gcnew System::Windows::Forms::ComboBox();
 
-            System::Windows::Forms::ComboBox^ p3 =
-                gcnew ComboBox();
+            this->editorPrincipal3 =
+                gcnew System::Windows::Forms::ComboBox();
 
-            System::Windows::Forms::ComboBox^ subsidiary =
-                gcnew ComboBox();
+            this->editorSubsidiary =
+                gcnew System::Windows::Forms::ComboBox();
 
-            System::Windows::Forms::Label^ note =
-                gcnew Label();
-
-            p1->DropDownStyle =
-                ComboBoxStyle::DropDownList;
-            p2->DropDownStyle =
-                ComboBoxStyle::DropDownList;
-            p3->DropDownStyle =
-                ComboBoxStyle::DropDownList;
-            subsidiary->DropDownStyle =
+            this->editorPrincipal1->DropDownStyle =
                 ComboBoxStyle::DropDownList;
 
-            LoadSubjects(p1, 0);
-            LoadSubjects(p2, 0);
-            LoadSubjects(p3, 0);
-            LoadSubjects(subsidiary, 0);
+            this->editorPrincipal2->DropDownStyle =
+                ComboBoxStyle::DropDownList;
 
-            if (editMode)
+            this->editorPrincipal3->DropDownStyle =
+                ComboBoxStyle::DropDownList;
+
+            this->editorSubsidiary->DropDownStyle =
+                ComboBoxStyle::DropDownList;
+
+            LoadSubjects(
+                this->editorPrincipal1,
+                0
+            );
+
+            LoadSubjects(
+                this->editorPrincipal2,
+                0
+            );
+
+            LoadSubjects(
+                this->editorPrincipal3,
+                0
+            );
+
+            LoadSubjects(
+                this->editorSubsidiary,
+                0
+            );
+
+            if (this->editorEditMode)
             {
-                // Load the existing combination subjects.
-                std::vector<int> ids;
                 try
                 {
-                    auto con = DbConnection::GetConnection();
+                    auto con =
+                        DbConnection::GetConnection();
 
                     std::unique_ptr<sql::PreparedStatement> stmt(
                         con->prepareStatement(
-                            "SELECT subject_id, subject_role "
-                            "FROM combination_subjects "
-                            "WHERE combination_id = ? "
-                            "AND status = 'Active' "
-                            "ORDER BY combination_subject_id ASC"
+                            "SELECT "
+                            "sc.combination_code, "
+                            "sc.combination_name, "
+                            "cs.subject_id, "
+                            "cs.subject_role "
+                            "FROM subject_combinations sc "
+                            "INNER JOIN combination_subjects cs "
+                            "ON cs.combination_id = sc.combination_id "
+                            "WHERE sc.combination_id = ? "
+                            "AND cs.status = 'Active' "
+                            "ORDER BY cs.combination_subject_id ASC"
                         )
                     );
 
-                    stmt->setInt(1, combinationId);
+                    stmt->setInt(
+                        1,
+                        combinationId
+                    );
 
                     std::unique_ptr<sql::ResultSet> result(
                         stmt->executeQuery()
                     );
+
+                    int principalIndex = 0;
+                    int principal1Id = 0;
+                    int principal2Id = 0;
+                    int principal3Id = 0;
+                    int subsidiaryId = 0;
 
                     while (result->next())
                     {
-                        ids.push_back(
-                            result->getInt("subject_id")
-                        );
-                    }
-                }
-                catch (...)
-                {
-                }
-
-                try
-                {
-                    auto con = DbConnection::GetConnection();
-
-                    std::unique_ptr<sql::PreparedStatement> stmt(
-                        con->prepareStatement(
-                            "SELECT combination_code, combination_name "
-                            "FROM subject_combinations "
-                            "WHERE combination_id = ?"
-                        )
-                    );
-
-                    stmt->setInt(1, combinationId);
-
-                    std::unique_ptr<sql::ResultSet> result(
-                        stmt->executeQuery()
-                    );
-
-                    if (result->next())
-                    {
-                        codeBox->Text =
+                        this->editorCodeBox->Text =
                             gcnew String(
                                 result->getString(
                                     "combination_code"
                                 ).c_str()
                             );
 
-                        nameBox->Text =
+                        this->editorNameBox->Text =
                             gcnew String(
                                 result->getString(
                                     "combination_name"
                                 ).c_str()
                             );
+
+                        int subjectId =
+                            result->getInt(
+                                "subject_id"
+                            );
+
+                        String^ role =
+                            gcnew String(
+                                result->getString(
+                                    "subject_role"
+                                ).c_str()
+                            );
+
+                        if (role == L"Subsidiary")
+                        {
+                            subsidiaryId = subjectId;
+                        }
+                        else
+                        {
+                            principalIndex++;
+
+                            if (principalIndex == 1)
+                                principal1Id = subjectId;
+                            else if (principalIndex == 2)
+                                principal2Id = subjectId;
+                            else if (principalIndex == 3)
+                                principal3Id = subjectId;
+                        }
                     }
-                }
-                catch (...)
-                {
-                }
 
-                if (ids.size() >= 4)
-                {
-                    p1->SelectedIndex = 0;
-                    p2->SelectedIndex = 0;
-                    p3->SelectedIndex = 0;
-                    subsidiary->SelectedIndex = 0;
-
-                    for (int i = 1; i < p1->Items->Count; i++)
+                    for (int i = 1;
+                         i < this->editorPrincipal1->Items->Count;
+                         i++)
                     {
-                        SubjectItem^ item =
+                        SubjectItem^ item1 =
                             dynamic_cast<SubjectItem^>(
-                                p1->Items[i]
+                                this->editorPrincipal1->Items[i]
                             );
 
-                        if (item != nullptr && item->Id == ids[0])
-                            p1->SelectedIndex = i;
+                        if (item1 != nullptr &&
+                            item1->Id == principal1Id)
+                            this->editorPrincipal1->SelectedIndex = i;
 
-                        item =
+                        SubjectItem^ item2 =
                             dynamic_cast<SubjectItem^>(
-                                p2->Items[i]
+                                this->editorPrincipal2->Items[i]
                             );
 
-                        if (item != nullptr && item->Id == ids[1])
-                            p2->SelectedIndex = i;
+                        if (item2 != nullptr &&
+                            item2->Id == principal2Id)
+                            this->editorPrincipal2->SelectedIndex = i;
 
-                        item =
+                        SubjectItem^ item3 =
                             dynamic_cast<SubjectItem^>(
-                                p3->Items[i]
+                                this->editorPrincipal3->Items[i]
                             );
 
-                        if (item != nullptr && item->Id == ids[2])
-                            p3->SelectedIndex = i;
+                        if (item3 != nullptr &&
+                            item3->Id == principal3Id)
+                            this->editorPrincipal3->SelectedIndex = i;
 
-                        item =
+                        SubjectItem^ sub =
                             dynamic_cast<SubjectItem^>(
-                                subsidiary->Items[i]
+                                this->editorSubsidiary->Items[i]
                             );
 
-                        if (item != nullptr && item->Id == ids[3])
-                            subsidiary->SelectedIndex = i;
+                        if (sub != nullptr &&
+                            sub->Id == subsidiaryId)
+                            this->editorSubsidiary->SelectedIndex = i;
                     }
+                }
+                catch (sql::SQLException& ex)
+                {
+                    MessageBox::Show(
+                        gcnew String(ex.what()),
+                        L"Database Error",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Error
+                    );
                 }
             }
 
-            auto addLabel =
-                gcnew Func<String^, Label^>(
-                    [](String^ text)
-                    {
-                        Label^ label = gcnew Label();
-                        label->Text = text;
-                        label->Dock = DockStyle::Fill;
-                        label->TextAlign =
-                            ContentAlignment::MiddleLeft;
-                        return label;
-                    }
-                );
-
             layout->Controls->Add(
-                addLabel(L"Combination Code"),
-                0, 0
+                CreateFormLabel(L"Combination Code"),
+                0,
+                0
             );
             layout->Controls->Add(
-                codeBox,
-                1, 0
+                this->editorCodeBox,
+                1,
+                0
             );
 
             layout->Controls->Add(
-                addLabel(L"Combination Name"),
-                0, 1
+                CreateFormLabel(L"Combination Name"),
+                0,
+                1
             );
             layout->Controls->Add(
-                nameBox,
-                1, 1
+                this->editorNameBox,
+                1,
+                1
             );
 
             layout->Controls->Add(
-                addLabel(L"Principal Subject 1"),
-                0, 2
+                CreateFormLabel(L"Principal Subject 1"),
+                0,
+                2
             );
             layout->Controls->Add(
-                p1,
-                1, 2
+                this->editorPrincipal1,
+                1,
+                2
             );
 
             layout->Controls->Add(
-                addLabel(L"Principal Subject 2"),
-                0, 3
+                CreateFormLabel(L"Principal Subject 2"),
+                0,
+                3
             );
             layout->Controls->Add(
-                p2,
-                1, 3
+                this->editorPrincipal2,
+                1,
+                3
             );
 
             layout->Controls->Add(
-                addLabel(L"Principal Subject 3"),
-                0, 4
+                CreateFormLabel(L"Principal Subject 3"),
+                0,
+                4
             );
             layout->Controls->Add(
-                p3,
-                1, 4
+                this->editorPrincipal3,
+                1,
+                4
             );
 
             layout->Controls->Add(
-                addLabel(L"Subsidiary Subject"),
-                0, 5
+                CreateFormLabel(L"Subsidiary Subject"),
+                0,
+                5
             );
             layout->Controls->Add(
-                subsidiary,
-                1, 5
+                this->editorSubsidiary,
+                1,
+                5
             );
+
+            System::Windows::Forms::Label^ note =
+                gcnew System::Windows::Forms::Label();
 
             note->Text =
-                L"A-Level combinations use three principal subjects and one configured subsidiary subject.";
+                L"An A-Level combination contains three principal subjects and one subsidiary subject.";
 
             note->Dock = DockStyle::Fill;
-            note->ForeColor = Color::DimGray;
-            note->TextAlign = ContentAlignment::MiddleLeft;
+            note->ForeColor =
+                System::Drawing::Color::DimGray;
+            note->TextAlign =
+                System::Drawing::ContentAlignment::MiddleLeft;
 
             layout->Controls->Add(
                 note,
-                0, 6
+                0,
+                6
             );
+
             layout->SetColumnSpan(
                 note,
                 2
             );
 
             System::Windows::Forms::FlowLayoutPanel^ buttons =
-                gcnew FlowLayoutPanel();
+                gcnew System::Windows::Forms::FlowLayoutPanel();
 
             buttons->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
+
             buttons->FlowDirection =
-                FlowDirection::RightToLeft;
+                System::Windows::Forms::FlowDirection::RightToLeft;
+
             buttons->WrapContents = false;
 
             System::Windows::Forms::Button^ save =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             save->Text =
-                editMode
+                this->editorEditMode
                 ? L"Save Changes"
                 : L"Save Combination";
 
@@ -1006,7 +1013,7 @@ namespace SchoolCore
             save->Height = 38;
 
             System::Windows::Forms::Button^ cancel =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             cancel->Text = L"Cancel";
             cancel->Width = 110;
@@ -1017,8 +1024,10 @@ namespace SchoolCore
 
             layout->Controls->Add(
                 buttons,
-                0, 7
+                0,
+                7
             );
+
             layout->SetColumnSpan(
                 buttons,
                 2
@@ -1026,48 +1035,72 @@ namespace SchoolCore
 
             cancel->Click +=
                 gcnew EventHandler(
-                    [form](Object^, EventArgs^)
-                    {
-                        form->Close();
-                    }
+                    this,
+                    &CombinationManagement::editorCancel_Click
                 );
 
             save->Click +=
                 gcnew EventHandler(
-                    [this, form, codeBox, nameBox, p1, p2, p3, subsidiary, editMode, combinationId]
-                    (Object^, EventArgs^)
-                    {
-                        SubjectItem^ item1 =
-                            dynamic_cast<SubjectItem^>(p1->SelectedItem);
-
-                        SubjectItem^ item2 =
-                            dynamic_cast<SubjectItem^>(p2->SelectedItem);
-
-                        SubjectItem^ item3 =
-                            dynamic_cast<SubjectItem^>(p3->SelectedItem);
-
-                        SubjectItem^ sub =
-                            dynamic_cast<SubjectItem^>(subsidiary->SelectedItem);
-
-                        if (
-                            this->SaveCombination(
-                                combinationId,
-                                editMode,
-                                codeBox->Text,
-                                nameBox->Text,
-                                item1,
-                                item2,
-                                item3,
-                                sub))
-                        {
-                            form->Close();
-                            this->LoadCombinations();
-                        }
-                    }
+                    this,
+                    &CombinationManagement::editorSave_Click
                 );
 
-            form->Controls->Add(layout);
-            form->ShowDialog(this);
+            this->editorForm->Controls->Add(layout);
+
+            this->editorForm->ShowDialog(this);
+
+            this->editorForm = nullptr;
+        }
+
+        System::Void editorCancel_Click(
+            Object^ sender,
+            EventArgs^ e)
+        {
+            if (this->editorForm != nullptr)
+                this->editorForm->Close();
+        }
+
+        System::Void editorSave_Click(
+            Object^ sender,
+            EventArgs^ e)
+        {
+            SubjectItem^ item1 =
+                dynamic_cast<SubjectItem^>(
+                    this->editorPrincipal1->SelectedItem
+                );
+
+            SubjectItem^ item2 =
+                dynamic_cast<SubjectItem^>(
+                    this->editorPrincipal2->SelectedItem
+                );
+
+            SubjectItem^ item3 =
+                dynamic_cast<SubjectItem^>(
+                    this->editorPrincipal3->SelectedItem
+                );
+
+            SubjectItem^ subsidiary =
+                dynamic_cast<SubjectItem^>(
+                    this->editorSubsidiary->SelectedItem
+                );
+
+            if (
+                this->SaveCombination(
+                    this->editingCombinationId,
+                    this->editorEditMode,
+                    this->editorCodeBox->Text,
+                    this->editorNameBox->Text,
+                    item1,
+                    item2,
+                    item3,
+                    subsidiary
+                ))
+            {
+                if (this->editorForm != nullptr)
+                    this->editorForm->Close();
+
+                this->LoadCombinations();
+            }
         }
 
         System::Void btnNew_Click(
