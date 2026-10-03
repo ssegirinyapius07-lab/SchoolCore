@@ -8,6 +8,36 @@ namespace SchoolCore
     using namespace System::Drawing;
     using namespace System::Windows::Forms;
 
+    private ref class FinanceTheme abstract sealed
+    {
+    public:
+        static property Color Surface { Color get() { return Color::FromArgb(248, 250, 252); } }
+        static property Color Hover { Color get() { return Color::FromArgb(241, 245, 249); } }
+        static property Color Pressed { Color get() { return Color::FromArgb(226, 232, 240); } }
+        static property Color TextStrong { Color get() { return Color::FromArgb(15, 23, 42); } }
+        static property Color TextHeading { Color get() { return Color::FromArgb(30, 41, 59); } }
+        static property Color TextMuted { Color get() { return Color::FromArgb(71, 85, 105); } }
+
+        static initonly Drawing::Font^ Title = gcnew Drawing::Font(L"Segoe UI Semibold", 21.0F);
+        static initonly Drawing::Font^ Dialog = gcnew Drawing::Font(L"Segoe UI Semibold", 18.0F);
+        static initonly Drawing::Font^ Section = gcnew Drawing::Font(L"Segoe UI Semibold", 13.0F);
+        static initonly Drawing::Font^ Metric = gcnew Drawing::Font(L"Segoe UI Semibold", 18.0F);
+        static initonly Drawing::Font^ Action = gcnew Drawing::Font(L"Segoe UI Semibold", 10.0F);
+        static initonly Drawing::Font^ Body = gcnew Drawing::Font(L"Segoe UI", 10.0F);
+        static initonly Drawing::Font^ Small = gcnew Drawing::Font(L"Segoe UI", 9.0F);
+    };
+
+    private ref class FinanceOperation sealed
+    {
+    public:
+        FinanceOperation(String^ title, String^ description)
+            : Title(title), Description(description) {
+        }
+
+        initonly String^ Title;
+        initonly String^ Description;
+    };
+
     public ref class Finance : public Form
     {
     public:
@@ -17,78 +47,181 @@ namespace SchoolCore
         }
 
     private:
-        Button^ btnFeeStructures;
-        Button^ btnStudentCharges;
-        Button^ btnRecordPayment;
-        Button^ btnPaymentHistory;
+        literal String^ PermView = L"fees.view";
+        literal int MetricCount = 4;
 
-        void OpenFinanceOperation(String^ titleText, String^ descriptionText)
+        array<Label^>^ metricValues;
+
+        static Label^ CreateLabel(String^ text, Drawing::Font^ font, Color color)
         {
-            Form^ view = gcnew Form();
-            view->Text = L"SchoolCore - " + titleText;
-            view->StartPosition = FormStartPosition::CenterParent;
-            view->ClientSize = Drawing::Size(900, 560);
-            view->MinimumSize = Drawing::Size(800, 500);
-            view->BackColor = Color::White;
-            view->ShowInTaskbar = false;
-            view->MinimizeBox = false;
-            view->MaximizeBox = false;
+            Label^ label = gcnew Label();
+            label->Text = text;
+            label->Font = font;
+            label->ForeColor = color;
+            label->UseMnemonic = false;
+            label->AutoEllipsis = true;
+            return label;
+        }
 
+        static Panel^ CreateHeader(String^ title, String^ subtitle,
+            Drawing::Font^ titleFont, int height, int titleHeight)
+        {
             Panel^ header = gcnew Panel();
             header->Dock = DockStyle::Top;
-            header->Height = 96;
-            header->BackColor = Color::FromArgb(248, 250, 252);
+            header->Height = height;
+            header->BackColor = FinanceTheme::Surface;
             header->Padding = System::Windows::Forms::Padding(28, 18, 28, 12);
 
-            Label^ heading = gcnew Label();
-            heading->Text = titleText;
-            heading->UseMnemonic = false;
+            Label^ heading = CreateLabel(title, titleFont, FinanceTheme::TextStrong);
             heading->Dock = DockStyle::Top;
-            heading->Height = 36;
-            heading->Font = gcnew Drawing::Font(L"Segoe UI Semibold", 18.0F, FontStyle::Bold);
-            heading->ForeColor = Color::FromArgb(15, 23, 42);
+            heading->Height = titleHeight;
 
-            Label^ description = gcnew Label();
-            description->Text = descriptionText;
+            Label^ description = CreateLabel(subtitle, FinanceTheme::Body, FinanceTheme::TextMuted);
             description->Dock = DockStyle::Fill;
-            description->Font = gcnew Drawing::Font(L"Segoe UI", 10.0F);
-            description->ForeColor = Color::FromArgb(71, 85, 105);
-
-            Button^ close = gcnew Button();
-            close->Text = L"Close";
-            close->DialogResult = DialogResult::Cancel;
-            close->Anchor = AnchorStyles::Top | AnchorStyles::Right;
-            close->Size = Drawing::Size(100, 32);
-            close->Location = Drawing::Point(772, 510);
+            description->AutoEllipsis = false;
 
             header->Controls->Add(description);
             header->Controls->Add(heading);
-            view->Controls->Add(close);
-            view->Controls->Add(header);
-            view->CancelButton = close;
-            view->AcceptButton = nullptr;
-            view->ShowDialog(this);
-            delete view;
+            return header;
         }
 
-        void btnFeeStructures_Click(Object^ sender, EventArgs^ e)
+        Panel^ CreateMetricCard(String^ name, int index)
         {
-            OpenFinanceOperation(L"Fee Structures", L"Define and manage school fee structures by academic year, term, class and stream.");
+            Panel^ card = gcnew Panel();
+            card->Dock = DockStyle::Fill;
+            card->Margin = System::Windows::Forms::Padding(0, 0, 12, 10);
+            card->Padding = System::Windows::Forms::Padding(15, 12, 15, 12);
+            card->BackColor = FinanceTheme::Surface;
+            card->BorderStyle = BorderStyle::FixedSingle;
+
+            Label^ caption = CreateLabel(name, FinanceTheme::Small, FinanceTheme::TextMuted);
+            caption->Dock = DockStyle::Top;
+            caption->Height = 28;
+
+            Label^ value = CreateLabel(L"UGX 0.00", FinanceTheme::Metric, FinanceTheme::TextStrong);
+            value->Dock = DockStyle::Fill;
+            value->TextAlign = ContentAlignment::MiddleLeft;
+            value->AccessibleName = name;
+
+            metricValues[index] = value;
+
+            card->Controls->Add(value);
+            card->Controls->Add(caption);
+            return card;
         }
 
-        void btnStudentCharges_Click(Object^ sender, EventArgs^ e)
+        Button^ CreateActionButton(FinanceOperation^ operation, String^ name)
         {
-            OpenFinanceOperation(L"Student Charges", L"Review student fee charges, due dates, payment status and outstanding balances.");
+            Button^ button = gcnew Button();
+            button->Name = name;
+            button->Text = operation->Title;
+            button->Tag = operation;
+            button->Dock = DockStyle::Fill;
+            button->Margin = System::Windows::Forms::Padding(0, 0, 12, 12);
+            button->Padding = System::Windows::Forms::Padding(18, 0, 10, 0);
+            button->TextAlign = ContentAlignment::MiddleLeft;
+            button->Font = FinanceTheme::Action;
+            button->ForeColor = FinanceTheme::TextStrong;
+            button->BackColor = Color::White;
+            button->UseVisualStyleBackColor = false;
+            button->FlatStyle = FlatStyle::Flat;
+            button->FlatAppearance->BorderSize = 1;
+            button->FlatAppearance->MouseOverBackColor = FinanceTheme::Hover;
+            button->FlatAppearance->MouseDownBackColor = FinanceTheme::Pressed;
+            button->Enabled = AuthSession::HasPermission(PermView);
+            button->Click += gcnew EventHandler(this, &Finance::OnOperationClick);
+            return button;
         }
 
-        void btnRecordPayment_Click(Object^ sender, EventArgs^ e)
+        void SetMetric(int index, Decimal amount)
         {
-            OpenFinanceOperation(L"Record Payment", L"Record cash, Mobile Money, bank, card or other supported payments with a transaction reference.");
+            if (index < 0 || index >= MetricCount)
+                return;
+
+            metricValues[index]->Text =
+                L"UGX " + amount.ToString(
+                    L"N2",
+                    Globalization::CultureInfo::InvariantCulture);
         }
 
-        void btnPaymentHistory_Click(Object^ sender, EventArgs^ e)
+        void ShowRestrictedMetrics()
         {
-            OpenFinanceOperation(L"Payment History", L"Review recorded payments, receipts, payment methods and transaction references.");
+            for (int i = 0; i < MetricCount; ++i)
+                metricValues[i]->Text = L"Restricted";
+        }
+
+        void OnOperationClick(Object^ sender, EventArgs^ e)
+        {
+            Button^ button = dynamic_cast<Button^>(sender);
+            if (button == nullptr)
+                return;
+
+            FinanceOperation^ operation =
+                dynamic_cast<FinanceOperation^>(button->Tag);
+
+            if (operation == nullptr)
+                return;
+
+            OpenFinanceOperation(operation);
+        }
+
+        void OpenFinanceOperation(FinanceOperation^ operation)
+        {
+            if (!AuthSession::HasPermission(PermView))
+            {
+                MessageBox::Show(
+                    this,
+                    L"You do not have permission to open this section.",
+                    L"SchoolCore - Access denied",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning);
+                return;
+            }
+
+            Form^ view = gcnew Form();
+
+            try
+            {
+                view->Text = L"SchoolCore - " + operation->Title;
+                view->StartPosition = FormStartPosition::CenterParent;
+                view->ClientSize = Drawing::Size(900, 560);
+                view->MinimumSize = Drawing::Size(800, 500);
+                view->BackColor = Color::White;
+                view->ShowInTaskbar = false;
+                view->MinimizeBox = false;
+                view->MaximizeBox = false;
+
+                Panel^ footer = gcnew Panel();
+                footer->Dock = DockStyle::Bottom;
+                footer->Height = 56;
+                footer->Padding =
+                    System::Windows::Forms::Padding(28, 10, 28, 10);
+
+                Button^ close = gcnew Button();
+                close->Text = L"Close";
+                close->Dock = DockStyle::Right;
+                close->Width = 110;
+                close->DialogResult =
+                    System::Windows::Forms::DialogResult::Cancel;
+
+                footer->Controls->Add(close);
+                view->CancelButton = close;
+
+                view->Controls->Add(footer);
+                view->Controls->Add(
+                    CreateHeader(
+                        operation->Title,
+                        operation->Description,
+                        FinanceTheme::Dialog,
+                        96,
+                        36));
+
+                view->ShowDialog(this);
+            }
+            finally
+            {
+                delete view;
+            }
         }
 
         void InitializeComponent()
@@ -97,157 +230,164 @@ namespace SchoolCore
 
             this->Text = L"SchoolCore - Fees & Finance";
             this->StartPosition = FormStartPosition::CenterScreen;
+            this->AutoScaleDimensions = SizeF(96.0F, 96.0F);
+            this->AutoScaleMode =
+                System::Windows::Forms::AutoScaleMode::Dpi;
             this->ClientSize = Drawing::Size(1000, 650);
             this->MinimumSize = Drawing::Size(900, 600);
             this->BackColor = Color::White;
             this->DoubleBuffered = true;
 
-            Panel^ header = gcnew Panel();
-            header->Dock = DockStyle::Top;
-            header->Height = 105;
-            header->BackColor = Color::FromArgb(248, 250, 252);
-            header->Padding = System::Windows::Forms::Padding(28, 18, 28, 12);
+            bool canView = AuthSession::HasPermission(PermView);
+            metricValues = gcnew array<Label^>(MetricCount);
 
-            Label^ title = gcnew Label();
-            title->Text = L"Fees & Finance";
-            title->Dock = DockStyle::Top;
-            title->Height = 42;
-            title->UseMnemonic = false;
-            title->Font = gcnew Drawing::Font(L"Segoe UI Semibold", 21.0F, FontStyle::Bold);
-            title->ForeColor = Color::FromArgb(15, 23, 42);
-
-            Label^ subtitle = gcnew Label();
-            subtitle->Text = L"Manage fee structures, student charges, payments and financial records.";
-            subtitle->Dock = DockStyle::Fill;
-            subtitle->Font = gcnew Drawing::Font(L"Segoe UI", 10.0F);
-            subtitle->ForeColor = Color::FromArgb(71, 85, 105);
-
-            header->Controls->Add(subtitle);
-            header->Controls->Add(title);
-
-            Panel^ content = gcnew Panel();
+            TableLayoutPanel^ content = gcnew TableLayoutPanel();
             content->Dock = DockStyle::Fill;
             content->Padding = System::Windows::Forms::Padding(28);
-            content->BackColor = Color::White;
+            content->ColumnCount = 1;
+            content->ColumnStyles->Add(
+                gcnew ColumnStyle(SizeType::Percent, 100.0F));
+            content->RowCount = 5;
+            content->RowStyles->Add(
+                gcnew RowStyle(SizeType::Absolute, 42.0F));
+            content->RowStyles->Add(
+                gcnew RowStyle(SizeType::Absolute, 135.0F));
+            content->RowStyles->Add(
+                gcnew RowStyle(SizeType::Absolute, 45.0F));
+            content->RowStyles->Add(
+                gcnew RowStyle(SizeType::Absolute, 190.0F));
+            content->RowStyles->Add(
+                gcnew RowStyle(SizeType::Percent, 100.0F));
 
-            Label^ overview = gcnew Label();
-            overview->Text = L"Financial Overview";
-            overview->Dock = DockStyle::Top;
-            overview->Height = 42;
-            overview->Font = gcnew Drawing::Font(L"Segoe UI Semibold", 13.0F, FontStyle::Bold);
-            overview->ForeColor = Color::FromArgb(30, 41, 59);
+            Label^ overview =
+                CreateLabel(
+                    L"Financial Overview",
+                    FinanceTheme::Section,
+                    FinanceTheme::TextHeading);
+            overview->Dock = DockStyle::Fill;
 
             TableLayoutPanel^ metrics = gcnew TableLayoutPanel();
-            metrics->Dock = DockStyle::Top;
-            metrics->Height = 135;
-            metrics->ColumnCount = 4;
+            metrics->Dock = DockStyle::Fill;
+            metrics->Margin = System::Windows::Forms::Padding(0);
+            metrics->ColumnCount = MetricCount;
             metrics->RowCount = 1;
-            for (int i = 0; i < 4; ++i)
-                metrics->ColumnStyles->Add(gcnew ColumnStyle(SizeType::Percent, 25.0F));
+
+            for (int i = 0; i < MetricCount; ++i)
+                metrics->ColumnStyles->Add(
+                    gcnew ColumnStyle(
+                        SizeType::Percent,
+                        100.0F / MetricCount));
 
             array<String^>^ metricNames = gcnew array<String^>
             {
-                L"Total Revenue", L"Outstanding Fees", L"Collected Today", L"Pending Approvals"
+                L"Total Revenue",
+                L"Outstanding Fees",
+                L"Collected Today",
+                L"Pending Approvals"
             };
 
-            for (int i = 0; i < 4; ++i)
-            {
-                Panel^ card = gcnew Panel();
-                card->Dock = DockStyle::Fill;
-                card->Margin = System::Windows::Forms::Padding(0, 0, 12, 10);
-                card->Padding = System::Windows::Forms::Padding(15, 12, 15, 12);
-                card->BackColor = Color::FromArgb(248, 250, 252);
-                card->BorderStyle = BorderStyle::FixedSingle;
+            for (int i = 0; i < MetricCount; ++i)
+                metrics->Controls->Add(
+                    CreateMetricCard(metricNames[i], i), i, 0);
 
-                Label^ name = gcnew Label();
-                name->Text = metricNames[i];
-                name->Dock = DockStyle::Top;
-                name->Height = 28;
-                name->Font = gcnew Drawing::Font(L"Segoe UI", 9.0F);
-                name->ForeColor = Color::FromArgb(71, 85, 105);
+            if (!canView)
+                ShowRestrictedMetrics();
 
-                Label^ value = gcnew Label();
-                value->Text = L"UGX 0.00";
-                value->TextAlign = ContentAlignment::MiddleLeft;
-                value->Dock = DockStyle::Fill;
-                value->Font = gcnew Drawing::Font(L"Segoe UI Semibold", 18.0F, FontStyle::Bold);
-                value->ForeColor = Color::FromArgb(15, 23, 42);
-
-                card->Controls->Add(value);
-                card->Controls->Add(name);
-                metrics->Controls->Add(card, i, 0);
-            }
-
-            Label^ operations = gcnew Label();
-            operations->Text = L"Finance Operations";
-            operations->Dock = DockStyle::Top;
-            operations->Height = 45;
-            operations->Padding = System::Windows::Forms::Padding(0, 8, 0, 0);
-            operations->Font = gcnew Drawing::Font(L"Segoe UI Semibold", 13.0F, FontStyle::Bold);
-            operations->ForeColor = Color::FromArgb(30, 41, 59);
+            Label^ operations =
+                CreateLabel(
+                    L"Finance Operations",
+                    FinanceTheme::Section,
+                    FinanceTheme::TextHeading);
+            operations->Dock = DockStyle::Fill;
+            operations->Padding =
+                System::Windows::Forms::Padding(0, 8, 0, 0);
 
             TableLayoutPanel^ actions = gcnew TableLayoutPanel();
-            actions->Dock = DockStyle::Top;
-            actions->Height = 190;
+            actions->Dock = DockStyle::Fill;
+            actions->Margin = System::Windows::Forms::Padding(0);
             actions->ColumnCount = 2;
             actions->RowCount = 2;
-            actions->ColumnStyles->Add(gcnew ColumnStyle(SizeType::Percent, 50.0F));
-            actions->ColumnStyles->Add(gcnew ColumnStyle(SizeType::Percent, 50.0F));
-            actions->RowStyles->Add(gcnew RowStyle(SizeType::Percent, 50.0F));
-            actions->RowStyles->Add(gcnew RowStyle(SizeType::Percent, 50.0F));
+            actions->ColumnStyles->Add(
+                gcnew ColumnStyle(SizeType::Percent, 50.0F));
+            actions->ColumnStyles->Add(
+                gcnew ColumnStyle(SizeType::Percent, 50.0F));
+            actions->RowStyles->Add(
+                gcnew RowStyle(SizeType::Percent, 50.0F));
+            actions->RowStyles->Add(
+                gcnew RowStyle(SizeType::Percent, 50.0F));
 
-            this->btnFeeStructures = gcnew Button();
-            this->btnStudentCharges = gcnew Button();
-            this->btnRecordPayment = gcnew Button();
-            this->btnPaymentHistory = gcnew Button();
-
-            array<Button^>^ buttons = gcnew array<Button^>
+            array<FinanceOperation^>^ definitions =
+                gcnew array<FinanceOperation^>
             {
-                btnFeeStructures, btnStudentCharges, btnRecordPayment, btnPaymentHistory
+                gcnew FinanceOperation(
+                    L"Fee Structures",
+                    L"Define and manage school fee structures by academic year, term, class and stream."),
+                gcnew FinanceOperation(
+                    L"Student Charges",
+                    L"Review student fee charges, due dates, payment status and outstanding balances."),
+                gcnew FinanceOperation(
+                    L"Record Payment",
+                    L"Record cash, Mobile Money, bank, card or other supported payments with a transaction reference."),
+                gcnew FinanceOperation(
+                    L"Payment History",
+                    L"Review recorded payments, receipts, payment methods and transaction references.")
             };
-            array<String^>^ texts = gcnew array<String^>
+
+            array<String^>^ buttonNames = gcnew array<String^>
             {
-                L"  Fee Structures", L"  Student Charges",
-                L"  Record Payment", L"  Payment History"
+                L"btnFeeStructures",
+                L"btnStudentCharges",
+                L"btnRecordPayment",
+                L"btnPaymentHistory"
             };
 
-            for (int i = 0; i < 4; ++i)
+            for (int i = 0; i < definitions->Length; ++i)
             {
-                buttons[i]->Text = texts[i];
-                buttons[i]->Dock = DockStyle::Fill;
-                buttons[i]->Margin = System::Windows::Forms::Padding(0, 0, 12, 12);
-                buttons[i]->FlatStyle = FlatStyle::Flat;
-                buttons[i]->FlatAppearance->BorderSize = 1;
-                buttons[i]->BackColor = Color::White;
-                buttons[i]->ForeColor = Color::FromArgb(15, 23, 42);
-                buttons[i]->Font = gcnew Drawing::Font(L"Segoe UI Semibold", 10.0F);
-                buttons[i]->TextAlign = ContentAlignment::MiddleLeft;
-                buttons[i]->Padding = System::Windows::Forms::Padding(18, 0, 10, 0);
-                buttons[i]->FlatAppearance->MouseOverBackColor = Color::FromArgb(241, 245, 249);
-                buttons[i]->FlatAppearance->MouseDownBackColor = Color::FromArgb(226, 232, 240);
-                actions->Controls->Add(buttons[i], i % 2, i / 2);
+                Button^ button =
+                    CreateActionButton(definitions[i], buttonNames[i]);
+
+                button->TabIndex = i;
+                actions->Controls->Add(
+                    button,
+                    i % 2,
+                    i / 2);
             }
 
-            btnFeeStructures->Click += gcnew EventHandler(this, &Finance::btnFeeStructures_Click);
-            btnStudentCharges->Click += gcnew EventHandler(this, &Finance::btnStudentCharges_Click);
-            btnRecordPayment->Click += gcnew EventHandler(this, &Finance::btnRecordPayment_Click);
-            btnPaymentHistory->Click += gcnew EventHandler(this, &Finance::btnPaymentHistory_Click);
+            String^ noteText =
+                L"Electronic payments use a payment method and transaction reference. "
+                L"Sensitive credentials such as PINs, CVVs and full card numbers are never stored.";
 
-            Label^ note = gcnew Label();
-            note->Text = L"Electronic payments use a payment method and transaction reference. Sensitive credentials such as PINs, CVVs and full card numbers are never stored.";
+            if (!canView)
+            {
+                noteText +=
+                    L"\r\n\r\nYour account does not have access to financial records. "
+                    L"Contact an administrator if you need it.";
+            }
+
+            Label^ note =
+                CreateLabel(
+                    noteText,
+                    FinanceTheme::Small,
+                    FinanceTheme::TextMuted);
             note->Dock = DockStyle::Fill;
-            note->Font = gcnew Drawing::Font(L"Segoe UI", 9.0F);
-            note->ForeColor = Color::FromArgb(71, 85, 105);
-            note->Padding = System::Windows::Forms::Padding(0, 18, 0, 0);
+            note->AutoEllipsis = false;
+            note->Padding =
+                System::Windows::Forms::Padding(0, 18, 0, 0);
 
-            content->Controls->Add(note);
-            content->Controls->Add(actions);
-            content->Controls->Add(operations);
-            content->Controls->Add(metrics);
-            content->Controls->Add(overview);
+            content->Controls->Add(overview, 0, 0);
+            content->Controls->Add(metrics, 0, 1);
+            content->Controls->Add(operations, 0, 2);
+            content->Controls->Add(actions, 0, 3);
+            content->Controls->Add(note, 0, 4);
 
             this->Controls->Add(content);
-            this->Controls->Add(header);
+            this->Controls->Add(
+                CreateHeader(
+                    L"Fees & Finance",
+                    L"Manage fee structures, student charges, payments and financial records.",
+                    FinanceTheme::Title,
+                    105,
+                    42));
 
             this->ResumeLayout(false);
         }
