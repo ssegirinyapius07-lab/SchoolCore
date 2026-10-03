@@ -10,13 +10,24 @@
 #include <stdexcept>
 
 using namespace System;
+using namespace System::ComponentModel;
 using namespace System::Drawing;
 using namespace System::Windows::Forms;
 
 namespace SchoolCore
 {
-    public ref class SubjectManagement : public Form
+    public ref class SubjectManagement : public System::Windows::Forms::Form
     {
+    public:
+                SubjectManagement()
+                {
+                    InitializeComponent();
+                    if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
+                    {
+                        LoadSubjects(L"");
+                    }
+                }
+
     private:
         System::ComponentModel::Container^ components;
         // =========================================================
@@ -2037,7 +2048,9 @@ namespace SchoolCore
         // INITIALIZE COMPONENTS
         // =========================================================
 
-        void InitializeComponent()
+        #pragma region Windows Form Designer generated code
+
+void InitializeComponent()
         {
             this->SuspendLayout();
 
@@ -2875,17 +2888,10 @@ namespace SchoolCore
             );
         }
 
+#pragma endregion
+
 
     public:
-
-        SubjectManagement()
-        {
-            InitializeComponent();
-            if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
-            {
-                LoadSubjects(L"");
-            }
-        }
 
 
     protected:
