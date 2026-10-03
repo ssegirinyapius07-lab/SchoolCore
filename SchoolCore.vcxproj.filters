@@ -50,6 +50,9 @@
     <ClInclude Include="StudentRegistration.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PromotionManagement.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="StudentManagement.h">
       <Filter>Header Files</Filter>
     </ClInclude>
