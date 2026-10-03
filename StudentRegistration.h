@@ -499,14 +499,6 @@ namespace SchoolCore
             studentLayout->Dock =
                 DockStyle::Fill;
 
-            studentLayout->Margin =
-                System::Windows::Forms::Padding(
-                    0,
-                    0,
-                    160,
-                    0
-                );
-
             studentLayout->ColumnCount = 4;
             studentLayout->RowCount = 4;
 
@@ -911,8 +903,38 @@ namespace SchoolCore
             );
 
 
-            this->studentGroup->Controls->Add(
-                studentLayout
+            // The student fields and photo are kept in separate
+            // layout columns so the photo never overlaps any field.
+            TableLayoutPanel^ studentSectionLayout =
+                gcnew TableLayoutPanel();
+
+            studentSectionLayout->Dock =
+                DockStyle::Fill;
+
+            studentSectionLayout->ColumnCount = 2;
+            studentSectionLayout->RowCount = 1;
+
+            studentSectionLayout->Padding =
+                System::Windows::Forms::Padding(4);
+
+            studentSectionLayout->ColumnStyles->Add(
+                gcnew ColumnStyle(
+                    SizeType::Percent,
+                    100.0F
+                )
+            );
+
+            studentSectionLayout->ColumnStyles->Add(
+                gcnew ColumnStyle(
+                    SizeType::Absolute,
+                    175.0F
+                )
+            );
+
+            studentSectionLayout->Controls->Add(
+                studentLayout,
+                0,
+                0
             );
 
 
@@ -924,20 +946,22 @@ namespace SchoolCore
                 gcnew Panel();
 
             this->photoPanel->Dock =
-                DockStyle::Right;
+                DockStyle::Fill;
 
-            this->photoPanel->Width =
-                145;
+            this->photoPanel->Margin =
+                System::Windows::Forms::Padding(
+                    8,
+                    8,
+                    8,
+                    8
+                );
 
             this->photoPanel->BorderStyle =
                 BorderStyle::FixedSingle;
 
             this->photoPanel->Padding =
                 System::Windows::Forms::Padding(
-                    8,
-                    4,
-                    4,
-                    4
+                    8
                 );
 
             this->picStudentPhoto =
@@ -951,8 +975,8 @@ namespace SchoolCore
 
             this->picStudentPhoto->Location =
                 System::Drawing::Point(
-                    21,
-                    8
+                    28,
+                    10
                 );
 
             this->picStudentPhoto->SizeMode =
@@ -980,8 +1004,8 @@ namespace SchoolCore
 
             this->btnChoosePhoto->Location =
                 System::Drawing::Point(
-                    19,
-                    121
+                    26,
+                    123
                 );
 
             this->btnChoosePhoto->FlatStyle =
@@ -1018,8 +1042,8 @@ namespace SchoolCore
 
             this->lblPhotoHint->Location =
                 System::Drawing::Point(
-                    9,
-                    154
+                    4,
+                    157
                 );
 
             this->lblPhotoHint->TextAlign =
@@ -1041,11 +1065,15 @@ namespace SchoolCore
                 this->picStudentPhoto
             );
 
-            this->studentGroup->Controls->Add(
-                this->photoPanel
+            studentSectionLayout->Controls->Add(
+                this->photoPanel,
+                1,
+                0
             );
 
-            this->photoPanel->BringToFront();
+            this->studentGroup->Controls->Add(
+                studentSectionLayout
+            );
 
 
             // =========================================================
