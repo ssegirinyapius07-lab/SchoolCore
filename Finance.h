@@ -30,6 +30,9 @@ namespace SchoolCore
             view->ClientSize = Drawing::Size(900, 560);
             view->MinimumSize = Drawing::Size(800, 500);
             view->BackColor = Color::White;
+            view->ShowInTaskbar = false;
+            view->MinimizeBox = false;
+            view->MaximizeBox = false;
 
             Panel^ header = gcnew Panel();
             header->Dock = DockStyle::Top;
@@ -51,10 +54,21 @@ namespace SchoolCore
             description->Font = gcnew Drawing::Font(L"Segoe UI", 10.0F);
             description->ForeColor = Color::FromArgb(71, 85, 105);
 
+            Button^ close = gcnew Button();
+            close->Text = L"Close";
+            close->DialogResult = DialogResult::Cancel;
+            close->Anchor = AnchorStyles::Top | AnchorStyles::Right;
+            close->Size = Drawing::Size(100, 32);
+            close->Location = Drawing::Point(772, 510);
+
             header->Controls->Add(description);
             header->Controls->Add(heading);
+            view->Controls->Add(close);
             view->Controls->Add(header);
+            view->CancelButton = close;
+            view->AcceptButton = nullptr;
             view->ShowDialog(this);
+            delete view;
         }
 
         void btnFeeStructures_Click(Object^ sender, EventArgs^ e)
@@ -79,11 +93,14 @@ namespace SchoolCore
 
         void InitializeComponent()
         {
+            this->SuspendLayout();
+
             this->Text = L"SchoolCore - Fees & Finance";
             this->StartPosition = FormStartPosition::CenterScreen;
             this->ClientSize = Drawing::Size(1000, 650);
             this->MinimumSize = Drawing::Size(900, 600);
             this->BackColor = Color::White;
+            this->DoubleBuffered = true;
 
             Panel^ header = gcnew Panel();
             header->Dock = DockStyle::Top;
@@ -107,7 +124,6 @@ namespace SchoolCore
 
             header->Controls->Add(subtitle);
             header->Controls->Add(title);
-            this->Controls->Add(header);
 
             Panel^ content = gcnew Panel();
             content->Dock = DockStyle::Fill;
@@ -229,15 +245,11 @@ namespace SchoolCore
             content->Controls->Add(operations);
             content->Controls->Add(metrics);
             content->Controls->Add(overview);
-            this->Controls->Add(content);
 
-            if (!AuthSession::HasPermission(L"fees.view"))
-            {
-                btnFeeStructures->Enabled = false;
-                btnStudentCharges->Enabled = false;
-                btnRecordPayment->Enabled = false;
-                btnPaymentHistory->Enabled = false;
-            }
+            this->Controls->Add(content);
+            this->Controls->Add(header);
+
+            this->ResumeLayout(false);
         }
     };
 }
