@@ -28,21 +28,21 @@ namespace SchoolCore
 
         Panel^ scrollPanel;
         Panel^ headerPanel;
-        Label^ lblTitle;
-        Label^ lblSubtitle;
+        System::Windows::Forms::Label^ lblTitle;
+        System::Windows::Forms::Label^ lblSubtitle;
 
         GroupBox^ studentGroup;
         GroupBox^ enrollmentGroup;
         GroupBox^ guardianGroup;
 
         // Student controls
-        Label^ lblFirstName;
-        Label^ lblMiddleName;
-        Label^ lblLastName;
-        Label^ lblDob;
-        Label^ lblGender;
-        Label^ lblAdmissionDate;
-        Label^ lblHomeAddress;
+        System::Windows::Forms::Label^ lblFirstName;
+        System::Windows::Forms::Label^ lblMiddleName;
+        System::Windows::Forms::Label^ lblLastName;
+        System::Windows::Forms::Label^ lblDob;
+        System::Windows::Forms::Label^ lblGender;
+        System::Windows::Forms::Label^ lblAdmissionDate;
+        System::Windows::Forms::Label^ lblHomeAddress;
 
         TextBox^ txtFirstName;
         TextBox^ txtMiddleName;
@@ -56,17 +56,17 @@ namespace SchoolCore
         Panel^ photoPanel;
         PictureBox^ picStudentPhoto;
         Button^ btnChoosePhoto;
-        Label^ lblPhotoHint;
+        System::Windows::Forms::Label^ lblPhotoHint;
         String^ selectedPhotoSourcePath = nullptr;
         String^ editingPhotoPath = L"";
         String^ editingRegistrationNumber = L"";
 
         // Enrollment controls
-        Label^ lblAcademicYear;
-        Label^ lblTerm;
-        Label^ lblClass;
-        Label^ lblStream;
-        Label^ lblStreamInfo;
+        System::Windows::Forms::Label^ lblAcademicYear;
+        System::Windows::Forms::Label^ lblTerm;
+        System::Windows::Forms::Label^ lblClass;
+        System::Windows::Forms::Label^ lblStream;
+        System::Windows::Forms::Label^ lblStreamInfo;
 
         ComboBox^ cmbAcademicYear;
         ComboBox^ cmbTerm;
@@ -74,12 +74,12 @@ namespace SchoolCore
         ComboBox^ cmbStream;
 
         // Guardian controls
-        Label^ lblGuardianName;
-        Label^ lblGuardianRelationship;
-        Label^ lblGuardianPhone;
-        Label^ lblGuardianAlternativePhone;
-        Label^ lblGuardianEmail;
-        Label^ lblGuardianAddress;
+        System::Windows::Forms::Label^ lblGuardianName;
+        System::Windows::Forms::Label^ lblGuardianRelationship;
+        System::Windows::Forms::Label^ lblGuardianPhone;
+        System::Windows::Forms::Label^ lblGuardianAlternativePhone;
+        System::Windows::Forms::Label^ lblGuardianEmail;
+        System::Windows::Forms::Label^ lblGuardianAddress;
 
         TextBox^ txtGuardianName;
         TextBox^ txtGuardianRelationship;
@@ -4200,8 +4200,11 @@ namespace SchoolCore
             InitializeComponent();
             WireEvents();
 
-            LoadAcademicYears();
-            LoadClasses();
+            if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
+            {
+                LoadAcademicYears();
+                LoadClasses();
+            }
         }
 
 
