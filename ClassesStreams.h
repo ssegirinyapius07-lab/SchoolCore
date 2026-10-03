@@ -18,7 +18,7 @@ namespace SchoolCore
     public ref class ClassesStreams : public System::Windows::Forms::Form
     {
     public:
-                ClassesStreams()
+                ClassesStreams(void)
                 {
                     InitializeComponent();
         
@@ -84,7 +84,7 @@ namespace SchoolCore
 
 
     protected:
-        ~ClassesStreams()
+        ~ClassesStreams(void)
         {
             if (this->components)
             {
@@ -215,7 +215,7 @@ namespace SchoolCore
 
         #pragma region Windows Form Designer generated code
 
-void InitializeComponent()
+void InitializeComponent(void)
         {
             this->components = gcnew System::ComponentModel::Container();
             this->SuspendLayout();
