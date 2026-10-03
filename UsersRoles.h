@@ -25,7 +25,8 @@ namespace SchoolCore
         {
             InitializeComponent();
                                 ThemeManager::ApplyToForm(this);
-                    LoadRoles();
+                    EnsureUserEmailColumn();
+            LoadRoles();
             LoadUsers();
             ApplyPermissions();
         }
@@ -75,6 +76,7 @@ namespace SchoolCore
 
         bool editMode = false;
         int editingUserId = 0;
+        bool emailColumnAvailable = false;
         DataTable^ roleTable = nullptr;
 
         static String^ Base64Encode(array<Byte>^ value)
@@ -214,6 +216,65 @@ namespace SchoolCore
             btnResetPassword->Enabled = canManage;
         }
 
+        void EnsureUserEmailColumn()
+        {
+            try
+            {
+                auto con = DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> check(
+                    con->prepareStatement(
+                        "SELECT COUNT(*) "
+                        "FROM information_schema.COLUMNS "
+                        "WHERE TABLE_SCHEMA = DATABASE() "
+                        "AND TABLE_NAME = 'users' "
+                        "AND COLUMN_NAME = 'email'"
+                    )
+                );
+
+                std::unique_ptr<sql::ResultSet> result(
+                    check->executeQuery()
+                );
+
+                bool exists = false;
+
+                if (result->next())
+                {
+                    exists = result->getInt(1) > 0;
+                }
+
+                if (!exists)
+                {
+                    std::unique_ptr<sql::Statement> alter(
+                        con->createStatement()
+                    );
+
+                    alter->execute(
+                        "ALTER TABLE users "
+                        "ADD COLUMN email VARCHAR(190) NULL "
+                        "AFTER username"
+                    );
+                }
+
+                emailColumnAvailable = true;
+            }
+            catch (sql::SQLException& ex)
+            {
+                emailColumnAvailable = false;
+
+                MessageBox::Show(
+                    gcnew String(ex.what()),
+                    L"User Database Update",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+            }
+            catch (Exception^)
+            {
+                emailColumnAvailable = false;
+            }
+        }
+
         void LoadRoles()
         {
             try
@@ -306,12 +367,16 @@ namespace SchoolCore
                 std::unique_ptr<sql::PreparedStatement> stmt(
                     con->prepareStatement(
                         "SELECT u.user_id, u.username, "
-                        "u.full_name, r.role_name, "
+                        "u.full_name, "
+                        "COALESCE(u.email, '') AS email, "
+                        "r.role_name, "
                         "u.status, u.must_change_password "
                         "FROM users u "
                         "INNER JOIN roles r ON r.role_id = u.role_id "
                         "WHERE (? = '' OR u.username LIKE ? "
-                        "OR u.full_name LIKE ? OR r.role_name LIKE ?) "
+                        "OR u.full_name LIKE ? "
+                        "OR COALESCE(u.email, '') LIKE ? "
+                        "OR r.role_name LIKE ?) "
                         "ORDER BY u.user_id DESC"
                     )
                 );
@@ -330,6 +395,7 @@ namespace SchoolCore
                 stmt->setString(2, patternText);
                 stmt->setString(3, patternText);
                 stmt->setString(4, patternText);
+                stmt->setString(5, patternText);
 
                 std::unique_ptr<sql::ResultSet> result(
                     stmt->executeQuery()
@@ -359,6 +425,14 @@ namespace SchoolCore
                         gcnew String(
                             result->getString(
                                 "full_name"
+                            ).c_str()
+                        );
+
+                    usersGrid->Rows[rowIndex]
+                        ->Cells[L"Email"]->Value =
+                        gcnew String(
+                            result->getString(
+                                "email"
                             ).c_str()
                         );
 
@@ -1292,7 +1366,7 @@ namespace SchoolCore
                 ContentAlignment::MiddleLeft;
 
             txtSearch = gcnew TextBox();
-            txtSearch->Width = 230;
+            txtSearch->Width = 280;
             txtSearch->Height = 32;
 
             btnSearch = gcnew Button();
@@ -1375,7 +1449,15 @@ namespace SchoolCore
             nameColumn->HeaderText = L"Full Name";
             nameColumn->AutoSizeMode =
                 DataGridViewAutoSizeColumnMode::Fill;
-            nameColumn->FillWeight = 170;
+            nameColumn->FillWeight = 145;
+
+            DataGridViewTextBoxColumn^ emailColumn =
+                gcnew DataGridViewTextBoxColumn();
+            emailColumn->Name = L"Email";
+            emailColumn->HeaderText = L"Email";
+            emailColumn->AutoSizeMode =
+                DataGridViewAutoSizeColumnMode::Fill;
+            emailColumn->FillWeight = 155;
 
             DataGridViewTextBoxColumn^ roleColumn =
                 gcnew DataGridViewTextBoxColumn();
@@ -1398,6 +1480,7 @@ namespace SchoolCore
             usersGrid->Columns->Add(idColumn);
             usersGrid->Columns->Add(usernameColumn);
             usersGrid->Columns->Add(nameColumn);
+            usersGrid->Columns->Add(emailColumn);
             usersGrid->Columns->Add(roleColumn);
             usersGrid->Columns->Add(statusColumn);
             usersGrid->Columns->Add(passwordColumn);
