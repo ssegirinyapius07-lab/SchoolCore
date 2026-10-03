@@ -554,7 +554,7 @@ namespace SchoolCore
                 studentLayout->RowStyles->Add(
                     gcnew RowStyle(
                         SizeType::Absolute,
-                        40.0F
+                        42.0F
                     )
                 );
             }
@@ -1534,6 +1534,9 @@ namespace SchoolCore
             this->lblGuardianName->Margin =
                 System::Windows::Forms::Padding(3, 0, 3, 0);
 
+            this->lblGuardianName->Padding =
+                System::Windows::Forms::Padding(0);
+
             this->lblGuardianName->AutoSize = false;
 
 
@@ -1544,7 +1547,10 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             this->txtGuardianName->Margin =
-                System::Windows::Forms::Padding(3, 5, 3, 5);
+                System::Windows::Forms::Padding(3, 6, 3, 6);
+
+            this->txtGuardianName->TextAlign =
+                HorizontalAlignment::Left;
 
             this->txtGuardianName->MinimumSize =
                 System::Drawing::Size(
@@ -1570,6 +1576,9 @@ namespace SchoolCore
             this->lblGuardianRelationship->Margin =
                 System::Windows::Forms::Padding(3, 0, 3, 0);
 
+            this->lblGuardianRelationship->Padding =
+                System::Windows::Forms::Padding(0);
+
             this->lblGuardianRelationship->AutoSize = false;
 
 
@@ -1580,7 +1589,10 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             this->txtGuardianRelationship->Margin =
-                System::Windows::Forms::Padding(3, 5, 3, 5);
+                System::Windows::Forms::Padding(3, 6, 3, 6);
+
+            this->txtGuardianRelationship->TextAlign =
+                HorizontalAlignment::Left;
 
             this->txtGuardianRelationship->MinimumSize =
                 System::Drawing::Size(
@@ -1606,6 +1618,9 @@ namespace SchoolCore
             this->lblGuardianPhone->Margin =
                 System::Windows::Forms::Padding(3, 0, 3, 0);
 
+            this->lblGuardianPhone->Padding =
+                System::Windows::Forms::Padding(0);
+
             this->lblGuardianPhone->AutoSize = false;
 
 
@@ -1616,7 +1631,10 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             this->txtGuardianPhone->Margin =
-                System::Windows::Forms::Padding(3, 5, 3, 5);
+                System::Windows::Forms::Padding(3, 6, 3, 6);
+
+            this->txtGuardianPhone->TextAlign =
+                HorizontalAlignment::Left;
 
             this->txtGuardianPhone->MinimumSize =
                 System::Drawing::Size(
@@ -1642,6 +1660,9 @@ namespace SchoolCore
             this->lblGuardianAlternativePhone->Margin =
                 System::Windows::Forms::Padding(3, 0, 3, 0);
 
+            this->lblGuardianAlternativePhone->Padding =
+                System::Windows::Forms::Padding(0);
+
             this->lblGuardianAlternativePhone->AutoSize = false;
 
 
@@ -1652,7 +1673,10 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             this->txtGuardianAlternativePhone->Margin =
-                System::Windows::Forms::Padding(3, 5, 3, 5);
+                System::Windows::Forms::Padding(3, 6, 3, 6);
+
+            this->txtGuardianAlternativePhone->TextAlign =
+                HorizontalAlignment::Left;
 
             this->txtGuardianAlternativePhone->MinimumSize =
                 System::Drawing::Size(
@@ -1678,6 +1702,9 @@ namespace SchoolCore
             this->lblGuardianEmail->Margin =
                 System::Windows::Forms::Padding(3, 0, 3, 0);
 
+            this->lblGuardianEmail->Padding =
+                System::Windows::Forms::Padding(0);
+
             this->lblGuardianEmail->AutoSize = false;
 
 
@@ -1688,7 +1715,10 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             this->txtGuardianEmail->Margin =
-                System::Windows::Forms::Padding(3, 5, 3, 5);
+                System::Windows::Forms::Padding(3, 6, 3, 6);
+
+            this->txtGuardianEmail->TextAlign =
+                HorizontalAlignment::Left;
 
             this->txtGuardianEmail->MinimumSize =
                 System::Drawing::Size(
@@ -1714,6 +1744,9 @@ namespace SchoolCore
             this->lblGuardianAddress->Margin =
                 System::Windows::Forms::Padding(3, 0, 3, 0);
 
+            this->lblGuardianAddress->Padding =
+                System::Windows::Forms::Padding(0);
+
             this->lblGuardianAddress->AutoSize = false;
 
 
@@ -1724,7 +1757,10 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             this->txtGuardianAddress->Margin =
-                System::Windows::Forms::Padding(3, 5, 3, 5);
+                System::Windows::Forms::Padding(3, 6, 3, 6);
+
+            this->txtGuardianAddress->TextAlign =
+                HorizontalAlignment::Left;
 
             this->txtGuardianAddress->MinimumSize =
                 System::Drawing::Size(
@@ -1839,10 +1875,10 @@ namespace SchoolCore
                 L"Save Student";
 
             this->btnSave->Width =
-                110;
+                145;
 
             this->btnSave->Height =
-                38;
+                42;
 
             this->btnSave->Dock =
                 DockStyle::Right;
