@@ -267,7 +267,7 @@ namespace SchoolCore
                 FormStartPosition::CenterParent;
 
             FormBorderStyle =
-                FormBorderStyle::FixedDialog;
+                System::Windows::Forms::FormBorderStyle::FixedDialog;
 
             MaximizeBox = false;
             MinimizeBox = false;
@@ -286,7 +286,7 @@ namespace SchoolCore
             card->Dock = DockStyle::Fill;
             card->BackColor = Color::White;
             card->Padding =
-                Padding(38, 30, 38, 30);
+                System::Windows::Forms::Padding(38, 30, 38, 30);
 
             lblTitle = gcnew Label();
             lblTitle->Text =
@@ -339,7 +339,7 @@ namespace SchoolCore
             lblConfirmPassword->Dock = DockStyle::Top;
             lblConfirmPassword->Height = 28;
             lblConfirmPassword->Margin =
-                Padding(0, 12, 0, 0);
+                System::Windows::Forms::Padding(0, 12, 0, 0);
 
             txtConfirmPassword = gcnew TextBox();
             txtConfirmPassword->Dock = DockStyle::Top;
