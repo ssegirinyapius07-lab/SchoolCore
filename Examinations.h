@@ -19,7 +19,7 @@ namespace SchoolCore
     public ref class Examinations : public System::Windows::Forms::Form
     {
     public:
-                Examinations()
+                Examinations(void)
                 {
                     InitializeComponent();
         
@@ -38,7 +38,7 @@ namespace SchoolCore
 
 
     protected:
-        ~Examinations()
+        ~Examinations(void)
         {
             if (this->components)
             {
@@ -2588,7 +2588,7 @@ namespace SchoolCore
 
         #pragma region Windows Form Designer generated code
 
-void InitializeComponent()
+void InitializeComponent(void)
         {
             this->components = gcnew System::ComponentModel::Container();
             this->SuspendLayout();
