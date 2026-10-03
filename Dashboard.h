@@ -9,6 +9,7 @@
 #include "SubjectManagement.h"
 #include "Timetable.h"
 #include "Attendance.h"
+#include "Examinations.h"
 #include "AuthSession.h"
 
 namespace SchoolCore {
@@ -49,6 +50,12 @@ namespace SchoolCore {
 				gcnew System::EventHandler(
 					this,
 					&Dashboard::btnAttendance_Click
+				);
+
+			this->btnExaminations->Click +=
+				gcnew System::EventHandler(
+					this,
+					&Dashboard::btnExaminations_Click
 				);
 
 			ApplyRolePermissions();
@@ -197,6 +204,17 @@ namespace SchoolCore {
 		{
 			StudentManagement^ form =
 				gcnew StudentManagement();
+
+			form->ShowDialog(this);
+			ShowDashboardOverview();
+		}
+
+		System::Void btnExaminations_Click(
+			System::Object^ sender,
+			System::EventArgs^ e)
+		{
+			Examinations^ form =
+				gcnew Examinations();
 
 			form->ShowDialog(this);
 			ShowDashboardOverview();
