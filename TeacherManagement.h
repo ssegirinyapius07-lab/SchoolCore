@@ -1420,7 +1420,7 @@ namespace SchoolCore
                 profileForm->MinimizeBox = false;
                 profileForm->ShowInTaskbar = false;
                 profileForm->ClientSize =
-                    System::Drawing::Size(720, 620);
+                    System::Drawing::Size(720, 700);
 
                 profileForm->BackColor =
                     Color::FromArgb(
@@ -1790,9 +1790,6 @@ namespace SchoolCore
                 profileForm->Controls->Add(content);
                 profileForm->Controls->Add(footer);
                 profileForm->Controls->Add(profileHeader);
-
-                footer->BringToFront();
-                profileHeader->BringToFront();
 
                 profileForm->ShowDialog(this);
             }
