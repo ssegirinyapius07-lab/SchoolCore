@@ -10,13 +10,61 @@
 #include <stdexcept>
 
 using namespace System;
+using namespace System::ComponentModel;
 using namespace System::Drawing;
 using namespace System::Windows::Forms;
 
 namespace SchoolCore
 {
-    public ref class Attendance : public Form
+    public ref class Attendance : public System::Windows::Forms::Form
     {
+    public:
+                Attendance()
+                {
+                    InitializeComponent();
+        
+                    this->cmbAcademicYear->SelectedIndexChanged +=
+                        gcnew EventHandler(
+                            this,
+                            &Attendance::cmbAcademicYear_SelectedIndexChanged
+                        );
+        
+                    this->cmbClass->SelectedIndexChanged +=
+                        gcnew EventHandler(
+                            this,
+                            &Attendance::cmbClass_SelectedIndexChanged
+                        );
+        
+                    this->btnLoadStudents->Click +=
+                        gcnew EventHandler(
+                            this,
+                            &Attendance::btnLoadStudents_Click
+                        );
+        
+                    this->btnSaveAttendance->Click +=
+                        gcnew EventHandler(
+                            this,
+                            &Attendance::btnSaveAttendance_Click
+                        );
+        
+                    this->btnRefresh->Click +=
+                        gcnew EventHandler(
+                            this,
+                            &Attendance::btnRefresh_Click
+                        );
+        
+                    this->btnBack->Click +=
+                        gcnew EventHandler(
+                            this,
+                            &Attendance::btnBack_Click
+                        );
+        
+                    if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
+                    {
+                        LoadAcademicYears();
+                    }
+                }
+
     public:
         ref class FilterItem
         {
@@ -87,7 +135,9 @@ namespace SchoolCore
             return label;
         }
 
-        void InitializeComponent()
+        #pragma region Windows Form Designer generated code
+
+void InitializeComponent()
         {
             this->SuspendLayout();
 
@@ -403,6 +453,8 @@ namespace SchoolCore
 
             this->ResumeLayout(false);
         }
+
+#pragma endregion
 
         void LoadAcademicYears()
         {
@@ -1240,50 +1292,6 @@ namespace SchoolCore
         }
 
     public:
-        Attendance()
-        {
-            InitializeComponent();
 
-            this->cmbAcademicYear->SelectedIndexChanged +=
-                gcnew EventHandler(
-                    this,
-                    &Attendance::cmbAcademicYear_SelectedIndexChanged
-                );
-
-            this->cmbClass->SelectedIndexChanged +=
-                gcnew EventHandler(
-                    this,
-                    &Attendance::cmbClass_SelectedIndexChanged
-                );
-
-            this->btnLoadStudents->Click +=
-                gcnew EventHandler(
-                    this,
-                    &Attendance::btnLoadStudents_Click
-                );
-
-            this->btnSaveAttendance->Click +=
-                gcnew EventHandler(
-                    this,
-                    &Attendance::btnSaveAttendance_Click
-                );
-
-            this->btnRefresh->Click +=
-                gcnew EventHandler(
-                    this,
-                    &Attendance::btnRefresh_Click
-                );
-
-            this->btnBack->Click +=
-                gcnew EventHandler(
-                    this,
-                    &Attendance::btnBack_Click
-                );
-
-            if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
-            {
-                LoadAcademicYears();
-            }
-        }
     };
 }
