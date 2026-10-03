@@ -59,45 +59,57 @@ namespace SchoolCore
                     }
                 }
 
+        System::ComponentModel::Container^ components;
+
+
+    protected:
+        ~AcademicYearsTerms()
+        {
+            if (this->components)
+            {
+                delete this->components;
+            }
+        }
+
     private:
 
         // =========================================================
         // MAIN CONTROLS
         // =========================================================
 
-        TableLayoutPanel^ mainLayout;
+        System::Windows::Forms::TableLayoutPanel^ mainLayout;
 
-        Panel^ headerPanel;
+        System::Windows::Forms::Panel^ headerPanel;
         System::Windows::Forms::Label^ lblTitle;
         System::Windows::Forms::Label^ lblSubtitle;
 
-        GroupBox^ yearGroup;
-        GroupBox^ termGroup;
+        System::Windows::Forms::GroupBox^ yearGroup;
+        System::Windows::Forms::GroupBox^ termGroup;
 
         // Academic year
         System::Windows::Forms::Label^ lblYearName;
-        NumericUpDown^ numAcademicYear;
+        System::Windows::Forms::NumericUpDown^ numAcademicYear;
 
-        Button^ btnAddYear;
-        Button^ btnToggleYear;
+        System::Windows::Forms::Button^ btnAddYear;
+        System::Windows::Forms::Button^ btnToggleYear;
 
-        DataGridView^ yearsGrid;
+        System::Windows::Forms::DataGridView^ yearsGrid;
 
         // Terms
         System::Windows::Forms::Label^ lblSelectedYear;
         System::Windows::Forms::Label^ lblSelectedYearValue;
         System::Windows::Forms::Label^ lblTermNote;
 
-        Button^ btnToggleTerm;
+        System::Windows::Forms::Button^ btnToggleTerm;
 
-        DataGridView^ termsGrid;
+        System::Windows::Forms::DataGridView^ termsGrid;
 
         // Bottom
-        Panel^ buttonPanel;
+        System::Windows::Forms::Panel^ buttonPanel;
 
 
         void StyleProfessionalGrid(
-            DataGridView^ grid)
+            System::Windows::Forms::DataGridView^ grid)
         {
             grid->BackgroundColor =
                 Color::White;
@@ -155,6 +167,7 @@ namespace SchoolCore
 
 void InitializeComponent()
         {
+            this->components = gcnew System::ComponentModel::Container();
             this->SuspendLayout();
 
             // =====================================================
@@ -164,9 +177,9 @@ void InitializeComponent()
             this->Text = L"Academic Years & Terms";
 
             this->StartPosition =
-                FormStartPosition::CenterParent;
+                System::Windows::Forms::FormStartPosition::CenterParent;
             this->WindowState =
-                FormWindowState::Normal;
+                System::Windows::Forms::FormWindowState::Normal;
 
             this->ClientSize =
                 System::Drawing::Size(1000, 620);
@@ -175,13 +188,13 @@ void InitializeComponent()
                 System::Drawing::Size(900, 600);
 
             this->BackColor =
-                Color::WhiteSmoke;
+                System::Drawing::Color::WhiteSmoke;
 
             this->Font =
                 gcnew System::Drawing::Font(
                     L"Segoe UI",
                     9.5F,
-                    FontStyle::Regular
+                    System::Drawing::FontStyle::Regular
                 );
 
 
@@ -190,10 +203,10 @@ void InitializeComponent()
             // =====================================================
 
             this->mainLayout =
-                gcnew TableLayoutPanel();
+                gcnew System::Windows::Forms::TableLayoutPanel();
 
             this->mainLayout->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->mainLayout->AutoScroll = true;
 
@@ -204,33 +217,33 @@ void InitializeComponent()
                 System::Windows::Forms::Padding(18);
 
             this->mainLayout->BackColor =
-                Color::WhiteSmoke;
+                System::Drawing::Color::WhiteSmoke;
 
 
             this->mainLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     100.0F
                 )
             );
 
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     78.0F
                 )
             );
 
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     50.0F
                 )
             );
 
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     48.0F
                 )
             );
@@ -243,13 +256,13 @@ void InitializeComponent()
             // =====================================================
 
             this->headerPanel =
-                gcnew Panel();
+                gcnew System::Windows::Forms::Panel();
 
             this->headerPanel->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->headerPanel->BackColor =
-                Color::FromArgb(
+                System::Drawing::Color::FromArgb(
                     35, 47, 62
                 );
 
@@ -260,7 +273,7 @@ void InitializeComponent()
 
 
             this->lblTitle =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblTitle->AutoSize = true;
 
@@ -268,21 +281,21 @@ void InitializeComponent()
                 L"Academic Years & Terms";
 
             this->lblTitle->ForeColor =
-                Color::White;
+                System::Drawing::Color::White;
 
             this->lblTitle->Font =
                 gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
                     18.0F,
-                    FontStyle::Bold
+                    System::Drawing::FontStyle::Bold
                 );
 
             this->lblTitle->Location =
-                Point(18, 10);
+                System::Drawing::Point(18, 10);
 
 
             this->lblSubtitle =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblSubtitle->AutoSize = true;
 
@@ -290,7 +303,7 @@ void InitializeComponent()
                 L"Create academic years. Each year automatically contains Term 1, Term 2 and Term 3.";
 
             this->lblSubtitle->ForeColor =
-                Color::FromArgb(
+                System::Drawing::Color::FromArgb(
                     220, 225, 230
                 );
 
@@ -298,11 +311,11 @@ void InitializeComponent()
                 gcnew System::Drawing::Font(
                     L"Segoe UI",
                     9.5F,
-                    FontStyle::Regular
+                    System::Drawing::FontStyle::Regular
                 );
 
             this->lblSubtitle->Location =
-                Point(20, 45);
+                System::Drawing::Point(20, 45);
 
 
             this->headerPanel->Controls->Add(
@@ -319,19 +332,19 @@ void InitializeComponent()
             // =====================================================
 
             this->yearGroup =
-                gcnew GroupBox();
+                gcnew System::Windows::Forms::GroupBox();
 
             this->yearGroup->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->yearGroup->Text =
                 L"Academic Years";
 
             this->yearGroup->BackColor =
-                Color::White;
+                System::Drawing::Color::White;
 
             this->yearGroup->ForeColor =
-                Color::FromArgb(30, 41, 59);
+                System::Drawing::Color::FromArgb(30, 41, 59);
 
             this->yearGroup->Margin =
                 System::Windows::Forms::Padding(
@@ -345,15 +358,15 @@ void InitializeComponent()
                 gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
                     10.0F,
-                    FontStyle::Bold
+                    System::Drawing::FontStyle::Bold
                 );
 
 
-            TableLayoutPanel^ yearLayout =
-                gcnew TableLayoutPanel();
+            System::Windows::Forms::TableLayoutPanel^ yearLayout =
+                gcnew System::Windows::Forms::TableLayoutPanel();
 
             yearLayout->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             yearLayout->ColumnCount = 4;
             yearLayout->RowCount = 2;
@@ -364,28 +377,28 @@ void InitializeComponent()
 
             yearLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     120.0F
                 )
             );
 
             yearLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     55.0F
                 )
             );
 
             yearLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     160.0F
                 )
             );
 
             yearLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     45.0F
                 )
             );
@@ -393,14 +406,14 @@ void InitializeComponent()
 
             yearLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     45.0F
                 )
             );
 
             yearLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     100.0F
                 )
             );
@@ -409,25 +422,25 @@ void InitializeComponent()
             // Year label
 
             this->lblYearName =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblYearName->Text =
                 L"Academic Year";
 
             this->lblYearName->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblYearName->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
 
             // Year numeric input
 
             this->numAcademicYear =
-                gcnew NumericUpDown();
+                gcnew System::Windows::Forms::NumericUpDown();
 
             this->numAcademicYear->Dock =
-                DockStyle::Left;
+                System::Windows::Forms::DockStyle::Left;
 
             this->numAcademicYear->Width =
                 140;
@@ -454,34 +467,34 @@ void InitializeComponent()
             // Add Year
 
             this->btnAddYear =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->btnAddYear->Text =
                 L"+ Add Academic Year";
 
             this->btnAddYear->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
 
             // Toggle Year
 
             this->btnToggleYear =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->btnToggleYear->Text =
                 L"Activate / Deactivate";
 
             this->btnToggleYear->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
 
             // Years grid
 
             this->yearsGrid =
-                gcnew DataGridView();
+                gcnew System::Windows::Forms::DataGridView();
 
             this->yearsGrid->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->yearsGrid->AllowUserToAddRows =
                 false;
@@ -493,13 +506,13 @@ void InitializeComponent()
                 true;
 
             this->yearsGrid->SelectionMode =
-                DataGridViewSelectionMode::FullRowSelect;
+                System::Windows::Forms::DataGridViewSelectionMode::FullRowSelect;
 
             this->yearsGrid->MultiSelect =
                 false;
 
             this->yearsGrid->AutoSizeColumnsMode =
-                DataGridViewAutoSizeColumnsMode::Fill;
+                System::Windows::Forms::DataGridViewAutoSizeColumnsMode::Fill;
 
             this->yearsGrid->RowHeadersVisible =
                 false;
@@ -570,19 +583,19 @@ void InitializeComponent()
             // =====================================================
 
             this->termGroup =
-                gcnew GroupBox();
+                gcnew System::Windows::Forms::GroupBox();
 
             this->termGroup->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->termGroup->Text =
                 L"Terms";
 
             this->termGroup->BackColor =
-                Color::White;
+                System::Drawing::Color::White;
 
             this->termGroup->ForeColor =
-                Color::FromArgb(30, 41, 59);
+                System::Drawing::Color::FromArgb(30, 41, 59);
 
             this->termGroup->Margin =
                 System::Windows::Forms::Padding(
@@ -596,15 +609,15 @@ void InitializeComponent()
                 gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
                     10.0F,
-                    FontStyle::Bold
+                    System::Drawing::FontStyle::Bold
                 );
 
 
-            TableLayoutPanel^ termLayout =
-                gcnew TableLayoutPanel();
+            System::Windows::Forms::TableLayoutPanel^ termLayout =
+                gcnew System::Windows::Forms::TableLayoutPanel();
 
             termLayout->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             termLayout->ColumnCount = 4;
             termLayout->RowCount = 3;
@@ -615,28 +628,28 @@ void InitializeComponent()
 
             termLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     120.0F
                 )
             );
 
             termLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     55.0F
                 )
             );
 
             termLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     150.0F
                 )
             );
 
             termLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     45.0F
                 )
             );
@@ -644,21 +657,21 @@ void InitializeComponent()
 
             termLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     40.0F
                 )
             );
 
             termLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     35.0F
                 )
             );
 
             termLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     100.0F
                 )
             );
@@ -667,60 +680,60 @@ void InitializeComponent()
             // Selected year
 
             this->lblSelectedYear =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblSelectedYear->Text =
                 L"Selected Year";
 
             this->lblSelectedYear->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblSelectedYear->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
 
             this->lblSelectedYearValue =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblSelectedYearValue->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblSelectedYearValue->Text =
                 L"No academic year selected.";
 
             this->lblSelectedYearValue->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
             this->lblSelectedYearValue->ForeColor =
-                Color::DimGray;
+                System::Drawing::Color::DimGray;
 
 
             // Term note
 
             this->lblTermNote =
-                gcnew Label();
+                gcnew System::Windows::Forms::Label();
 
             this->lblTermNote->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblTermNote->Text =
                 L"Each academic year has exactly three terms.";
 
             this->lblTermNote->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
             this->lblTermNote->ForeColor =
-                Color::DimGray;
+                System::Drawing::Color::DimGray;
 
 
             this->btnToggleTerm =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->btnToggleTerm->Text =
                 L"Activate / Deactivate";
 
             this->btnToggleTerm->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->btnToggleTerm->Enabled =
                 false;
@@ -729,10 +742,10 @@ void InitializeComponent()
             // Terms grid
 
             this->termsGrid =
-                gcnew DataGridView();
+                gcnew System::Windows::Forms::DataGridView();
 
             this->termsGrid->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->termsGrid->AllowUserToAddRows =
                 false;
@@ -744,13 +757,13 @@ void InitializeComponent()
                 true;
 
             this->termsGrid->SelectionMode =
-                DataGridViewSelectionMode::FullRowSelect;
+                System::Windows::Forms::DataGridViewSelectionMode::FullRowSelect;
 
             this->termsGrid->MultiSelect =
                 false;
 
             this->termsGrid->AutoSizeColumnsMode =
-                DataGridViewAutoSizeColumnsMode::Fill;
+                System::Windows::Forms::DataGridViewAutoSizeColumnsMode::Fill;
 
             this->termsGrid->RowHeadersVisible =
                 false;
