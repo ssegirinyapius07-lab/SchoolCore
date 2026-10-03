@@ -496,7 +496,10 @@ namespace SchoolCore
                 gcnew TableLayoutPanel();
 
             studentLayout->Dock =
-                DockStyle::Fill;
+                DockStyle::Left;
+
+            studentLayout->Width =
+                720;
 
             studentLayout->ColumnCount = 4;
             studentLayout->RowCount = 4;
@@ -918,7 +921,10 @@ namespace SchoolCore
                 DockStyle::Right;
 
             this->photoPanel->Width =
-                135;
+                145;
+
+            this->photoPanel->BorderStyle =
+                BorderStyle::FixedSingle;
 
             this->photoPanel->Padding =
                 System::Windows::Forms::Padding(
@@ -939,8 +945,8 @@ namespace SchoolCore
 
             this->picStudentPhoto->Location =
                 System::Drawing::Point(
-                    15,
-                    4
+                    19,
+                    8
                 );
 
             this->picStudentPhoto->SizeMode =
@@ -971,8 +977,8 @@ namespace SchoolCore
 
             this->btnChoosePhoto->Location =
                 System::Drawing::Point(
-                    15,
-                    113
+                    19,
+                    121
                 );
 
             this->btnChoosePhoto->FlatStyle =
@@ -1009,8 +1015,8 @@ namespace SchoolCore
 
             this->lblPhotoHint->Location =
                 System::Drawing::Point(
-                    5,
-                    146
+                    9,
+                    154
                 );
 
             this->lblPhotoHint->TextAlign =
