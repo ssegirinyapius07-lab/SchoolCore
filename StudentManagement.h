@@ -358,6 +358,70 @@ namespace SchoolCore
 		}
 
 
+		// =========================================================
+		// STUDENT PHOTO HELPERS
+		// =========================================================
+
+		Image^ LoadStudentPhoto(
+			String^ storedPath)
+		{
+			if (
+				String::IsNullOrWhiteSpace(
+					storedPath
+				)
+			)
+			{
+				return nullptr;
+			}
+
+			String^ fullPath =
+				System::IO::Path::Combine(
+					Application::StartupPath,
+					storedPath
+				);
+
+			if (!System::IO::File::Exists(fullPath))
+			{
+				return nullptr;
+			}
+
+			try
+			{
+				Image^ loaded =
+					Image::FromFile(fullPath);
+
+				Image^ copy =
+					gcnew Bitmap(loaded);
+
+				delete loaded;
+
+				return copy;
+			}
+			catch (System::Exception^)
+			{
+				return nullptr;
+			}
+		}
+
+
+		void MakeCircularPictureBox(
+			PictureBox^ pictureBox)
+		{
+			System::Drawing::Drawing2D::GraphicsPath^ path =
+				gcnew System::Drawing::Drawing2D::GraphicsPath();
+
+			path->AddEllipse(
+				0,
+				0,
+				pictureBox->Width,
+				pictureBox->Height
+			);
+
+			pictureBox->Region =
+				gcnew System::Drawing::Region(path);
+		}
+
+
 		System::Void btnViewProfile_Click(
 			System::Object^ sender,
 			System::EventArgs^ e)
@@ -396,6 +460,7 @@ namespace SchoolCore
 						"s.gender, "
 						"s.admission_date, "
 						"s.home_address, "
+						"s.photo_path, "
 						"s.status, "
 						"c.class_name, "
 						"st.stream_name, "
@@ -538,6 +603,13 @@ namespace SchoolCore
 				String^ homeAddress =
 					gcnew String(result->getString("home_address").c_str());
 
+				String^ photoPath =
+					result->isNull("photo_path")
+						? L""
+						: gcnew String(
+							result->getString("photo_path").c_str()
+						);
+
 
 				// =====================================================
 				// PROFESSIONAL PROFILE DIALOG
@@ -560,7 +632,7 @@ namespace SchoolCore
 				profileHeader->Dock = DockStyle::Top;
 				profileHeader->Height = 125;
 				profileHeader->BackColor = Color::FromArgb(30, 41, 59);
-				profileHeader->Padding = System::Windows::Forms::Padding(24, 16, 24, 12);
+				profileHeader->Padding = System::Windows::Forms::Padding(120, 16, 24, 12);
 
 				Label^ nameLabel = gcnew Label();
 				nameLabel->Text = fullName;
@@ -594,9 +666,53 @@ namespace SchoolCore
 						: Color::FromArgb(254, 202, 202);
 				statusLabel->TextAlign = ContentAlignment::MiddleLeft;
 
+				PictureBox^ photoBox =
+					gcnew PictureBox();
+
+				photoBox->Size =
+					System::Drawing::Size(
+						82,
+						82
+					);
+
+				photoBox->Location =
+					System::Drawing::Point(
+						24,
+						20
+					);
+
+				photoBox->SizeMode =
+					PictureBoxSizeMode::Zoom;
+
+				photoBox->BackColor =
+					Color::FromArgb(
+						226,
+						232,
+						240
+					);
+
+				photoBox->BorderStyle =
+					BorderStyle::FixedSingle;
+
+				Image^ studentPhoto =
+					LoadStudentPhoto(
+						photoPath
+					);
+
+				if (studentPhoto != nullptr)
+				{
+					photoBox->Image =
+						studentPhoto;
+				}
+
+				MakeCircularPictureBox(
+					photoBox
+				);
+
 				profileHeader->Controls->Add(statusLabel);
 				profileHeader->Controls->Add(registrationLabel);
 				profileHeader->Controls->Add(nameLabel);
+				profileHeader->Controls->Add(photoBox);
 
 
 				// Scrollable content
