@@ -100,6 +100,7 @@ namespace SchoolCore
 
             this->mainLayout = gcnew TableLayoutPanel();
             this->mainLayout->Dock = DockStyle::Fill;
+            this->mainLayout->AutoScroll = true;
             this->mainLayout->ColumnCount = 1;
             this->mainLayout->RowCount = 4;
             this->mainLayout->Padding = System::Windows::Forms::Padding(14);
