@@ -782,15 +782,50 @@ namespace SchoolCore
                 FormStartPosition::CenterParent;
 
             this->editorForm->FormBorderStyle =
-                System::Windows::Forms::FormBorderStyle::FixedSingle;
+                System::Windows::Forms::FormBorderStyle::Sizable;
 
             this->editorForm->MaximizeBox = false;
             this->editorForm->MinimizeBox = false;
             this->editorForm->ShowInTaskbar = false;
+            this->editorForm->AutoScaleMode =
+                System::Windows::Forms::AutoScaleMode::Font;
+
+            int workWidth =
+                System::Windows::Forms::Screen::FromControl(this)
+                    ->WorkingArea.Width;
+
+            int workHeight =
+                System::Windows::Forms::Screen::FromControl(this)
+                    ->WorkingArea.Height;
+
+            if (this->WindowState != FormWindowState::Minimized)
+            {
+                workWidth = this->ClientSize.Width;
+                workHeight = this->ClientSize.Height;
+            }
+
+            int dialogWidth =
+                Math::Min(
+                    900,
+                    Math::Max(680, workWidth - 80)
+                );
+
+            int dialogHeight =
+                Math::Min(
+                    600,
+                    Math::Max(500, workHeight - 80)
+                );
+
+            this->editorForm->MinimumSize =
+                System::Drawing::Size(
+                    680,
+                    500
+                );
+
             this->editorForm->ClientSize =
                 System::Drawing::Size(
-                    900,
-                    600
+                    dialogWidth,
+                    dialogHeight
                 );
 
             System::Windows::Forms::TableLayoutPanel^ layout =
@@ -799,6 +834,7 @@ namespace SchoolCore
             layout->Dock = DockStyle::Fill;
             layout->Padding =
                 System::Windows::Forms::Padding(24);
+            layout->AutoScroll = true;
             layout->ColumnCount = 2;
             layout->RowCount = 8;
 
@@ -855,6 +891,42 @@ namespace SchoolCore
 
             this->editorSubsidiary->DropDownStyle =
                 ComboBoxStyle::DropDownList;
+
+            this->editorCodeBox->Dock =
+                DockStyle::Fill;
+
+            this->editorNameBox->Dock =
+                DockStyle::Fill;
+
+            this->editorPrincipal1->Dock =
+                DockStyle::Fill;
+
+            this->editorPrincipal2->Dock =
+                DockStyle::Fill;
+
+            this->editorPrincipal3->Dock =
+                DockStyle::Fill;
+
+            this->editorSubsidiary->Dock =
+                DockStyle::Fill;
+
+            this->editorCodeBox->Margin =
+                System::Windows::Forms::Padding(0, 5, 0, 5);
+
+            this->editorNameBox->Margin =
+                System::Windows::Forms::Padding(0, 5, 0, 5);
+
+            this->editorPrincipal1->Margin =
+                System::Windows::Forms::Padding(0, 5, 0, 5);
+
+            this->editorPrincipal2->Margin =
+                System::Windows::Forms::Padding(0, 5, 0, 5);
+
+            this->editorPrincipal3->Margin =
+                System::Windows::Forms::Padding(0, 5, 0, 5);
+
+            this->editorSubsidiary->Margin =
+                System::Windows::Forms::Padding(0, 5, 0, 5);
 
             LoadSubjects(
                 this->editorPrincipal1,
