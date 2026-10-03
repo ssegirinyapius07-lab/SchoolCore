@@ -289,9 +289,7 @@ namespace SchoolCore
             this->attendanceGrid->ColumnHeadersDefaultCellStyle->Font =
                 gcnew System::Drawing::Font(
                     L"Segoe UI Semibold", 9.5F, FontStyle::Bold);
-            this->attendanceGrid->DefaultCellStyle->Font =
-                gcnew System::Drawing.Font(
-                    L"Segoe UI", 9.5F, FontStyle::Regular);
+            
             this->attendanceGrid->DefaultCellStyle->SelectionBackColor =
                 Color::FromArgb(219, 234, 254);
             this->attendanceGrid->DefaultCellStyle->SelectionForeColor =
