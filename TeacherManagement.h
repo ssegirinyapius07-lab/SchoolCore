@@ -1435,7 +1435,7 @@ namespace SchoolCore
                     DockStyle::Top;
 
                 profileHeader->Height =
-                    125;
+                    140;
 
                 profileHeader->BackColor =
                     Color::FromArgb(
@@ -1461,7 +1461,7 @@ namespace SchoolCore
                     DockStyle::Top;
 
                 nameLabel->Height =
-                    42;
+                    46;
 
                 nameLabel->Font =
                     gcnew System::Drawing::Font(
@@ -1492,7 +1492,7 @@ namespace SchoolCore
                     DockStyle::Top;
 
                 staffLabel->Height =
-                    28;
+                    30;
 
                 staffLabel->Font =
                     gcnew System::Drawing::Font(
@@ -1515,7 +1515,7 @@ namespace SchoolCore
                     DockStyle::Top;
 
                 statusLabel->Height =
-                    28;
+                    30;
 
                 statusLabel->Font =
                     gcnew System::Drawing::Font(
