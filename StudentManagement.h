@@ -546,7 +546,8 @@ namespace SchoolCore
 
 				profileForm->Text = L"Student Profile";
 				profileForm->StartPosition = FormStartPosition::CenterParent;
-				profileForm->FormBorderStyle = FormBorderStyle::FixedDialog;
+				profileForm->FormBorderStyle =
+					System::Windows::Forms::FormBorderStyle::FixedSingle;
 				profileForm->MaximizeBox = false;
 				profileForm->MinimizeBox = false;
 				profileForm->ShowInTaskbar = false;
@@ -735,7 +736,8 @@ namespace SchoolCore
 				closeButton->ForeColor = Color::White;
 				closeButton->FlatStyle = FlatStyle::Flat;
 				closeButton->FlatAppearance->BorderSize = 0;
-				closeButton->DialogResult = DialogResult::Cancel;
+				closeButton->DialogResult =
+					System::Windows::Forms::DialogResult::Cancel;
 
 				footerPanel->Controls->Add(closeButton);
 
