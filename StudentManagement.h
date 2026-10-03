@@ -1,5 +1,6 @@
 #pragma once
 #include "StudentRegistration.h"
+#include "ThemeManager.h"
 #include "DbConnection.h"
 
 #include <msclr/marshal_cppstd.h>
@@ -20,7 +21,8 @@ namespace SchoolCore
 		{
 			InitializeComponent();
 
-			this->btnSearch->Click +=
+			                    ThemeManager::ApplyToForm(this);
+                    this->btnSearch->Click +=
 				gcnew System::EventHandler(
 					this,
 					&StudentManagement::btnSearch_Click
