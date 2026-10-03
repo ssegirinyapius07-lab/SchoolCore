@@ -1489,7 +1489,7 @@ namespace SchoolCore
                 guardianLayout->RowStyles->Add(
                     gcnew RowStyle(
                         SizeType::Absolute,
-                        44.0F
+                        40.0F
                     )
                 );
             }
@@ -1510,7 +1510,9 @@ namespace SchoolCore
                 ContentAlignment::MiddleLeft;
 
             this->lblGuardianName->Margin =
-                System::Windows::Forms::Padding(3, 4, 3, 4);
+                System::Windows::Forms::Padding(3, 3, 3, 3);
+
+            this->lblGuardianName->AutoSize = false;
 
 
             this->txtGuardianName =
@@ -1520,7 +1522,13 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             this->txtGuardianName->Margin =
-                System::Windows::Forms::Padding(3, 4, 3, 4);
+                System::Windows::Forms::Padding(3, 5, 3, 5);
+
+            this->txtGuardianName->MinimumSize =
+                System::Drawing::Size(
+                    0,
+                    28
+                );
 
 
             // Relationship
@@ -1538,7 +1546,9 @@ namespace SchoolCore
                 ContentAlignment::MiddleLeft;
 
             this->lblGuardianRelationship->Margin =
-                System::Windows::Forms::Padding(3, 4, 3, 4);
+                System::Windows::Forms::Padding(3, 3, 3, 3);
+
+            this->lblGuardianRelationship->AutoSize = false;
 
 
             this->txtGuardianRelationship =
@@ -1548,7 +1558,13 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             this->txtGuardianRelationship->Margin =
-                System::Windows::Forms::Padding(3, 4, 3, 4);
+                System::Windows::Forms::Padding(3, 5, 3, 5);
+
+            this->txtGuardianRelationship->MinimumSize =
+                System::Drawing::Size(
+                    0,
+                    28
+                );
 
 
             // Phone
@@ -1566,7 +1582,9 @@ namespace SchoolCore
                 ContentAlignment::MiddleLeft;
 
             this->lblGuardianPhone->Margin =
-                System::Windows::Forms::Padding(3, 4, 3, 4);
+                System::Windows::Forms::Padding(3, 3, 3, 3);
+
+            this->lblGuardianPhone->AutoSize = false;
 
 
             this->txtGuardianPhone =
@@ -1576,7 +1594,13 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             this->txtGuardianPhone->Margin =
-                System::Windows::Forms::Padding(3, 4, 3, 4);
+                System::Windows::Forms::Padding(3, 5, 3, 5);
+
+            this->txtGuardianPhone->MinimumSize =
+                System::Drawing::Size(
+                    0,
+                    28
+                );
 
 
             // Alternative Phone
@@ -1594,7 +1618,9 @@ namespace SchoolCore
                 ContentAlignment::MiddleLeft;
 
             this->lblGuardianAlternativePhone->Margin =
-                System::Windows::Forms::Padding(3, 4, 3, 4);
+                System::Windows::Forms::Padding(3, 3, 3, 3);
+
+            this->lblGuardianAlternativePhone->AutoSize = false;
 
 
             this->txtGuardianAlternativePhone =
@@ -1604,7 +1630,13 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             this->txtGuardianAlternativePhone->Margin =
-                System::Windows::Forms::Padding(3, 4, 3, 4);
+                System::Windows::Forms::Padding(3, 5, 3, 5);
+
+            this->txtGuardianAlternativePhone->MinimumSize =
+                System::Drawing::Size(
+                    0,
+                    28
+                );
 
 
             // Email
@@ -1622,7 +1654,9 @@ namespace SchoolCore
                 ContentAlignment::MiddleLeft;
 
             this->lblGuardianEmail->Margin =
-                System::Windows::Forms::Padding(3, 4, 3, 4);
+                System::Windows::Forms::Padding(3, 3, 3, 3);
+
+            this->lblGuardianEmail->AutoSize = false;
 
 
             this->txtGuardianEmail =
@@ -1632,7 +1666,13 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             this->txtGuardianEmail->Margin =
-                System::Windows::Forms::Padding(3, 4, 3, 4);
+                System::Windows::Forms::Padding(3, 5, 3, 5);
+
+            this->txtGuardianEmail->MinimumSize =
+                System::Drawing::Size(
+                    0,
+                    28
+                );
 
 
             // Address
@@ -1650,7 +1690,9 @@ namespace SchoolCore
                 ContentAlignment::MiddleLeft;
 
             this->lblGuardianAddress->Margin =
-                System::Windows::Forms::Padding(3, 4, 3, 4);
+                System::Windows::Forms::Padding(3, 3, 3, 3);
+
+            this->lblGuardianAddress->AutoSize = false;
 
 
             this->txtGuardianAddress =
@@ -1660,7 +1702,13 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             this->txtGuardianAddress->Margin =
-                System::Windows::Forms::Padding(3, 4, 3, 4);
+                System::Windows::Forms::Padding(3, 5, 3, 5);
+
+            this->txtGuardianAddress->MinimumSize =
+                System::Drawing::Size(
+                    0,
+                    28
+                );
 
 
             // ---------------------------------------------------------
@@ -1769,7 +1817,7 @@ namespace SchoolCore
                 L"Save Student";
 
             this->btnSave->Width =
-                145;
+                125;
 
             this->btnSave->Height =
                 42;
@@ -1796,7 +1844,7 @@ namespace SchoolCore
                 L"Back to Students";
 
             this->btnCancel->Width =
-                145;
+                125;
 
             this->btnCancel->Height =
                 42;
@@ -1811,7 +1859,7 @@ namespace SchoolCore
                 L"Clear";
 
             this->btnClear->Width =
-                105;
+                125;
 
             this->btnClear->Height =
                 42;
@@ -1820,10 +1868,10 @@ namespace SchoolCore
             // Put buttons next to each other
 
             this->btnCancel->Location =
-                Point(0, 12);
+                Point(270, 12);
 
             this->btnClear->Location =
-                Point(155, 12);
+                Point(135, 12);
 
 
             this->buttonPanel->Controls->Add(
