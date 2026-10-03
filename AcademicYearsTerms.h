@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DbConnection.h"
+#include "ThemeManager.h"
 
 #include <mariadb/conncpp.hpp>
 #include <msclr/marshal_cppstd.h>
@@ -23,6 +24,7 @@ namespace SchoolCore
                     InitializeComponent();
         
         
+                                        ThemeManager::ApplyToForm(this);
                     this->btnAddYear->Click +=
                         gcnew System::EventHandler(
                             this,
