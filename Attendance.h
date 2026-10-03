@@ -94,28 +94,28 @@ namespace SchoolCore
             this->Text = L"Attendance";
             this->StartPosition = FormStartPosition::CenterScreen;
             this->WindowState = FormWindowState::Normal;
-            this->ClientSize = System::Drawing::Size(1120, 650);
-            this->MinimumSize = System::Drawing::Size(1000, 600);
+            this->ClientSize = System::Drawing::Size(1000, 560);
+            this->MinimumSize = System::Drawing::Size(900, 520);
             this->BackColor = Color::FromArgb(248, 250, 252);
 
             this->mainLayout = gcnew TableLayoutPanel();
             this->mainLayout->Dock = DockStyle::Fill;
             this->mainLayout->ColumnCount = 1;
             this->mainLayout->RowCount = 4;
-            this->mainLayout->Padding = System::Windows::Forms::Padding(20);
+            this->mainLayout->Padding = System::Windows::Forms::Padding(14);
             this->mainLayout->BackColor = Color::FromArgb(248, 250, 252);
 
             this->mainLayout->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 82.0F)
+                gcnew RowStyle(SizeType::Absolute, 70.0F)
             );
             this->mainLayout->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 126.0F)
+                gcnew RowStyle(SizeType::Absolute, 112.0F)
             );
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(SizeType::Percent, 100.0F)
             );
             this->mainLayout->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 58.0F)
+                gcnew RowStyle(SizeType::Absolute, 54.0F)
             );
 
             // Header
@@ -345,11 +345,11 @@ namespace SchoolCore
             footerPanel->Dock = DockStyle::Fill;
             footerPanel->BackColor = Color::White;
             footerPanel->Padding =
-                System::Windows::Forms::Padding(12, 8, 12, 8);
+                System::Windows::Forms::Padding(10, 5, 10, 5);
 
             this->lblStudentCount = gcnew Label();
             this->lblStudentCount->Dock = DockStyle::Left;
-            this->lblStudentCount->Width = 250;
+            this->lblStudentCount->Width = 220;
             this->lblStudentCount->Text = L"Students: 0";
             this->lblStudentCount->ForeColor = Color::DimGray;
             this->lblStudentCount->TextAlign =
@@ -359,19 +359,23 @@ namespace SchoolCore
             actions->Dock = DockStyle::Right;
             actions->FlowDirection = FlowDirection::RightToLeft;
             actions->WrapContents = false;
-            actions->AutoSize = true;
+            actions->AutoSize = false;
+            actions->Width = 440;
 
             this->btnBack = gcnew Button();
             this->btnBack->Text = L"Back to Dashboard";
-            this->btnBack->Size = System::Drawing::Size(150, 40);
+            this->btnBack->Size = System::Drawing::Size(145, 38);
+            this->btnBack->Margin = System::Windows::Forms::Padding(4, 0, 0, 0);
 
             this->btnRefresh = gcnew Button();
             this->btnRefresh->Text = L"Clear / Refresh";
-            this->btnRefresh->Size = System::Drawing::Size(125, 40);
+            this->btnRefresh->Size = System::Drawing::Size(125, 38);
+            this->btnRefresh->Margin = System::Windows::Forms::Padding(4, 0, 0, 0);
 
             this->btnSaveAttendance = gcnew Button();
             this->btnSaveAttendance->Text = L"Save Attendance";
-            this->btnSaveAttendance->Size = System::Drawing::Size(145, 40);
+            this->btnSaveAttendance->Size = System::Drawing::Size(140, 38);
+            this->btnSaveAttendance->Margin = System::Windows::Forms::Padding(4, 0, 0, 0);
             this->btnSaveAttendance->BackColor =
                 Color::FromArgb(30, 41, 59);
             this->btnSaveAttendance->ForeColor = Color::White;
