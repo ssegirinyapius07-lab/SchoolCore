@@ -1741,7 +1741,9 @@ namespace SchoolCore
                         result->getInt(
                             "examination_paper_id"
                         ),
-                        gcnew String(
+                        result->isNull("subject_code")
+                        ? L""
+                        : gcnew String(
                             result->getString(
                                 "subject_code"
                             ).c_str()
