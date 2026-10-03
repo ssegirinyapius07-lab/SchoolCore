@@ -58,8 +58,11 @@ namespace SchoolCore {
 					&Dashboard::btnExaminations_Click
 				);
 
-			ApplyRolePermissions();
-			ShowDashboardOverview();
+			if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
+			{
+				ApplyRolePermissions();
+				ShowDashboardOverview();
+			}
 		}
 
 		void ApplyRolePermissions()
@@ -415,7 +418,7 @@ namespace SchoolCore {
 			layout->RowStyles->Add(gcnew RowStyle(SizeType::Absolute, 40.0F));   // footer
 
 			// Title
-			Label^ title = gcnew Label();
+			System::Windows::Forms::Label^ title = gcnew Label();
 			title->Text = L"Dashboard";
 			title->Dock = DockStyle::Fill;
 			title->Font = gcnew System::Drawing::Font(L"Segoe UI Semibold", 22.0F, FontStyle::Bold);
@@ -533,7 +536,7 @@ namespace SchoolCore {
 			);
 
 			// Footer
-			Label^ footer = gcnew Label();
+			System::Windows::Forms::Label^ footer = gcnew Label();
 			footer->Text = L"SchoolCore  |  Secondary School Management System";
 			footer->Dock = DockStyle::Fill;
 			footer->ForeColor = Color::DimGray;
@@ -560,14 +563,14 @@ namespace SchoolCore {
 			strip->Width = 6;
 			strip->BackColor = accent;
 
-			Label^ titleLabel = gcnew Label();
+			System::Windows::Forms::Label^ titleLabel = gcnew Label();
 			titleLabel->Text = title;
 			titleLabel->AutoSize = true;
 			titleLabel->Font = gcnew System::Drawing::Font(L"Segoe UI", 10.0F, FontStyle::Regular);
 			titleLabel->ForeColor = Color::DimGray;
 			titleLabel->Location = Point(24, 18);
 
-			Label^ valueLabel = gcnew Label();
+			System::Windows::Forms::Label^ valueLabel = gcnew Label();
 			valueLabel->Text = value;
 			valueLabel->AutoSize = true;
 			valueLabel->Font = gcnew System::Drawing::Font(L"Segoe UI Semibold", 26.0F, FontStyle::Bold);
@@ -607,7 +610,7 @@ namespace SchoolCore {
 					18
 				);
 
-			Label^ heading =
+			System::Windows::Forms::Label^ heading =
 				gcnew Label();
 
 			heading->Text =
@@ -720,7 +723,7 @@ namespace SchoolCore {
 							248, 250, 252
 						);
 
-					Label^ title =
+					System::Windows::Forms::Label^ title =
 						gcnew Label();
 
 					title->Text =
@@ -739,7 +742,7 @@ namespace SchoolCore {
 					title->AutoSize =
 						true;
 
-					Label^ detail =
+					System::Windows::Forms::Label^ detail =
 						gcnew Label();
 
 					detail->Text =
@@ -821,7 +824,7 @@ namespace SchoolCore {
 							248, 250, 252
 						);
 
-					Label^ title =
+					System::Windows::Forms::Label^ title =
 						gcnew Label();
 
 					title->Text =
@@ -840,7 +843,7 @@ namespace SchoolCore {
 					title->AutoSize =
 						true;
 
-					Label^ detail =
+					System::Windows::Forms::Label^ detail =
 						gcnew Label();
 
 					detail->Text =
@@ -865,7 +868,7 @@ namespace SchoolCore {
 
 			if (activityList->Controls->Count == 0)
 			{
-				Label^ empty =
+				System::Windows::Forms::Label^ empty =
 					gcnew Label();
 
 				empty->Text =
@@ -888,7 +891,7 @@ namespace SchoolCore {
 			}
 			catch (sql::SQLException&)
 			{
-				Label^ error =
+				System::Windows::Forms::Label^ error =
 					gcnew Label();
 
 				error->Text =
@@ -996,7 +999,7 @@ namespace SchoolCore {
 					18
 				);
 
-			Label^ heading =
+			System::Windows::Forms::Label^ heading =
 				gcnew Label();
 
 			heading->Text =
