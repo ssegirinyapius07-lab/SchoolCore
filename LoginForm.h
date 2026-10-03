@@ -10,14 +10,13 @@
 #include <string>
 #include <vector>
 
-using namespace System;
-using namespace System::Drawing;
-using namespace System::Security::Cryptography;
-using namespace System::Windows::Forms;
-using namespace System::Collections::Generic;
-
 namespace SchoolCore
 {
+    using namespace System;
+    using namespace System::Drawing;
+    using namespace System::Security::Cryptography;
+    using namespace System::Windows::Forms;
+    using namespace System::Collections::Generic;
     public ref class LoginForm : public Form
     {
     private:
