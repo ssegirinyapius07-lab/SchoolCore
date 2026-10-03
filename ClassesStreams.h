@@ -1770,11 +1770,15 @@ void InitializeComponent(void)
 
                 checkStmt->setString(
                     1,
-                    msclr::interop::marshal_as<std::string>(className)
+                    msclr::interop::marshal_as<std::string>(
+                        className
+                    )
                 );
 
                 std::unique_ptr<sql::ResultSet>
-                    checkResult(checkStmt->executeQuery());
+                    checkResult(
+                        checkStmt->executeQuery()
+                    );
 
                 if (checkResult->next())
                 {
@@ -1799,7 +1803,9 @@ void InitializeComponent(void)
 
                 insertStmt->setString(
                     1,
-                    msclr::interop::marshal_as<std::string>(className)
+                    msclr::interop::marshal_as<std::string>(
+                        className
+                    )
                 );
 
                 insertStmt->setInt(
@@ -1820,12 +1826,15 @@ void InitializeComponent(void)
                     MessageBoxIcon::Information
                 );
             }
-        // =========================================================
-        System::Void cmbAcademicLevel_SelectedIndexChanged(
-            System::Object^ sender,
-            System::EventArgs^ e)
-        {
-            LoadAvailableClassNames();
+            catch (sql::SQLException& ex)
+            {
+                MessageBox::Show(
+                    gcnew String(ex.what()),
+                    L"Database Error",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
         }
 
 
