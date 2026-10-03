@@ -25,6 +25,26 @@ CREATE TABLE IF NOT EXISTS subject_academic_levels (
 -- Master list of standard examination papers.
 -- paper_code stores the official code such as 112/1, 456/1, etc.
 -- Do not generate these codes automatically.
+-- Preserve existing class-subject assignments by assigning each subject
+-- to the academic level(s) where it is already being used.
+INSERT INTO subject_academic_levels (
+    subject_id,
+    academic_level_id,
+    status
+)
+SELECT DISTINCT
+    cs.subject_id,
+    c.academic_level_id,
+    'Active'
+FROM class_subjects cs
+INNER JOIN classes c
+    ON c.class_id = cs.class_id
+WHERE cs.status = 'Active'
+  AND c.academic_level_id IS NOT NULL
+ON DUPLICATE KEY UPDATE
+    status = 'Active';
+
+
 CREATE TABLE IF NOT EXISTS subject_papers (
     paper_id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
     subject_id INT(10) UNSIGNED NOT NULL,
