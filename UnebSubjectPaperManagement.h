@@ -80,8 +80,8 @@ namespace SchoolCore
             button->Height = 38;
             button->FlatStyle = FlatStyle::Flat;
             button->FlatAppearance->BorderSize = 0;
-            button->Margin = Padding(0, 0, 10, 0);
-            button->Font = gcnew Font(L"Segoe UI Semibold", 9.5F, FontStyle::Bold);
+            button->Margin = System::Windows::Forms::Padding(0, 0, 10, 0);
+            button->Font = gcnew System::Drawing::Font(L"Segoe UI Semibold", 9.5F, FontStyle::Bold);
         }
 
         Label^ FormLabel(String^ text)
@@ -90,7 +90,7 @@ namespace SchoolCore
             label->Text = text;
             label->Dock = DockStyle::Fill;
             label->TextAlign = ContentAlignment::MiddleLeft;
-            label->Font = gcnew Font(L"Segoe UI Semibold", 9.5F, FontStyle::Bold);
+            label->Font = gcnew System::Drawing::Font(L"Segoe UI Semibold", 9.5F, FontStyle::Bold);
             return label;
         }
 
@@ -98,7 +98,7 @@ namespace SchoolCore
         {
             layout->Controls->Add(FormLabel(labelText), 0, row);
             control->Dock = DockStyle::Fill;
-            control->Margin = Padding(0, 5, 0, 5);
+            control->Margin = System::Windows::Forms::Padding(0, 5, 0, 5);
             layout->Controls->Add(control, 1, row);
         }
 
@@ -347,8 +347,7 @@ namespace SchoolCore
             {
                 MessageBox::Show(
                     L"Select a curriculum and a subject.",
-                    L"Validation",
-                    MessageBoxButtons::OK,
+                    L"Validation",                    MessageBoxButtons::OK,
                     MessageBoxIcon::Warning
                 );
                 return;
@@ -477,17 +476,17 @@ namespace SchoolCore
                 ? L"Edit UNEB Subject"
                 : L"Register UNEB Subject";
             editorForm->StartPosition = FormStartPosition::CenterParent;
-            editorForm->FormBorderStyle = FormBorderStyle::Sizable;
+            editorForm->FormBorderStyle = System::Windows::Forms::FormBorderStyle::Sizable;
             editorForm->MaximizeBox = false;
             editorForm->MinimizeBox = false;
             editorForm->ShowInTaskbar = false;
             editorForm->MinimumSize = System::Drawing::Size(680, 430);
             editorForm->ClientSize = System::Drawing::Size(760, 500);
-            editorForm->AutoScaleMode = AutoScaleMode::Font;
+            editorForm->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 
             TableLayoutPanel^ layout = gcnew TableLayoutPanel();
             layout->Dock = DockStyle::Fill;
-            layout->Padding = Padding(24);
+            layout->Padding = System::Windows::Forms::Padding(24);
             layout->ColumnCount = 2;
             layout->RowCount = 5;
             layout->ColumnStyles->Add(gcnew ColumnStyle(SizeType::Absolute, 190.0F));
@@ -534,7 +533,7 @@ namespace SchoolCore
             buttons->Height = 54;
             buttons->FlowDirection = FlowDirection::RightToLeft;
             buttons->WrapContents = false;
-            buttons->Padding = Padding(0, 8, 0, 8);
+            buttons->Padding = System::Windows::Forms::Padding(0, 8, 0, 8);
 
             Button^ save = gcnew Button();
             save->Text = editSubjectMode ? L"Save Changes" : L"Register";
@@ -619,7 +618,7 @@ namespace SchoolCore
             papersForm = gcnew Form();
             papersForm->Text = L"UNEB Papers";
             papersForm->StartPosition = FormStartPosition::CenterParent;
-            papersForm->FormBorderStyle = FormBorderStyle::Sizable;
+            papersForm->FormBorderStyle = System::Windows::Forms::FormBorderStyle::Sizable;
             papersForm->MaximizeBox = true;
             papersForm->MinimizeBox = true;
             papersForm->ShowInTaskbar = false;
@@ -628,7 +627,7 @@ namespace SchoolCore
 
             TableLayoutPanel^ layout = gcnew TableLayoutPanel();
             layout->Dock = DockStyle::Fill;
-            layout->Padding = Padding(20);
+            layout->Padding = System::Windows::Forms::Padding(20);
             layout->ColumnCount = 1;
             layout->RowCount = 3;
             layout->RowStyles->Add(gcnew RowStyle(SizeType::Absolute, 62.0F));
@@ -638,7 +637,7 @@ namespace SchoolCore
             Label^ heading = gcnew Label();
             heading->Text = L"Papers for Selected UNEB Subject";
             heading->Dock = DockStyle::Fill;
-            heading->Font = gcnew Font(L"Segoe UI Semibold", 15.0F, FontStyle::Bold);
+            heading->Font = gcnew System::Drawing::Font(L"Segoe UI Semibold", 15.0F, FontStyle::Bold);
             heading->ForeColor = Color::FromArgb(30, 41, 59);
             heading->TextAlign = ContentAlignment::MiddleLeft;
             layout->Controls->Add(heading, 0, 0);
@@ -668,7 +667,7 @@ namespace SchoolCore
             buttons->Dock = DockStyle::Fill;
             buttons->FlowDirection = FlowDirection::RightToLeft;
             buttons->WrapContents = false;
-            buttons->Padding = Padding(0, 7, 0, 0);
+            buttons->Padding = System::Windows::Forms::Padding(0, 7, 0, 0);
 
             Button^ close = gcnew Button();
             close->Text = L"Close";
@@ -697,8 +696,7 @@ namespace SchoolCore
             edit->Click += gcnew EventHandler(this,
                 &UnebSubjectPaperManagement::EditPaperClicked);
             toggle->Click += gcnew EventHandler(this,
-                &UnebSubjectPaperManagement::TogglePaperClicked);
-            close->Click += gcnew EventHandler(this,
+                &UnebSubjectPaperManagement::TogglePaperClicked);            close->Click += gcnew EventHandler(this,
                 &UnebSubjectPaperManagement::ClosePapersClicked);
 
             papersForm->Controls->Add(layout);
@@ -777,7 +775,7 @@ namespace SchoolCore
             paperEditorForm = gcnew Form();
             paperEditorForm->Text = editPaperMode ? L"Edit UNEB Paper" : L"Register UNEB Paper";
             paperEditorForm->StartPosition = FormStartPosition::CenterParent;
-            paperEditorForm->FormBorderStyle = FormBorderStyle::Sizable;
+            paperEditorForm->FormBorderStyle = System::Windows::Forms::FormBorderStyle::Sizable;
             paperEditorForm->MaximizeBox = false;
             paperEditorForm->MinimizeBox = false;
             paperEditorForm->ShowInTaskbar = false;
@@ -786,7 +784,7 @@ namespace SchoolCore
 
             TableLayoutPanel^ layout = gcnew TableLayoutPanel();
             layout->Dock = DockStyle::Fill;
-            layout->Padding = Padding(24);
+            layout->Padding = System::Windows::Forms::Padding(24);
             layout->ColumnCount = 2;
             layout->RowCount = 5;
             layout->ColumnStyles->Add(gcnew ColumnStyle(SizeType::Absolute, 160.0F));
@@ -830,7 +828,7 @@ namespace SchoolCore
             buttons->Height = 54;
             buttons->FlowDirection = FlowDirection::RightToLeft;
             buttons->WrapContents = false;
-            buttons->Padding = Padding(0, 8, 0, 8);
+            buttons->Padding = System::Windows::Forms::Padding(0, 8, 0, 8);
 
             Button^ save = gcnew Button();
             save->Text = editPaperMode ? L"Save Changes" : L"Register Paper";
@@ -1047,8 +1045,7 @@ namespace SchoolCore
 
                 stmt->setInt(1, id);
                 stmt->executeUpdate();
-                LoadSubjectRecords();
-            }
+                LoadSubjectRecords();            }
             catch (sql::SQLException& ex)
             {
                 MessageBox::Show(gcnew String(ex.what()), L"Database Error",
@@ -1149,7 +1146,7 @@ namespace SchoolCore
 
         void InitializeComponent(void)
         {
-            components = gcnew Container();
+            components = gcnew System::ComponentModel::Container();
 
             mainLayout = gcnew TableLayoutPanel();
             headerPanel = gcnew Panel();
@@ -1175,7 +1172,7 @@ namespace SchoolCore
             mainLayout->Dock = DockStyle::Fill;
             mainLayout->ColumnCount = 1;
             mainLayout->RowCount = 4;
-            mainLayout->Padding = Padding(28, 20, 28, 14);
+            mainLayout->Padding = System::Windows::Forms::Padding(28, 20, 28, 14);
             mainLayout->RowStyles->Add(gcnew RowStyle(SizeType::Absolute, 78.0F));
             mainLayout->RowStyles->Add(gcnew RowStyle(SizeType::Absolute, 58.0F));
             mainLayout->RowStyles->Add(gcnew RowStyle(SizeType::Percent, 100.0F));
@@ -1185,13 +1182,13 @@ namespace SchoolCore
             titleLabel->Text = L"UNEB Subjects & Papers";
             titleLabel->Dock = DockStyle::Top;
             titleLabel->Height = 38;
-            titleLabel->Font = gcnew Font(L"Segoe UI Semibold", 21.0F, FontStyle::Bold);
+            titleLabel->Font = gcnew System::Drawing::Font(L"Segoe UI Semibold", 21.0F, FontStyle::Bold);
             titleLabel->ForeColor = Color::FromArgb(30, 41, 59);
 
             subtitleLabel->Text =
                 L"Maintain curriculum-specific UNEB subject codes and enter each official paper code separately.";
             subtitleLabel->Dock = DockStyle::Fill;
-            subtitleLabel->Font = gcnew Font(L"Segoe UI", 9.5F);
+            subtitleLabel->Font = gcnew System::Drawing::Font(L"Segoe UI", 9.5F);
             subtitleLabel->ForeColor = Color::DimGray;
 
             headerPanel->Controls->Add(subtitleLabel);
@@ -1201,7 +1198,7 @@ namespace SchoolCore
             actionPanel->FlowDirection = FlowDirection::LeftToRight;
             actionPanel->WrapContents = false;
             actionPanel->AutoScroll = true;
-            actionPanel->Padding = Padding(0, 8, 0, 0);
+            actionPanel->Padding = System::Windows::Forms::Padding(0, 8, 0, 0);
 
             ConfigureButton(btnNewSubject, L"New UNEB Subject", 150);
             ConfigureButton(btnEditSubject, L"Edit", 90);
@@ -1243,7 +1240,7 @@ namespace SchoolCore
             bottomPanel->Dock = DockStyle::Fill;
             bottomPanel->FlowDirection = FlowDirection::LeftToRight;
             bottomPanel->WrapContents = false;
-            bottomPanel->Padding = Padding(0, 5, 0, 0);
+            bottomPanel->Padding = System::Windows::Forms::Padding(0, 5, 0, 0);
 
             ConfigureButton(btnBack, L"Back to Dashboard", 150);
             bottomPanel->Controls->Add(btnBack);
