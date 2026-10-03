@@ -158,6 +158,9 @@
     <ClInclude Include="PromotionManagement.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="BulkPromotionManagement.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
     <ClInclude Include="TeacherManagement.h">
       <FileType>CppForm</FileType>
     </ClInclude>
