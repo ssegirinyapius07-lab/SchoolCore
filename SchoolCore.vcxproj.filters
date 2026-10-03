@@ -65,6 +65,9 @@
     <ClInclude Include="SubjectManagement.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PasswordChangeForm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="UsersRoles.h">
       <Filter>Header Files</Filter>
     </ClInclude>
