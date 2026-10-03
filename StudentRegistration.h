@@ -20,7 +20,7 @@ namespace SchoolCore
     public ref class StudentRegistration : public System::Windows::Forms::Form
     {
     public:
-                StudentRegistration()
+                StudentRegistration(void)
                 {
                     InitializeComponent();
                     WireEvents();
@@ -58,7 +58,7 @@ namespace SchoolCore
 
 
     protected:
-        ~StudentRegistration()
+        ~StudentRegistration(void)
         {
             if (this->components)
             {
@@ -340,7 +340,7 @@ namespace SchoolCore
 
         #pragma region Windows Form Designer generated code
 
-void InitializeComponent()
+void InitializeComponent(void)
         {
             this->components = gcnew System::ComponentModel::Container();
             this->SuspendLayout();
