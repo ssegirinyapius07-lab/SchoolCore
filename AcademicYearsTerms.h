@@ -124,7 +124,7 @@ namespace SchoolCore
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
                     SizeType::Percent,
-                    48.0F
+                    50.0F
                 )
             );
 
