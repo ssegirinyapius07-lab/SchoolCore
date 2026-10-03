@@ -1418,9 +1418,12 @@ void InitializeComponent(void)
                             "SELECT "
                             "c.class_id, "
                             "c.class_name, "
+                            "al.level_name, "
                             "c.status, "
                             "0 AS student_count "
                             "FROM classes c "
+                            "INNER JOIN academic_levels al "
+                            "ON al.academic_level_id = c.academic_level_id "
                             "ORDER BY c.class_name"
                         )
                     );
