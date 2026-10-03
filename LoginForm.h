@@ -334,7 +334,7 @@ namespace SchoolCore
                 );
 
                 this->DialogResult =
-                    DialogResult::OK;
+                    System::Windows::Forms::DialogResult::OK;
 
                 this->Close();
             }
@@ -366,7 +366,7 @@ namespace SchoolCore
             this->StartPosition =
                 FormStartPosition::CenterScreen;
             this->FormBorderStyle =
-                FormBorderStyle::FixedSingle;
+                System::Windows::Forms::FormBorderStyle::FixedSingle;
             this->MaximizeBox = false;
             this->MinimizeBox = false;
             this->ClientSize =
