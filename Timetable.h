@@ -10,13 +10,21 @@
 #include <stdexcept>
 
 using namespace System;
+using namespace System::ComponentModel;
 using namespace System::Drawing;
 using namespace System::Windows::Forms;
 
 namespace SchoolCore
 {
-    public ref class Timetable : public Form
+    public ref class Timetable : public System::Windows::Forms::Form
     {
+    public:
+                Timetable()
+                {
+                    InitializeComponent();
+                    LoadTimetable();
+                }
+
     private:
 
         ref class ComboItem
@@ -1062,7 +1070,9 @@ namespace SchoolCore
             this->Close();
         }
 
-        void InitializeComponent()
+        #pragma region Windows Form Designer generated code
+
+void InitializeComponent()
         {
             this->SuspendLayout();
 
@@ -1322,12 +1332,10 @@ namespace SchoolCore
             this->ResumeLayout(false);
         }
 
+#pragma endregion
+
     public:
 
-        Timetable()
-        {
-            InitializeComponent();
-            LoadTimetable();
-        }
+
     };
 }
