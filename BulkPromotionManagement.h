@@ -19,6 +19,25 @@ namespace SchoolCore
     public ref class BulkPromotionManagement : public Form
     {
     public:
+        BulkPromotionManagement()
+        {
+            this->studentIds = nullptr;
+
+            InitializeComponent();
+            ThemeManager::ApplyToForm(this);
+
+            if (System::ComponentModel::LicenseManager::UsageMode !=
+                System::ComponentModel::LicenseUsageMode::Designtime)
+            {
+                LoadSourceClasses();
+                LoadAcademicYears();
+                LoadTerms();
+                LoadTargetClasses();
+                LoadOptionalSubjects();
+                LoadStudents();
+            }
+        }
+
         BulkPromotionManagement(array<long long>^ studentIds)
         {
             this->studentIds = studentIds;
@@ -29,6 +48,7 @@ namespace SchoolCore
             if (System::ComponentModel::LicenseManager::UsageMode !=
                 System::ComponentModel::LicenseUsageMode::Designtime)
             {
+                LoadSourceClasses();
                 LoadAcademicYears();
                 LoadTerms();
                 LoadTargetClasses();
@@ -45,9 +65,11 @@ namespace SchoolCore
         Label^ lblSubtitle;
         Label^ lblCount;
 
+        ComboBox^ cmbSourceClass;
         ComboBox^ cmbAcademicYear;
         ComboBox^ cmbTerm;
         ComboBox^ cmbTargetClass;
+        Button^ btnLoadClass;
 
         DataGridView^ studentsGrid;
         DataGridViewComboBoxColumn^ streamColumn;
@@ -118,6 +140,24 @@ namespace SchoolCore
             periodPanel->WrapContents = false;
             periodPanel->Padding = System::Windows::Forms::Padding(0, 12, 0, 8);
 
+            Label^ sourceLabel = gcnew Label();
+            sourceLabel->Text = L"Current Class";
+            sourceLabel->AutoSize = true;
+            sourceLabel->Margin = System::Windows::Forms::Padding(0, 9, 8, 0);
+
+            this->cmbSourceClass = gcnew ComboBox();
+            this->cmbSourceClass->DropDownStyle = ComboBoxStyle::DropDownList;
+            this->cmbSourceClass->Width = 150;
+            this->cmbSourceClass->Margin = System::Windows::Forms::Padding(0, 4, 8, 0);
+
+            this->btnLoadClass = gcnew Button();
+            this->btnLoadClass->Text = L"Load Students";
+            this->btnLoadClass->Width = 115;
+            this->btnLoadClass->Height = 34;
+            this->btnLoadClass->Margin = System::Windows::Forms::Padding(0, 4, 16, 0);
+            this->btnLoadClass->Click +=
+                gcnew EventHandler(this, &BulkPromotionManagement::btnLoadClass_Click);
+
             Label^ yearLabel = gcnew Label();
             yearLabel->Text = L"Academic Year";
             yearLabel->AutoSize = true;
@@ -152,6 +192,9 @@ namespace SchoolCore
             this->cmbTargetClass->SelectedIndexChanged +=
                 gcnew EventHandler(this, &BulkPromotionManagement::cmbTargetClass_SelectedIndexChanged);
 
+            periodPanel->Controls->Add(sourceLabel);
+            periodPanel->Controls->Add(this->cmbSourceClass);
+            periodPanel->Controls->Add(this->btnLoadClass);
             periodPanel->Controls->Add(yearLabel);
             periodPanel->Controls->Add(this->cmbAcademicYear);
             periodPanel->Controls->Add(termLabel);
@@ -184,12 +227,21 @@ namespace SchoolCore
             this->studentsGrid->RowHeadersVisible = false;
             this->studentsGrid->SelectionMode = DataGridViewSelectionMode::FullRowSelect;
             this->studentsGrid->MultiSelect = false;
+            this->studentsGrid->ReadOnly = false;
             this->studentsGrid->RowTemplate->Height = 36;
             this->studentsGrid->ColumnHeadersHeight = 42;
             this->studentsGrid->EnableHeadersVisualStyles = false;
             this->studentsGrid->ColumnHeadersDefaultCellStyle->BackColor =
                 Color::FromArgb(30, 41, 59);
             this->studentsGrid->ColumnHeadersDefaultCellStyle->ForeColor = Color::White;
+
+            DataGridViewCheckBoxColumn^ selectColumn =
+                gcnew DataGridViewCheckBoxColumn();
+            selectColumn->Name = L"Select";
+            selectColumn->HeaderText = L"Select";
+            selectColumn->Width = 55;
+            selectColumn->ReadOnly = false;
+            this->studentsGrid->Columns->Add(selectColumn);
 
             DataGridViewTextBoxColumn^ idColumn =
                 gcnew DataGridViewTextBoxColumn();
@@ -213,6 +265,14 @@ namespace SchoolCore
             nameColumn->Width = 240;
             nameColumn->ReadOnly = true;
             this->studentsGrid->Columns->Add(nameColumn);
+
+            DataGridViewTextBoxColumn^ currentStreamColumn =
+                gcnew DataGridViewTextBoxColumn();
+            currentStreamColumn->Name = L"CurrentStream";
+            currentStreamColumn->HeaderText = L"Current Stream";
+            currentStreamColumn->Width = 115;
+            currentStreamColumn->ReadOnly = true;
+            this->studentsGrid->Columns->Add(currentStreamColumn);
 
             DataGridViewTextBoxColumn^ currentClassColumn =
                 gcnew DataGridViewTextBoxColumn();
@@ -261,7 +321,7 @@ namespace SchoolCore
                 System::Windows::Forms::DialogResult::Cancel;
 
             this->btnPromote = gcnew Button();
-            this->btnPromote->Text = L"Promote Selected Students";
+            this->btnPromote->Text = L"Promote Checked Students";
             this->btnPromote->Width = 220;
             this->btnPromote->Height = 40;
             this->btnPromote->Margin = System::Windows::Forms::Padding(8, 0, 0, 0);
@@ -281,7 +341,67 @@ namespace SchoolCore
             this->Controls->Add(this->mainLayout);
         }
 
-        void LoadAcademicYears()
+        void LoadSourceClasses()
+        {
+            try
+            {
+                auto con = DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT c.class_id, c.class_name "
+                        "FROM classes c "
+                        "INNER JOIN academic_levels al "
+                        "ON al.academic_level_id = c.academic_level_id "
+                        "WHERE c.status = 'Active' "
+                        "AND al.level_code = 'O_LEVEL' "
+                        "ORDER BY c.class_id"
+                    )
+                );
+
+                std::unique_ptr<sql::ResultSet> result(stmt->executeQuery());
+
+                this->cmbSourceClass->Items->Clear();
+
+                while (result->next())
+                {
+                    this->cmbSourceClass->Items->Add(
+                        gcnew ComboItem(
+                            result->getInt("class_id"),
+                            gcnew String(result->getString("class_name").c_str())
+                        )
+                    );
+                }
+
+                for (int i = 0; i < this->cmbSourceClass->Items->Count; ++i)
+                {
+                    ComboItem^ item =
+                        safe_cast<ComboItem^>(this->cmbSourceClass->Items[i]);
+
+                    if (item->Text->Equals(
+                        L"Senior 2",
+                        StringComparison::OrdinalIgnoreCase))
+                    {
+                        this->cmbSourceClass->SelectedIndex = i;
+                        return;
+                    }
+                }
+
+                if (this->cmbSourceClass->Items->Count > 0)
+                {
+                    this->cmbSourceClass->SelectedIndex = 0;
+                }
+            }
+            catch (sql::SQLException& ex)
+            {
+                MessageBox::Show(
+                    gcnew String(ex.what()),
+                    L"Database Error",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error);
+            }
+        }
+
         {
             try
             {
@@ -536,24 +656,31 @@ namespace SchoolCore
         {
             this->studentsGrid->Rows->Clear();
 
-            if (this->studentIds == nullptr || this->studentIds->Length == 0)
+            ComboItem^ sourceItem =
+                this->cmbSourceClass->SelectedIndex >= 0
+                    ? safe_cast<ComboItem^>(this->cmbSourceClass->SelectedItem)
+                    : nullptr;
+
+            if (sourceItem == nullptr)
             {
-                this->lblCount->Text = L"No students selected.";
+                this->lblCount->Text = L"Select a current class to load students.";
                 return;
             }
 
             try
             {
                 auto con = DbConnection::GetConnection();
+
                 std::unique_ptr<sql::PreparedStatement> stmt(
                     con->prepareStatement(
                         "SELECT "
                         "s.student_id, "
                         "s.registration_number, "
                         "CONCAT_WS(' ', s.first_name, s.middle_name, s.last_name) AS full_name, "
-                        "c.class_name "
+                        "c.class_name, "
+                        "st.stream_name "
                         "FROM students s "
-                        "LEFT JOIN enrollments e "
+                        "INNER JOIN enrollments e "
                         "ON e.enrollment_id = ("
                             "SELECT e2.enrollment_id "
                             "FROM enrollments e2 "
@@ -562,32 +689,65 @@ namespace SchoolCore
                             "ORDER BY e2.enrollment_date DESC, e2.enrollment_id DESC "
                             "LIMIT 1"
                         ") "
-                        "LEFT JOIN classes c ON c.class_id = e.class_id "
-                        "WHERE s.student_id = ? "
-                        "LIMIT 1"));
+                        "INNER JOIN classes c ON c.class_id = e.class_id "
+                        "LEFT JOIN streams st ON st.stream_id = e.stream_id "
+                        "WHERE e.class_id = ? "
+                        "AND e.status = 'Active' "
+                        "ORDER BY s.last_name, s.first_name, s.student_id"
+                    )
+                );
 
-                for each (long long id in this->studentIds)
+                stmt->setInt(1, sourceItem->Id);
+
+                std::unique_ptr<sql::ResultSet> result(stmt->executeQuery());
+
+                while (result->next())
                 {
-                    stmt->clearParameters();
-                    stmt->setInt64(1, id);
+                    bool preselected = false;
 
-                    std::unique_ptr<sql::ResultSet> result(stmt->executeQuery());
-
-                    if (result->next())
+                    if (this->studentIds != nullptr)
                     {
-                        this->studentsGrid->Rows->Add(
-                            result->getInt64("student_id"),
-                            gcnew String(result->getString("registration_number").c_str()),
-                            gcnew String(result->getString("full_name").c_str()),
-                            result->isNull("class_name")
-                                ? L"Not assigned"
-                                : gcnew String(result->getString("class_name").c_str()));
+                        long long currentId =
+                            result->getInt64("student_id");
+
+                        for each (long long selectedId in this->studentIds)
+                        {
+                            if (selectedId == currentId)
+                            {
+                                preselected = true;
+                                break;
+                            }
+                        }
                     }
+
+                    this->studentsGrid->Rows->Add(
+                        preselected,
+                        result->getInt64("student_id"),
+                        gcnew String(result->getString("registration_number").c_str()),
+                        gcnew String(result->getString("full_name").c_str()),
+                        result->isNull("class_name")
+                            ? L"Not assigned"
+                            : gcnew String(result->getString("class_name").c_str()),
+                        result->isNull("stream_name")
+                            ? L"Not assigned"
+                            : gcnew String(result->getString("stream_name").c_str())
+                    );
                 }
 
                 this->lblCount->Text =
-                    L"Students selected: " +
-                    this->studentsGrid->Rows->Count.ToString();
+                    L"Students in " +
+                    sourceItem->Text +
+                    L": " +
+                    this->studentsGrid->Rows->Count.ToString() +
+                    L"    |    Tick the students to promote";
+
+                if (this->studentsGrid->Rows->Count == 0)
+                {
+                    this->lblCount->Text =
+                        L"No active students were found in " +
+                        sourceItem->Text +
+                        L".";
+                }
             }
             catch (sql::SQLException& ex)
             {
@@ -650,6 +810,14 @@ namespace SchoolCore
             }
         }
 
+        System::Void btnLoadClass_Click(
+            Object^ sender,
+            EventArgs^ e)
+        {
+            this->studentIds = nullptr;
+            LoadStudents();
+        }
+
         System::Void cmbAcademicYear_SelectedIndexChanged(
             Object^ sender,
             EventArgs^ e)
@@ -668,10 +836,21 @@ namespace SchoolCore
             Object^ sender,
             EventArgs^ e)
         {
-            if (this->studentsGrid->Rows->Count == 0)
+            int selectedCount = 0;
+
+            for each (DataGridViewRow^ row in this->studentsGrid->Rows)
+            {
+                if (row->Cells["Select"]->Value != nullptr &&
+                    Convert::ToBoolean(row->Cells["Select"]->Value))
+                {
+                    selectedCount++;
+                }
+            }
+
+            if (selectedCount == 0)
             {
                 MessageBox::Show(
-                    L"There are no students to promote.",
+                    L"Tick at least one student to promote.",
                     L"Bulk Promotion",
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Warning);
@@ -705,6 +884,24 @@ namespace SchoolCore
                 return;
             }
 
+            ComboItem^ sourceItem =
+                this->cmbSourceClass->SelectedIndex >= 0
+                    ? safe_cast<ComboItem^>(this->cmbSourceClass->SelectedItem)
+                    : nullptr;
+
+            if (sourceItem == nullptr ||
+                !sourceItem->Text->Equals(
+                    L"Senior 2",
+                    StringComparison::OrdinalIgnoreCase))
+            {
+                MessageBox::Show(
+                    L"Bulk promotion currently handles Senior 2 to Senior 3 only. Select Senior 2 as the current class.",
+                    L"Bulk Promotion",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Information);
+                return;
+            }
+
             if (!classItem->Text->Equals(
                     L"Senior 3",
                     StringComparison::OrdinalIgnoreCase))
@@ -719,6 +916,12 @@ namespace SchoolCore
 
             for each (DataGridViewRow^ row in this->studentsGrid->Rows)
             {
+                if (row->Cells["Select"]->Value == nullptr ||
+                    !Convert::ToBoolean(row->Cells["Select"]->Value))
+                {
+                    continue;
+                }
+
                 ComboItem^ streamItem =
                     row->Cells["TargetStream"]->Value == nullptr
                         ? nullptr
@@ -762,7 +965,7 @@ namespace SchoolCore
 
             String^ confirmation =
                 L"You are about to promote " +
-                this->studentsGrid->Rows->Count.ToString() +
+                selectedCount.ToString() +
                 L" student(s) from Senior 2 to Senior 3.\n\n" +
                 L"Each student's selected stream and two optional subjects will be recorded.\n\n" +
                 L"Continue?";
@@ -785,6 +988,12 @@ namespace SchoolCore
 
                 for each (DataGridViewRow^ row in this->studentsGrid->Rows)
                 {
+                    if (row->Cells["Select"]->Value == nullptr ||
+                        !Convert::ToBoolean(row->Cells["Select"]->Value))
+                    {
+                        continue;
+                    }
+
                     long long studentId =
                         Convert::ToInt64(row->Cells["StudentId"]->Value);
 
