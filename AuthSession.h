@@ -12,8 +12,8 @@ namespace SchoolCore
         static String^ Username = L"";
         static String^ FullName = L"";
         static String^ RoleName = L"";
-        static System::Collections::Generic::HashSet<String^>^ Permissions =
-            gcnew System::Collections::Generic::HashSet<String^>();
+        static System::Collections::Generic::List<String^>^ Permissions =
+            gcnew System::Collections::Generic::List<String^>();
 
         static void Start(
             int userId,
@@ -46,9 +46,23 @@ namespace SchoolCore
 
         static bool HasPermission(String^ permission)
         {
-            return
-                !String::IsNullOrWhiteSpace(permission) &&
-                Permissions->Contains(permission);
+            if (String::IsNullOrWhiteSpace(permission))
+            {
+                return false;
+            }
+
+            for each (String^ item in Permissions)
+            {
+                if (String::Equals(
+                        item,
+                        permission,
+                        StringComparison::OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         static void Clear()
