@@ -3476,15 +3476,15 @@ namespace SchoolCore
         {
             InitializeComponent();
 
-            this->loadingFilters = true;
-
-            LoadAcademicYears();
-            LoadClasses();
-            LoadTerms();
-
-            this->loadingFilters = false;
-
-            LoadExaminations();
+            if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
+            {
+                this->loadingFilters = true;
+                LoadAcademicYears();
+                LoadClasses();
+                LoadTerms();
+                this->loadingFilters = false;
+                LoadExaminations();
+            }
         }
     };
 }
