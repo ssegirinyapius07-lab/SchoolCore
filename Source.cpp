@@ -1,4 +1,5 @@
 #include "LoginForm.h"
+#include "ThemeManager.h"
 #include "Dashboard.h"
 
 using namespace System;
@@ -9,6 +10,7 @@ int main()
 {
 	Application::EnableVisualStyles();
 	Application::SetCompatibleTextRenderingDefault(false);
+	SchoolCore::ThemeManager::Load();
 
 	SchoolCore::LoginForm^ login =
 		gcnew SchoolCore::LoginForm();
