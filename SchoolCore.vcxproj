@@ -155,6 +155,12 @@
     <ClInclude Include="SubjectManagement.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="Timetable.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
+    <ClInclude Include="Attendance.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Dashboard.resx">
