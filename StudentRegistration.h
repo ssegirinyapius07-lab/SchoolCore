@@ -300,9 +300,9 @@ namespace SchoolCore
 
             this->Text = L"Student Registration";
             this->StartPosition = FormStartPosition::CenterParent;
-            this->WindowState = FormWindowState::Maximized;
-            this->ClientSize = System::Drawing::Size(1000, 720);
-            this->MinimumSize = System::Drawing::Size(850, 600);
+            this->WindowState = FormWindowState::Normal;
+            this->ClientSize = System::Drawing::Size(1100, 760);
+            this->MinimumSize = System::Drawing::Size(900, 650);
 
             this->BackColor = Color::WhiteSmoke;
 
@@ -324,6 +324,12 @@ namespace SchoolCore
             this->scrollPanel->BackColor = Color::WhiteSmoke;
             this->scrollPanel->Padding =
                 System::Windows::Forms::Padding(20);
+
+            this->scrollPanel->AutoScrollMinSize =
+                System::Drawing::Size(
+                    0,
+                    850
+                );
 
 
             // =========================================================
@@ -596,7 +602,7 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             this->txtFirstName->Margin =
-                System::Windows::Forms::Padding(3);
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
 
             // ---------------------------------------------------------
@@ -623,7 +629,7 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             this->txtLastName->Margin =
-                System::Windows::Forms::Padding(3);
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
 
             // ---------------------------------------------------------
@@ -650,7 +656,7 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             this->txtMiddleName->Margin =
-                System::Windows::Forms::Padding(3);
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
 
             // ---------------------------------------------------------
@@ -680,7 +686,7 @@ namespace SchoolCore
                 ComboBoxStyle::DropDownList;
 
             this->cmbGender->Margin =
-                System::Windows::Forms::Padding(3);
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
             this->cmbGender->Items->Add(
                 L"Select Gender"
@@ -718,7 +724,7 @@ namespace SchoolCore
                 gcnew DateTimePicker();
 
             this->dtpDob->Dock =
-                DockStyle::None;
+                DockStyle::Fill;
 
             this->dtpDob->AutoSize = false;
 
@@ -738,10 +744,11 @@ namespace SchoolCore
                 DateTime::Today.AddYears(-15);
 
             this->dtpDob->Margin =
-                System::Windows::Forms::Padding(3);
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
             this->dtpDob->Anchor =
-                AnchorStyles::Left;
+                AnchorStyles::Left |
+                AnchorStyles::Right;
 
 
             // ---------------------------------------------------------
@@ -765,7 +772,7 @@ namespace SchoolCore
                 gcnew DateTimePicker();
 
             this->dtpAdmissionDate->Dock =
-                DockStyle::None;
+                DockStyle::Fill;
 
             this->dtpAdmissionDate->AutoSize = false;
 
@@ -785,10 +792,11 @@ namespace SchoolCore
                 DateTime::Today;
 
             this->dtpAdmissionDate->Margin =
-                System::Windows::Forms::Padding(3);
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
             this->dtpAdmissionDate->Anchor =
-                AnchorStyles::Left;
+                AnchorStyles::Left |
+                AnchorStyles::Right;
 
 
             // ---------------------------------------------------------
@@ -821,7 +829,7 @@ namespace SchoolCore
                 ScrollBars::Vertical;
 
             this->txtHomeAddress->Margin =
-                System::Windows::Forms::Padding(3);
+                System::Windows::Forms::Padding(3, 5, 3, 5);
 
 
             // ---------------------------------------------------------
@@ -1203,7 +1211,7 @@ namespace SchoolCore
                 ComboBoxStyle::DropDownList;
 
             this->cmbAcademicYear->Margin =
-                System::Windows::Forms::Padding(3);
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
 
             // Term
@@ -1234,7 +1242,7 @@ namespace SchoolCore
                 false;
 
             this->cmbTerm->Margin =
-                System::Windows::Forms::Padding(3);
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
 
             // Class
@@ -1262,7 +1270,7 @@ namespace SchoolCore
                 ComboBoxStyle::DropDownList;
 
             this->cmbClass->Margin =
-                System::Windows::Forms::Padding(3);
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
 
             // Stream
@@ -1293,7 +1301,7 @@ namespace SchoolCore
                 false;
 
             this->cmbStream->Margin =
-                System::Windows::Forms::Padding(3);
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
 
             // Stream Info
@@ -1487,7 +1495,7 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             this->txtGuardianName->Margin =
-                System::Windows::Forms::Padding(3);
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
 
             // Relationship
@@ -1512,7 +1520,7 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             this->txtGuardianRelationship->Margin =
-                System::Windows::Forms::Padding(3);
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
 
             // Phone
@@ -1537,7 +1545,7 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             this->txtGuardianPhone->Margin =
-                System::Windows::Forms::Padding(3);
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
 
             // Alternative Phone
@@ -1562,7 +1570,7 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             this->txtGuardianAlternativePhone->Margin =
-                System::Windows::Forms::Padding(3);
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
 
             // Email
@@ -1587,7 +1595,7 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             this->txtGuardianEmail->Margin =
-                System::Windows::Forms::Padding(3);
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
 
             // Address
@@ -1612,7 +1620,7 @@ namespace SchoolCore
                 DockStyle::Fill;
 
             this->txtGuardianAddress->Margin =
-                System::Windows::Forms::Padding(3);
+                System::Windows::Forms::Padding(3, 4, 3, 4);
 
 
             // ---------------------------------------------------------
@@ -1700,9 +1708,9 @@ namespace SchoolCore
             this->buttonPanel->Padding =
                 System::Windows::Forms::Padding(
                     0,
-                    8,
+                    10,
                     0,
-                    8
+                    10
                 );
 
             this->buttonPanel->MinimumSize =
@@ -1772,10 +1780,10 @@ namespace SchoolCore
             // Put buttons next to each other
 
             this->btnCancel->Location =
-                Point(0, 5);
+                Point(0, 14);
 
             this->btnClear->Location =
-                Point(155, 5);
+                Point(155, 14);
 
 
             this->buttonPanel->Controls->Add(
@@ -1833,6 +1841,12 @@ namespace SchoolCore
                     0,
                     0,
                     20
+                );
+
+            this->mainLayout->MinimumSize =
+                System::Drawing::Size(
+                    0,
+                    850
                 );
 
             this->scrollPanel->Controls->Add(
