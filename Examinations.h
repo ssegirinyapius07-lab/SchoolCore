@@ -1883,6 +1883,7 @@ namespace SchoolCore
                 this->paperCombo->Items->Add(
                     L"Select paper"
                 );
+
                 this->paperCombo->SelectedIndex = 0;
                 this->paperCombo->Enabled = false;
                 return;
@@ -1900,18 +1901,30 @@ namespace SchoolCore
                         "sp.paper_code, "
                         "sp.paper_name "
                         "FROM examinations e "
+                        "INNER JOIN academic_years ay "
+                        "ON ay.academic_year_id = e.academic_year_id "
                         "INNER JOIN classes c "
                         "ON c.class_id = e.class_id "
                         "INNER JOIN subject_papers sp "
-                        "ON sp.academic_level_id = c.academic_level_id "
-                        "AND sp.subject_id = ? "
-                        "WHERE e.examination_id = ? "
+                        "ON sp.subject_id = ? "
+                        "AND sp.academic_level_id = c.academic_level_id "
                         "AND sp.status = 'Active' "
+                        "LEFT JOIN curriculum_subjects cs "
+                        "ON cs.curriculum_subject_id = sp.curriculum_subject_id "
+                        "WHERE e.examination_id = ? "
+                        "AND ("
+                        "ay.curriculum_id IS NULL "
+                        "OR cs.curriculum_id = ay.curriculum_id"
+                        ") "
                         "ORDER BY sp.paper_code ASC"
                     )
                 );
 
-                stmt->setInt(1, subject->Id);
+                stmt->setInt(
+                    1,
+                    subject->Id
+                );
+
                 stmt->setInt(
                     2,
                     this->subjectAssignmentExaminationId
