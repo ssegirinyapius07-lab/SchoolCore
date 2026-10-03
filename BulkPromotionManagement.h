@@ -761,7 +761,7 @@ namespace SchoolCore
                     L"Confirm Bulk Promotion",
                     MessageBoxButtons::YesNo,
                     MessageBoxIcon::Question) !=
-                DialogResult::Yes)
+                System::Windows::Forms::DialogResult::Yes)
             {
                 return;
             }
