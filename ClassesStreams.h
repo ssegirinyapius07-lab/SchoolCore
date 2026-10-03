@@ -9,13 +9,77 @@
 #include <string>
 
 using namespace System;
+using namespace System::ComponentModel;
 using namespace System::Drawing;
 using namespace System::Windows::Forms;
 
 namespace SchoolCore
 {
-    public ref class ClassesStreams : public Form
+    public ref class ClassesStreams : public System::Windows::Forms::Form
     {
+    public:
+                ClassesStreams()
+                {
+                    InitializeComponent();
+        
+                    this->btnAddClass->Click +=
+                        gcnew System::EventHandler(
+                            this,
+                            &ClassesStreams::btnAddClass_Click
+                        );
+        
+                    this->btnToggleClass->Click +=
+                        gcnew System::EventHandler(
+                            this,
+                            &ClassesStreams::btnToggleClass_Click
+                        );
+        
+                    this->classesGrid->SelectionChanged +=
+                        gcnew System::EventHandler(
+                            this,
+                            &ClassesStreams::classesGrid_SelectionChanged
+                        );
+        
+                    this->cmbAcademicYear->SelectedIndexChanged +=
+                        gcnew System::EventHandler(
+                            this,
+                            &ClassesStreams::cmbAcademicYear_SelectedIndexChanged
+                        );
+        
+                    this->cmbTerm->SelectedIndexChanged +=
+                        gcnew System::EventHandler(
+                            this,
+                            &ClassesStreams::cmbTerm_SelectedIndexChanged
+                        );
+        
+                    this->btnAddStream->Click +=
+                        gcnew System::EventHandler(
+                            this,
+                            &ClassesStreams::btnAddStream_Click
+                        );
+        
+                    this->btnToggleStream->Click +=
+                        gcnew System::EventHandler(
+                            this,
+                            &ClassesStreams::btnToggleStream_Click
+                        );
+        
+                    this->streamsGrid->SelectionChanged +=
+                        gcnew System::EventHandler(
+                            this,
+                            &ClassesStreams::streamsGrid_SelectionChanged
+                        );
+        
+               
+        
+        
+                    if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
+                    {
+                        LoadAcademicYears();
+                        LoadClasses();
+                    }
+                }
+
     private:
 
         // =========================================================
@@ -82,7 +146,6 @@ namespace SchoolCore
         };
 
 
-
         void StyleProfessionalGrid(
             DataGridView^ grid)
         {
@@ -138,7 +201,9 @@ namespace SchoolCore
         // INITIALIZE COMPONENTS
         // =========================================================
 
-        void InitializeComponent()
+        #pragma region Windows Form Designer generated code
+
+void InitializeComponent()
         {
             this->SuspendLayout();
 
@@ -529,7 +594,6 @@ namespace SchoolCore
                 false;
 
 
-
             // Add controls
 
             classLayout->Controls->Add(
@@ -879,7 +943,6 @@ namespace SchoolCore
                 false;
 
 
-
             // Row 0
 
             streamLayout->Controls->Add(
@@ -987,7 +1050,6 @@ namespace SchoolCore
             );
 
 
-
             this->Controls->Add(
                 this->mainLayout
             );
@@ -995,6 +1057,8 @@ namespace SchoolCore
 
             this->ResumeLayout(false);
         }
+
+#pragma endregion
 
 
         // =========================================================
@@ -2061,66 +2125,6 @@ namespace SchoolCore
         // CONSTRUCTOR
         // =========================================================
 
-        ClassesStreams()
-        {
-            InitializeComponent();
 
-            this->btnAddClass->Click +=
-                gcnew System::EventHandler(
-                    this,
-                    &ClassesStreams::btnAddClass_Click
-                );
-
-            this->btnToggleClass->Click +=
-                gcnew System::EventHandler(
-                    this,
-                    &ClassesStreams::btnToggleClass_Click
-                );
-
-            this->classesGrid->SelectionChanged +=
-                gcnew System::EventHandler(
-                    this,
-                    &ClassesStreams::classesGrid_SelectionChanged
-                );
-
-            this->cmbAcademicYear->SelectedIndexChanged +=
-                gcnew System::EventHandler(
-                    this,
-                    &ClassesStreams::cmbAcademicYear_SelectedIndexChanged
-                );
-
-            this->cmbTerm->SelectedIndexChanged +=
-                gcnew System::EventHandler(
-                    this,
-                    &ClassesStreams::cmbTerm_SelectedIndexChanged
-                );
-
-            this->btnAddStream->Click +=
-                gcnew System::EventHandler(
-                    this,
-                    &ClassesStreams::btnAddStream_Click
-                );
-
-            this->btnToggleStream->Click +=
-                gcnew System::EventHandler(
-                    this,
-                    &ClassesStreams::btnToggleStream_Click
-                );
-
-            this->streamsGrid->SelectionChanged +=
-                gcnew System::EventHandler(
-                    this,
-                    &ClassesStreams::streamsGrid_SelectionChanged
-                );
-
-       
-
-
-            if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
-            {
-                LoadAcademicYears();
-                LoadClasses();
-            }
-        }
     };
 }
