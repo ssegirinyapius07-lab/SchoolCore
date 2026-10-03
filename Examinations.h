@@ -1084,29 +1084,6 @@ namespace SchoolCore
             );
 
 
-            Action<ComboBox^, int> selectItem =
-                gcnew Action<ComboBox^, int>(
-                    [](ComboBox^ combo, int id)
-                    {
-                        for (int i = 1;
-                            i < combo->Items->Count;
-                            i++)
-                        {
-                            FilterItem^ item =
-                                dynamic_cast<FilterItem^>(
-                                    combo->Items[i]
-                                );
-
-                            if (item != nullptr &&
-                                item->Id == id)
-                            {
-                                combo->SelectedIndex = i;
-                                return;
-                            }
-                        }
-                    }
-                );
-
             LoadExaminationFormData(
                 cmbYear,
                 cmbTerm,
@@ -1875,75 +1852,6 @@ namespace SchoolCore
             grid->Columns->Add(passColumn);
 
 
-            void (^loadGrid)() =
-                [&]()
-                {
-                    try
-                    {
-                        auto con =
-                            DbConnection::GetConnection();
-
-                        std::unique_ptr<sql::PreparedStatement> stmt(
-                            con->prepareStatement(
-                                "SELECT "
-                                "es.examination_subject_id, "
-                                "s.subject_name, "
-                                "es.max_score, "
-                                "es.pass_mark "
-                                "FROM examination_subjects es "
-                                "INNER JOIN subjects s "
-                                "ON s.subject_id = es.subject_id "
-                                "WHERE es.examination_id = ? "
-                                "ORDER BY s.subject_name ASC"
-                            )
-                        );
-
-                        stmt->setInt(
-                            1,
-                            examinationId
-                        );
-
-                        std::unique_ptr<sql::ResultSet> result(
-                            stmt->executeQuery()
-                        );
-
-                        grid->Rows->Clear();
-
-                        while (result->next())
-                        {
-                            grid->Rows->Add(
-                                result->getInt(
-                                    "examination_subject_id"
-                                ),
-                                gcnew String(
-                                    result->getString(
-                                        "subject_name"
-                                    ).c_str()
-                                ),
-                                result->getDouble(
-                                    "max_score"
-                                ).ToString("0.##"),
-                                result->isNull("pass_mark")
-                                ? L""
-                                : result->getDouble(
-                                    "pass_mark"
-                                ).ToString("0.##")
-                            );
-                        }
-                    }
-                    catch (sql::SQLException& ex)
-                    {
-                        MessageBox::Show(
-                            gcnew String(
-                                ex.what()
-                            ),
-                            L"Database Error",
-                            MessageBoxButtons::OK,
-                            MessageBoxIcon::Error
-                        );
-                    }
-                };
-
             // NOTE: Load the source subject list.
             try
             {
@@ -2112,7 +2020,7 @@ namespace SchoolCore
 
             btnAdd->Click +=
                 gcnew EventHandler(
-                    [cmbSubject, numMax, numPass, examinationId, this](Object^, EventArgs^)
+                    [cmbSubject, numMax, numPass, examinationId, grid, this](Object^, EventArgs^)
                     {
                         FilterItem^ subject =
                             dynamic_cast<FilterItem^>(
@@ -2164,17 +2072,28 @@ namespace SchoolCore
                                 subject->Id
                             );
 
-                            stmt->setBigDecimal(
+                            stmt->setDouble(
                                 3,
-                                numMax->Value.ToString("0.00")
+                                Convert::ToDouble(
+                                    numMax->Value
+                                )
                             );
 
-                            stmt->setBigDecimal(
+                            stmt->setDouble(
                                 4,
-                                numPass->Value.ToString("0.00")
+                                Convert::ToDouble(
+                                    numPass->Value
+                                )
                             );
 
                             stmt->executeUpdate();
+
+                            grid->Rows->Add(
+                                subject->Id,
+                                subject->Text,
+                                numMax->Value.ToString("0.##"),
+                                numPass->Value.ToString("0.##")
+                            );
 
                             MessageBox::Show(
                                 L"Subject added to examination.",
@@ -2240,7 +2159,14 @@ namespace SchoolCore
                                 examinationSubjectId
                             );
 
+                            int rowIndex =
+                                grid->SelectedRows[0]->Index;
+
                             stmt->executeUpdate();
+
+                            grid->Rows->RemoveAt(
+                                rowIndex
+                            );
 
                             MessageBox::Show(
                                 L"Subject removed from examination.",
