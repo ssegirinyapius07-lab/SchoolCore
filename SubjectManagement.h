@@ -395,7 +395,9 @@ namespace SchoolCore
                         );
 
                     String^ subjectCode =
-                        gcnew String(
+                        result->isNull("subject_code")
+                        ? L""
+                        : gcnew String(
                             result->getString(
                                 "subject_code"
                             ).c_str()
@@ -999,13 +1001,6 @@ namespace SchoolCore
                     return;
                 }
 
-                this->txtSubjectCode->Text =
-                    gcnew String(
-                        result->getString(
-                            "subject_code"
-                        ).c_str()
-                    );
-
                 this->txtSubjectName->Text =
                     gcnew String(
                         result->getString(
@@ -1488,7 +1483,9 @@ namespace SchoolCore
 
 
                 String^ subjectCode =
-                    gcnew String(
+                    result->isNull("subject_code")
+                    ? L""
+                    : gcnew String(
                         result->getString(
                             "subject_code"
                         ).c_str()
