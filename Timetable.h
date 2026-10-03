@@ -39,8 +39,8 @@ namespace SchoolCore
 
         TableLayoutPanel^ mainLayout;
         Panel^ headerPanel;
-        Label^ lblTitle;
-        Label^ lblSubtitle;
+        System::Windows::Forms::Label^ lblTitle;
+        System::Windows::Forms::Label^ lblSubtitle;
 
         ComboBox^ cmbYearFilter;
         ComboBox^ cmbTermFilter;
@@ -101,9 +101,9 @@ namespace SchoolCore
             return combo;
         }
 
-        Label^ CreateLabel(String^ text)
+        System::Windows::Forms::Label^ CreateLabel(String^ text)
         {
-            Label^ label = gcnew Label();
+            System::Windows::Forms::Label^ label = gcnew Label();
             label->Text = text;
             label->Dock = DockStyle::Fill;
             label->TextAlign = ContentAlignment::MiddleLeft;
@@ -764,7 +764,7 @@ namespace SchoolCore
             header->Padding =
                 System::Windows::Forms::Padding(20, 10, 20, 8);
 
-            Label^ title = gcnew Label();
+            System::Windows::Forms::Label^ title = gcnew Label();
             title->Text = L"Add Timetable Entry";
             title->Dock = DockStyle::Top;
             title->Height = 34;
@@ -772,7 +772,7 @@ namespace SchoolCore
                 L"Segoe UI Semibold", 17.0F, FontStyle::Bold);
             title->ForeColor = Color::White;
 
-            Label^ subtitle = gcnew Label();
+            System::Windows::Forms::Label^ subtitle = gcnew Label();
             subtitle->Text =
                 L"Assign a subject, teacher and time to a class.";
             subtitle->Dock = DockStyle::Fill;
@@ -938,7 +938,10 @@ namespace SchoolCore
             if (this->entryDialog->ShowDialog(this) ==
                 System::Windows::Forms::DialogResult::OK)
             {
+                if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
+            {
                 LoadTimetable();
+            }
             }
         }
 
