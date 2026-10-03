@@ -34,7 +34,7 @@ namespace SchoolCore
             header->Dock = DockStyle::Top;
             header->Height = 105;
             header->BackColor = Color::FromArgb(248, 250, 252);
-            header->Padding = Padding(28, 18, 28, 12);
+            header->Padding = System::Windows::Forms::Padding(28, 18, 28, 12);
 
             Label^ title = gcnew Label();
             title->Text = L"Fees & Finance";
@@ -55,7 +55,7 @@ namespace SchoolCore
 
             Panel^ content = gcnew Panel();
             content->Dock = DockStyle::Fill;
-            content->Padding = Padding(28);
+            content->Padding = System::Windows::Forms::Padding(28);
             content->BackColor = Color::White;
 
             Label^ overview = gcnew Label();
@@ -82,8 +82,8 @@ namespace SchoolCore
             {
                 Panel^ card = gcnew Panel();
                 card->Dock = DockStyle::Fill;
-                card->Margin = Padding(0, 0, 12, 10);
-                card->Padding = Padding(15);
+                card->Margin = System::Windows::Forms::Padding(0, 0, 12, 10);
+                card->Padding = System::Windows::Forms::Padding(15);
                 card->BackColor = Color::FromArgb(248, 250, 252);
                 card->BorderStyle = BorderStyle::FixedSingle;
 
@@ -109,7 +109,7 @@ namespace SchoolCore
             operations->Text = L"Finance Operations";
             operations->Dock = DockStyle::Top;
             operations->Height = 45;
-            operations->Padding = Padding(0, 8, 0, 0);
+            operations->Padding = System::Windows::Forms::Padding(0, 8, 0, 0);
             operations->Font = gcnew Drawing::Font(L"Segoe UI Semibold", 13.0F, FontStyle::Bold);
             operations->ForeColor = Color::FromArgb(30, 41, 59);
 
@@ -140,14 +140,14 @@ namespace SchoolCore
             {
                 buttons[i]->Text = texts[i];
                 buttons[i]->Dock = DockStyle::Fill;
-                buttons[i]->Margin = Padding(0, 0, 12, 12);
+                buttons[i]->Margin = System::Windows::Forms::Padding(0, 0, 12, 12);
                 buttons[i]->FlatStyle = FlatStyle::Flat;
                 buttons[i]->FlatAppearance->BorderSize = 1;
                 buttons[i]->BackColor = Color::White;
                 buttons[i]->ForeColor = Color::FromArgb(15, 23, 42);
                 buttons[i]->Font = gcnew Drawing::Font(L"Segoe UI Semibold", 10.0F);
                 buttons[i]->TextAlign = ContentAlignment::MiddleLeft;
-                buttons[i]->Padding = Padding(18, 0, 10, 0);
+                buttons[i]->Padding = System::Windows::Forms::Padding(18, 0, 10, 0);
                 actions->Controls->Add(buttons[i], i % 2, i / 2);
             }
 
@@ -156,7 +156,7 @@ namespace SchoolCore
             note->Dock = DockStyle::Fill;
             note->Font = gcnew Drawing::Font(L"Segoe UI", 9.0F);
             note->ForeColor = Color::FromArgb(71, 85, 105);
-            note->Padding = Padding(0, 18, 0, 0);
+            note->Padding = System::Windows::Forms::Padding(0, 18, 0, 0);
 
             content->Controls->Add(note);
             content->Controls->Add(actions);
