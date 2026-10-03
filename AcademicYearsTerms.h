@@ -18,7 +18,7 @@ namespace SchoolCore
     public ref class AcademicYearsTerms : public System::Windows::Forms::Form
     {
     public:
-                AcademicYearsTerms()
+                AcademicYearsTerms(void)
                 {
                     InitializeComponent();
         
@@ -63,7 +63,7 @@ namespace SchoolCore
 
 
     protected:
-        ~AcademicYearsTerms()
+        ~AcademicYearsTerms(void)
         {
             if (this->components)
             {
@@ -165,7 +165,7 @@ namespace SchoolCore
 
         #pragma region Windows Form Designer generated code
 
-void InitializeComponent()
+void InitializeComponent(void)
         {
             this->components = gcnew System::ComponentModel::Container();
             this->SuspendLayout();
