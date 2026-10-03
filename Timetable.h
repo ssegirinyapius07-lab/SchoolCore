@@ -61,8 +61,8 @@ namespace SchoolCore
         ComboBox^ entrySubject;
         ComboBox^ entryTeacher;
         ComboBox^ entryDay;
-        TextBox^ entryStart;
-        TextBox^ entryEnd;
+        DateTimePicker^ entryStart;
+        DateTimePicker^ entryEnd;
         TextBox^ entryRoom;
         TextBox^ entryNotes;
 
@@ -613,32 +613,10 @@ namespace SchoolCore
                 return;
             }
 
-            if (String::IsNullOrWhiteSpace(this->entryStart->Text) ||
-                String::IsNullOrWhiteSpace(this->entryEnd->Text))
-            {
-                MessageBox::Show(
-                    L"Enter both start and end times using HH:mm, for example 08:00.",
-                    L"Validation",
-                    MessageBoxButtons::OK,
-                    MessageBoxIcon::Warning
-                );
-                return;
-            }
-
-            TimeSpan startTime;
-            TimeSpan endTime;
-
-            if (!TimeSpan::TryParse(this->entryStart->Text->Trim(), startTime) ||
-                !TimeSpan::TryParse(this->entryEnd->Text->Trim(), endTime))
-            {
-                MessageBox::Show(
-                    L"Time must be valid. Use HH:mm, for example 08:00 or 14:30.",
-                    L"Validation",
-                    MessageBoxButtons::OK,
-                    MessageBoxIcon::Warning
-                );
-                return;
-            }
+            TimeSpan startTime =
+                this->entryStart->Value.TimeOfDay;
+            TimeSpan endTime =
+                this->entryEnd->Value.TimeOfDay;
 
             if (endTime <= startTime)
             {
@@ -716,14 +694,14 @@ namespace SchoolCore
                 stmt->setString(
                     p++,
                     msclr::interop::marshal_as<std::string>(
-                        startTime.ToString(L"hh\\:mm\\:ss")
+                        startTime.ToString(L"hh\\:mm")
                     )
                 );
 
                 stmt->setString(
                     p++,
                     msclr::interop::marshal_as<std::string>(
-                        endTime.ToString(L"hh\\:mm\\:ss")
+                        endTime.ToString(L"hh\\:mm")
                     )
                 );
 
@@ -776,7 +754,7 @@ namespace SchoolCore
             this->entryDialog->MaximizeBox = false;
             this->entryDialog->MinimizeBox = false;
             this->entryDialog->ShowInTaskbar = false;
-            this->entryDialog->ClientSize = System::Drawing::Size(720, 610);
+            this->entryDialog->ClientSize = System::Drawing::Size(760, 610);
             this->entryDialog->BackColor = Color::FromArgb(248, 250, 252);
 
             Panel^ header = gcnew Panel();
@@ -813,7 +791,7 @@ namespace SchoolCore
             form->RowCount = 6;
 
             form->ColumnStyles->Add(
-                gcnew ColumnStyle(SizeType::Absolute, 105.0F));
+                gcnew ColumnStyle(SizeType::Absolute, 125.0F));
             form->ColumnStyles->Add(
                 gcnew ColumnStyle(SizeType::Percent, 50.0F));
             form->ColumnStyles->Add(
@@ -833,13 +811,23 @@ namespace SchoolCore
             this->entryTeacher = CreateCombo();
             this->entryDay = CreateCombo();
 
-            this->entryStart = gcnew TextBox();
-            this->entryEnd = gcnew TextBox();
+            this->entryStart = gcnew DateTimePicker();
+            this->entryEnd = gcnew DateTimePicker();
             this->entryRoom = gcnew TextBox();
             this->entryNotes = gcnew TextBox();
 
             this->entryStart->Dock = DockStyle::Fill;
+            this->entryStart->Format = DateTimePickerFormat::Custom;
+            this->entryStart->CustomFormat = L"HH:mm";
+            this->entryStart->ShowUpDown = true;
+            this->entryStart->Value = DateTime::Today.Date.AddHours(8);
+
             this->entryEnd->Dock = DockStyle::Fill;
+            this->entryEnd->Format = DateTimePickerFormat::Custom;
+            this->entryEnd->CustomFormat = L"HH:mm";
+            this->entryEnd->ShowUpDown = true;
+            this->entryEnd->Value = DateTime::Today.Date.AddHours(9);
+
             this->entryRoom->Dock = DockStyle::Fill;
             this->entryNotes->Dock = DockStyle::Fill;
             this->entryNotes->Multiline = true;
