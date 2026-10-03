@@ -1651,6 +1651,10 @@ namespace SchoolCore
                 0
             );
 
+            this->LoadEditorClasses(
+                0
+            );
+
             if (this->editorEditMode)
                 this->LoadEditorForEdit();
 
