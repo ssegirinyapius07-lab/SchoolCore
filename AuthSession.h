@@ -12,15 +12,15 @@ namespace SchoolCore
         static String^ Username = L"";
         static String^ FullName = L"";
         static String^ RoleName = L"";
-        static HashSet<String^>^ Permissions =
-            gcnew HashSet<String^>();
+        static System::Collections::Generic::HashSet<String^>^ Permissions =
+            gcnew System::Collections::Generic::HashSet<String^>();
 
         static void Start(
             int userId,
             String^ username,
             String^ fullName,
             String^ roleName,
-            IEnumerable<String^>^ permissions)
+            System::Collections::IEnumerable^ permissions)
         {
             UserId = userId;
             Username = username;
@@ -31,8 +31,11 @@ namespace SchoolCore
 
             if (permissions != nullptr)
             {
-                for each (String^ permission in permissions)
+                for each (Object^ item in permissions)
                 {
+                    String^ permission =
+                        dynamic_cast<String^>(item);
+
                     if (!String::IsNullOrWhiteSpace(permission))
                     {
                         Permissions->Add(permission);
