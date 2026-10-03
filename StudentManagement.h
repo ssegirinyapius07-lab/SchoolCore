@@ -277,8 +277,14 @@ namespace SchoolCore
 						: L"Matching Students: ") +
 					studentCount.ToString();
 
-				this->btnViewProfile->Enabled =
+				bool hasSelection =
 					this->studentsGrid->SelectedRows->Count > 0;
+
+				this->btnViewProfile->Enabled =
+					hasSelection;
+
+				this->btnEditStudent->Enabled =
+					hasSelection;
 			}
 			catch (sql::SQLException& ex)
 			{
