@@ -1445,8 +1445,6 @@ namespace SchoolCore
                             "s.subject_name, "
                             "s.description, "
                             "s.status, "
-                            "s.created_at, "
-                            "s.updated_at, "
                             "(SELECT COUNT(*) "
                             " FROM class_subjects cs "
                             " WHERE cs.subject_id = s.subject_id) "
@@ -1520,23 +1518,8 @@ namespace SchoolCore
                         ).c_str()
                     );
 
-                String^ createdAt =
-                    result->isNull("created_at")
-                    ? L"Not recorded"
-                    : gcnew String(
-                        result->getString(
-                            "created_at"
-                        ).c_str()
-                    );
-
-                String^ updatedAt =
-                    result->isNull("updated_at")
-                    ? L"Not recorded"
-                    : gcnew String(
-                        result->getString(
-                            "updated_at"
-                        ).c_str()
-                    );
+                String^ createdAt = L"Not available";
+                String^ updatedAt = L"Not available";
 
                 String^ classCount =
                     Convert::ToString(
