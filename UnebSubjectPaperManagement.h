@@ -1075,7 +1075,9 @@ namespace SchoolCore
 
                 stmt->setInt(1, id);
                 stmt->executeUpdate();
-                LoadPapers();
+                LoadPapers(
+                    txtPaperSearch == nullptr ? L"" : txtPaperSearch->Text
+                );
             }
             catch (sql::SQLException& ex)
             {
@@ -1207,7 +1209,9 @@ namespace SchoolCore
             InitializeComponent();
 
             if (LicenseManager::UsageMode != LicenseUsageMode::Designtime)
-                LoadSubjectRecords();
+                LoadSubjectRecords(
+                    txtSearch == nullptr ? L"" : txtSearch->Text
+                );
         }
 
     protected:
