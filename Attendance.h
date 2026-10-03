@@ -39,15 +39,15 @@ namespace SchoolCore
     private:
         TableLayoutPanel^ mainLayout;
         Panel^ headerPanel;
-        Label^ lblTitle;
-        Label^ lblSubtitle;
+        System::Windows::Forms::Label^ lblTitle;
+        System::Windows::Forms::Label^ lblSubtitle;
 
         Panel^ filterPanel;
-        Label^ lblYear;
-        Label^ lblTerm;
-        Label^ lblClass;
-        Label^ lblStream;
-        Label^ lblDate;
+        System::Windows::Forms::Label^ lblYear;
+        System::Windows::Forms::Label^ lblTerm;
+        System::Windows::Forms::Label^ lblClass;
+        System::Windows::Forms::Label^ lblStream;
+        System::Windows::Forms::Label^ lblDate;
 
         ComboBox^ cmbAcademicYear;
         ComboBox^ cmbTerm;
@@ -55,15 +55,15 @@ namespace SchoolCore
         ComboBox^ cmbStream;
         DateTimePicker^ dtpAttendanceDate;
 
-        Label^ lblSessionInfo;
+        System::Windows::Forms::Label^ lblSessionInfo;
         Button^ btnLoadStudents;
         Button^ btnSaveAttendance;
         Button^ btnRefresh;
         Button^ btnBack;
 
         DataGridView^ attendanceGrid;
-        Label^ lblStudentCount;
-        Label^ lblStatus;
+        System::Windows::Forms::Label^ lblStudentCount;
+        System::Windows::Forms::Label^ lblStatus;
 
         void StyleCombo(ComboBox^ combo)
         {
@@ -74,9 +74,9 @@ namespace SchoolCore
             combo->Height = 32;
         }
 
-        Label^ CreateFilterLabel(String^ text)
+        System::Windows::Forms::Label^ CreateFilterLabel(String^ text)
         {
-            Label^ label = gcnew Label();
+            System::Windows::Forms::Label^ label = gcnew Label();
             label->Text = text;
             label->Dock = DockStyle::Fill;
             label->TextAlign = ContentAlignment::MiddleLeft;
@@ -1280,7 +1280,10 @@ namespace SchoolCore
                     &Attendance::btnBack_Click
                 );
 
-            LoadAcademicYears();
+            if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
+            {
+                LoadAcademicYears();
+            }
         }
     };
 }
