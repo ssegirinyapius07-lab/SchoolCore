@@ -10,13 +10,30 @@
 #include <string>
 
 using namespace System;
+using namespace System::ComponentModel;
 using namespace System::Drawing;
 using namespace System::Windows::Forms;
 
 namespace SchoolCore
 {
-    public ref class Examinations : public Form
+    public ref class Examinations : public System::Windows::Forms::Form
     {
+    public:
+                Examinations()
+                {
+                    InitializeComponent();
+        
+                    if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
+                    {
+                        this->loadingFilters = true;
+                        LoadAcademicYears();
+                        LoadClasses();
+                        LoadTerms();
+                        this->loadingFilters = false;
+                        LoadExaminations();
+                    }
+                }
+
     private:
 
         ref class FilterItem
@@ -2557,7 +2574,9 @@ namespace SchoolCore
         // INITIALIZE
         // =========================================================
 
-        void InitializeComponent()
+        #pragma region Windows Form Designer generated code
+
+void InitializeComponent()
         {
             this->SuspendLayout();
 
@@ -3469,22 +3488,11 @@ namespace SchoolCore
             this->ResumeLayout(false);
         }
 
+#pragma endregion
+
 
     public:
 
-        Examinations()
-        {
-            InitializeComponent();
 
-            if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
-            {
-                this->loadingFilters = true;
-                LoadAcademicYears();
-                LoadClasses();
-                LoadTerms();
-                this->loadingFilters = false;
-                LoadExaminations();
-            }
-        }
     };
 }
