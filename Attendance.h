@@ -73,8 +73,9 @@ namespace SchoolCore
 
             this->Text = L"Attendance";
             this->StartPosition = FormStartPosition::CenterScreen;
-            this->WindowState = FormWindowState::Maximized;
-            this->MinimumSize = System::Drawing::Size(1000, 680);
+            this->WindowState = FormWindowState::Normal;
+            this->ClientSize = System::Drawing::Size(1120, 650);
+            this->MinimumSize = System::Drawing::Size(1000, 600);
             this->BackColor = Color::FromArgb(248, 250, 252);
 
             this->mainLayout = gcnew TableLayoutPanel();
