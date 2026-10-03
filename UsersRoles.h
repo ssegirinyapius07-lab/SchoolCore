@@ -71,6 +71,7 @@ namespace SchoolCore
         ComboBox^ cmbRole;
         TextBox^ txtUsername;
         TextBox^ txtFullName;
+        TextBox^ txtEmail;
         Form^ editorForm;
         ComboBox^ editorRoleBox;
 
@@ -603,13 +604,20 @@ namespace SchoolCore
             String^ fullName =
                 txtFullName->Text->Trim();
 
+            String^ email =
+                txtEmail == nullptr
+                ? L""
+                : txtEmail->Text->Trim();
+
             if (String::IsNullOrWhiteSpace(username) ||
                 String::IsNullOrWhiteSpace(fullName) ||
+                (email->Length > 0 && !email->Contains(L"@")) ||
                 editorRoleBox == nullptr ||
                 editorRoleBox->SelectedValue == nullptr)
             {
                 MessageBox::Show(
-                    L"Username, full name and role are required.",
+                    L"Username, full name and role are required. "
+                    L"If an email is provided, it must be valid.",
                     L"Validation",
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Warning
@@ -640,9 +648,9 @@ namespace SchoolCore
                     std::unique_ptr<sql::PreparedStatement> stmt(
                         con->prepareStatement(
                             "INSERT INTO users "
-                            "(username, password_hash, full_name, "
+                            "(username, email, password_hash, full_name, "
                             "role_id, status, must_change_password) "
-                            "VALUES (?, ?, ?, ?, 'Active', 1)"
+                            "VALUES (?, ?, ?, ?, ?, 'Active', 1)"
                         )
                     );
 
@@ -656,18 +664,25 @@ namespace SchoolCore
                     stmt->setString(
                         2,
                         msclr::interop::marshal_as<std::string>(
-                            hash
+                            email
                         )
                     );
 
                     stmt->setString(
                         3,
                         msclr::interop::marshal_as<std::string>(
+                            hash
+                        )
+                    );
+
+                    stmt->setString(
+                        4,
+                        msclr::interop::marshal_as<std::string>(
                             fullName
                         )
                     );
 
-                    stmt->setInt(4, roleId);
+                    stmt->setInt(5, roleId);
                     stmt->execute();
 
                     MessageBox::Show(
@@ -688,7 +703,7 @@ namespace SchoolCore
                     std::unique_ptr<sql::PreparedStatement> stmt(
                         con->prepareStatement(
                             "UPDATE users "
-                            "SET full_name = ?, role_id = ? "
+                            "SET full_name = ?, email = ?, role_id = ? "
                             "WHERE user_id = ?"
                         )
                     );
@@ -700,8 +715,15 @@ namespace SchoolCore
                         )
                     );
 
-                    stmt->setInt(2, roleId);
-                    stmt->setInt(3, editingUserId);
+                    stmt->setString(
+                        2,
+                        msclr::interop::marshal_as<std::string>(
+                            email
+                        )
+                    );
+
+                    stmt->setInt(3, roleId);
+                    stmt->setInt(4, editingUserId);
                     stmt->execute();
 
                     MessageBox::Show(
@@ -773,7 +795,7 @@ namespace SchoolCore
             editorForm->MaximizeBox = false;
             editorForm->MinimizeBox = false;
             editorForm->ClientSize =
-                Drawing::Size(500, 330);
+                Drawing::Size(500, 380);
 
             TableLayoutPanel^ layout =
                 gcnew TableLayoutPanel();
@@ -782,7 +804,7 @@ namespace SchoolCore
             layout->Padding =
                 System::Windows::Forms::Padding(28, 24, 28, 24);
             layout->ColumnCount = 2;
-            layout->RowCount = 5;
+            layout->RowCount = 6;
 
             layout->ColumnStyles->Add(
                 gcnew ColumnStyle(
@@ -821,6 +843,18 @@ namespace SchoolCore
                 gcnew TextBox();
             txtFullName->Dock = DockStyle::Fill;
             txtFullName->MaxLength = 150;
+
+            Label^ lblEmail =
+                gcnew Label();
+            lblEmail->Text = L"Email";
+            lblEmail->Dock = DockStyle::Fill;
+            lblEmail->TextAlign =
+                ContentAlignment::MiddleLeft;
+
+            txtEmail =
+                gcnew TextBox();
+            txtEmail->Dock = DockStyle::Fill;
+            txtEmail->MaxLength = 190;
 
             Label^ lblRole =
                 gcnew Label();
@@ -898,11 +932,13 @@ namespace SchoolCore
             layout->Controls->Add(txtUsername, 1, 0);
             layout->Controls->Add(lblName, 0, 1);
             layout->Controls->Add(txtFullName, 1, 1);
-            layout->Controls->Add(lblRole, 0, 2);
-            layout->Controls->Add(editorRoleBox, 1, 2);
-            layout->Controls->Add(lblPasswordInfo, 0, 3);
-            layout->Controls->Add(passwordInfo, 1, 3);
-            layout->Controls->Add(buttons, 0, 4);
+            layout->Controls->Add(lblEmail, 0, 2);
+            layout->Controls->Add(txtEmail, 1, 2);
+            layout->Controls->Add(lblRole, 0, 3);
+            layout->Controls->Add(editorRoleBox, 1, 3);
+            layout->Controls->Add(lblPasswordInfo, 0, 4);
+            layout->Controls->Add(passwordInfo, 1, 4);
+            layout->Controls->Add(buttons, 0, 5);
             layout->SetColumnSpan(buttons, 2);
 
             editorForm->Controls->Add(layout);
@@ -918,7 +954,7 @@ namespace SchoolCore
 
                     std::unique_ptr<sql::PreparedStatement> stmt(
                         con->prepareStatement(
-                            "SELECT username, full_name, role_id "
+                            "SELECT username, email, full_name, role_id "
                             "FROM users WHERE user_id = ?"
                         )
                     );
@@ -942,6 +978,13 @@ namespace SchoolCore
                             gcnew String(
                                 result->getString(
                                     "full_name"
+                                ).c_str()
+                            );
+
+                        txtEmail->Text =
+                            gcnew String(
+                                result->getString(
+                                    "email"
                                 ).c_str()
                             );
 
@@ -1366,7 +1409,7 @@ namespace SchoolCore
                 ContentAlignment::MiddleLeft;
 
             txtSearch = gcnew TextBox();
-            txtSearch->Width = 280;
+            txtSearch->Width = 300;
             txtSearch->Height = 32;
 
             btnSearch = gcnew Button();
