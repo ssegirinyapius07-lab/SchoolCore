@@ -34,6 +34,18 @@ namespace SchoolCore
                     }
                 }
 
+        System::ComponentModel::Container^ components;
+
+
+    protected:
+        ~Examinations()
+        {
+            if (this->components)
+            {
+                delete this->components;
+            }
+        }
+
     private:
 
         ref class FilterItem
@@ -61,28 +73,28 @@ namespace SchoolCore
         // MAIN FORM
         // =========================================================
 
-        TableLayoutPanel^ mainLayout;
-        Panel^ headerPanel;
+        System::Windows::Forms::TableLayoutPanel^ mainLayout;
+        System::Windows::Forms::Panel^ headerPanel;
         System::Windows::Forms::Label^ lblTitle;
         System::Windows::Forms::Label^ lblSubtitle;
 
-        Panel^ filterPanel;
-        ComboBox^ cmbAcademicYear;
-        ComboBox^ cmbTerm;
-        ComboBox^ cmbClass;
-        ComboBox^ cmbStatus;
-        Button^ btnRefresh;
+        System::Windows::Forms::Panel^ filterPanel;
+        System::Windows::Forms::ComboBox^ cmbAcademicYear;
+        System::Windows::Forms::ComboBox^ cmbTerm;
+        System::Windows::Forms::ComboBox^ cmbClass;
+        System::Windows::Forms::ComboBox^ cmbStatus;
+        System::Windows::Forms::Button^ btnRefresh;
 
         System::Windows::Forms::Label^ lblExamCount;
-        DataGridView^ examinationsGrid;
+        System::Windows::Forms::DataGridView^ examinationsGrid;
 
-        FlowLayoutPanel^ actionPanel;
-        Button^ btnNew;
-        Button^ btnEdit;
-        Button^ btnSubjects;
-        Button^ btnMarks;
-        Button^ btnResults;
-        Button^ btnBack;
+        System::Windows::Forms::FlowLayoutPanel^ actionPanel;
+        System::Windows::Forms::Button^ btnNew;
+        System::Windows::Forms::Button^ btnEdit;
+        System::Windows::Forms::Button^ btnSubjects;
+        System::Windows::Forms::Button^ btnMarks;
+        System::Windows::Forms::Button^ btnResults;
+        System::Windows::Forms::Button^ btnBack;
 
         bool loadingFilters = false;
 
@@ -92,14 +104,14 @@ namespace SchoolCore
         // =========================================================
 
         Form^ editorForm;
-        TextBox^ editorName;
-        ComboBox^ editorType;
-        ComboBox^ editorYear;
-        ComboBox^ editorTerm;
-        ComboBox^ editorClass;
-        DateTimePicker^ editorStart;
-        DateTimePicker^ editorEnd;
-        ComboBox^ editorStatus;
+        System::Windows::Forms::TextBox^ editorName;
+        System::Windows::Forms::ComboBox^ editorType;
+        System::Windows::Forms::ComboBox^ editorYear;
+        System::Windows::Forms::ComboBox^ editorTerm;
+        System::Windows::Forms::ComboBox^ editorClass;
+        System::Windows::Forms::DateTimePicker^ editorStart;
+        System::Windows::Forms::DateTimePicker^ editorEnd;
+        System::Windows::Forms::ComboBox^ editorStatus;
         bool editorEditMode = false;
         int editingExaminationId = 0;
 
@@ -109,10 +121,10 @@ namespace SchoolCore
         // =========================================================
 
         Form^ subjectsDialog;
-        ComboBox^ subjectCombo;
-        NumericUpDown^ subjectMaxScore;
-        NumericUpDown^ subjectPassMark;
-        DataGridView^ assignedSubjectsGrid;
+        System::Windows::Forms::ComboBox^ subjectCombo;
+        System::Windows::Forms::NumericUpDown^ subjectMaxScore;
+        System::Windows::Forms::NumericUpDown^ subjectPassMark;
+        System::Windows::Forms::DataGridView^ assignedSubjectsGrid;
         int subjectAssignmentExaminationId = 0;
 
 
@@ -121,7 +133,7 @@ namespace SchoolCore
         // =========================================================
 
         int GetSelectedId(
-            ComboBox^ combo)
+            System::Windows::Forms::ComboBox^ combo)
         {
             if (
                 combo == nullptr ||
@@ -143,7 +155,7 @@ namespace SchoolCore
 
 
         void AddFilterItem(
-            ComboBox^ combo,
+            System::Windows::Forms::ComboBox^ combo,
             int id,
             String^ text)
         {
@@ -157,7 +169,7 @@ namespace SchoolCore
 
 
         void AddFormLabel(
-            TableLayoutPanel^ layout,
+            System::Windows::Forms::TableLayoutPanel^ layout,
             String^ text,
             int column,
             int row)
@@ -1224,7 +1236,7 @@ namespace SchoolCore
                     560
                 );
 
-            Panel^ header =
+            System::Windows::Forms::Panel^ header =
                 gcnew Panel();
 
             header->Dock =
@@ -1292,7 +1304,7 @@ namespace SchoolCore
             header->Controls->Add(title);
 
 
-            TableLayoutPanel^ formLayout =
+            System::Windows::Forms::TableLayoutPanel^ formLayout =
                 gcnew TableLayoutPanel();
 
             formLayout->Dock =
@@ -1560,7 +1572,7 @@ namespace SchoolCore
             );
 
 
-            Button^ cancel =
+            System::Windows::Forms::Button^ cancel =
                 gcnew Button();
 
             cancel->Text =
@@ -1572,7 +1584,7 @@ namespace SchoolCore
                     38
                 );
 
-            Button^ save =
+            System::Windows::Forms::Button^ save =
                 gcnew Button();
 
             save->Text =
@@ -2029,7 +2041,7 @@ namespace SchoolCore
 
             this->subjectsDialog->AutoScroll = true;
 
-            TableLayoutPanel^ layout =
+            System::Windows::Forms::TableLayoutPanel^ layout =
                 gcnew TableLayoutPanel();
 
             layout->Dock =
@@ -2105,7 +2117,7 @@ namespace SchoolCore
             );
 
 
-            TableLayoutPanel^ entry =
+            System::Windows::Forms::TableLayoutPanel^ entry =
                 gcnew TableLayoutPanel();
 
             entry->Dock =
@@ -2362,7 +2374,7 @@ namespace SchoolCore
             );
 
 
-            FlowLayoutPanel^ buttons =
+            System::Windows::Forms::FlowLayoutPanel^ buttons =
                 gcnew FlowLayoutPanel();
 
             buttons->Dock =
@@ -2382,7 +2394,7 @@ namespace SchoolCore
                 );
 
 
-            Button^ closeButton =
+            System::Windows::Forms::Button^ closeButton =
                 gcnew Button();
 
             closeButton->Text =
@@ -2395,7 +2407,7 @@ namespace SchoolCore
                 );
 
 
-            Button^ removeButton =
+            System::Windows::Forms::Button^ removeButton =
                 gcnew Button();
 
             removeButton->Text =
@@ -2408,7 +2420,7 @@ namespace SchoolCore
                 );
 
 
-            Button^ addButton =
+            System::Windows::Forms::Button^ addButton =
                 gcnew Button();
 
             addButton->Text =
@@ -2578,6 +2590,7 @@ namespace SchoolCore
 
 void InitializeComponent()
         {
+            this->components = gcnew System::ComponentModel::Container();
             this->SuspendLayout();
 
 
@@ -2589,10 +2602,10 @@ void InitializeComponent()
                 L"Examinations & Results";
 
             this->StartPosition =
-                FormStartPosition::CenterScreen;
+                System::Windows::Forms::FormStartPosition::CenterScreen;
 
             this->WindowState =
-                FormWindowState::Maximized;
+                System::Windows::Forms::FormWindowState::Maximized;
 
             this->FormBorderStyle =
                 System::Windows::Forms::FormBorderStyle::Sizable;
@@ -2615,7 +2628,7 @@ void InitializeComponent()
             this->AutoScroll = true;
 
             this->BackColor =
-                Color::FromArgb(
+                System::Drawing::Color::FromArgb(
                     248,
                     250,
                     252
@@ -2627,10 +2640,10 @@ void InitializeComponent()
             // ---------------------------------------------------------
 
             this->mainLayout =
-                gcnew TableLayoutPanel();
+                gcnew System::Windows::Forms::TableLayoutPanel();
 
             this->mainLayout->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->mainLayout->Padding =
                 System::Windows::Forms::Padding(
@@ -2642,42 +2655,42 @@ void InitializeComponent()
 
             this->mainLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     100.0F
                 )
             );
 
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     84.0F
                 )
             );
 
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     82.0F
                 )
             );
 
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     30.0F
                 )
             );
 
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     100.0F
                 )
             );
 
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     64.0F
                 )
             );
@@ -2688,13 +2701,13 @@ void InitializeComponent()
             // ---------------------------------------------------------
 
             this->headerPanel =
-                gcnew Panel();
+                gcnew System::Windows::Forms::Panel();
 
             this->headerPanel->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->headerPanel->BackColor =
-                Color::FromArgb(
+                System::Drawing::Color::FromArgb(
                     30,
                     41,
                     59
@@ -2713,7 +2726,7 @@ void InitializeComponent()
                 gcnew System::Windows::Forms::Label();
 
             this->lblTitle->Dock =
-                DockStyle::Top;
+                System::Windows::Forms::DockStyle::Top;
 
             this->lblTitle->Height =
                 42;
@@ -2725,21 +2738,21 @@ void InitializeComponent()
                 gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
                     17.0F,
-                    FontStyle::Bold
+                    System::Drawing::FontStyle::Bold
                 );
 
             this->lblTitle->ForeColor =
-                Color::White;
+                System::Drawing::Color::White;
 
             this->lblTitle->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
 
             this->lblSubtitle =
                 gcnew System::Windows::Forms::Label();
 
             this->lblSubtitle->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblSubtitle->Text =
                 L"Create examinations, configure subjects and prepare results.";
@@ -2751,10 +2764,10 @@ void InitializeComponent()
                 );
 
             this->lblSubtitle->ForeColor =
-                Color::Gainsboro;
+                System::Drawing::Color::Gainsboro;
 
             this->lblSubtitle->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
 
             this->headerPanel->Controls->Add(
@@ -2771,13 +2784,13 @@ void InitializeComponent()
             // ---------------------------------------------------------
 
             this->filterPanel =
-                gcnew Panel();
+                gcnew System::Windows::Forms::Panel();
 
             this->filterPanel->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->filterPanel->BackColor =
-                Color::White;
+                System::Drawing::Color::White;
 
             this->filterPanel->Padding =
                 System::Windows::Forms::Padding(
@@ -2788,81 +2801,81 @@ void InitializeComponent()
                 );
 
 
-            TableLayoutPanel^ filterLayout =
-                gcnew TableLayoutPanel();
+            System::Windows::Forms::TableLayoutPanel^ filterLayout =
+                gcnew System::Windows::Forms::TableLayoutPanel();
 
             filterLayout->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             filterLayout->ColumnCount = 8;
             filterLayout->RowCount = 2;
 
             filterLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     110.0F
                 )
             );
 
             filterLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     25.0F
                 )
             );
 
             filterLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     55.0F
                 )
             );
 
             filterLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     25.0F
                 )
             );
 
             filterLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     55.0F
                 )
             );
 
             filterLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     25.0F
                 )
             );
 
             filterLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     55.0F
                 )
             );
 
             filterLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     25.0F
                 )
             );
 
             filterLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Percent,
+                    System::Windows::Forms::SizeType::Percent,
                     100.0F
                 )
             );
 
             filterLayout->RowStyles->Add(
                 gcnew RowStyle(
-                    SizeType::Absolute,
+                    System::Windows::Forms::SizeType::Absolute,
                     1.0F
                 )
             );
@@ -2874,9 +2887,9 @@ void InitializeComponent()
             yearLabel->Text =
                 L"Academic Year";
 
-            yearLabel->Dock = DockStyle::Fill;
+            yearLabel->Dock = System::Windows::Forms::DockStyle::Fill;
             yearLabel->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
 
             System::Windows::Forms::Label^ termLabel =
@@ -2885,9 +2898,9 @@ void InitializeComponent()
             termLabel->Text =
                 L"Term";
 
-            termLabel->Dock = DockStyle::Fill;
+            termLabel->Dock = System::Windows::Forms::DockStyle::Fill;
             termLabel->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
 
             System::Windows::Forms::Label^ classLabel =
@@ -2896,9 +2909,9 @@ void InitializeComponent()
             classLabel->Text =
                 L"Class";
 
-            classLabel->Dock = DockStyle::Fill;
+            classLabel->Dock = System::Windows::Forms::DockStyle::Fill;
             classLabel->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
 
             System::Windows::Forms::Label^ statusLabel =
@@ -2907,25 +2920,25 @@ void InitializeComponent()
             statusLabel->Text =
                 L"Status";
 
-            statusLabel->Dock = DockStyle::Fill;
+            statusLabel->Dock = System::Windows::Forms::DockStyle::Fill;
             statusLabel->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
 
             this->cmbAcademicYear =
-                gcnew ComboBox();
+                gcnew System::Windows::Forms::ComboBox();
 
             this->cmbTerm =
-                gcnew ComboBox();
+                gcnew System::Windows::Forms::ComboBox();
 
             this->cmbClass =
-                gcnew ComboBox();
+                gcnew System::Windows::Forms::ComboBox();
 
             this->cmbStatus =
-                gcnew ComboBox();
+                gcnew System::Windows::Forms::ComboBox();
 
 
-            for each (ComboBox^ combo in gcnew array<ComboBox^>
+            for each (System::Windows::Forms::ComboBox^ combo in gcnew array<System::Windows::Forms::ComboBox^>
             {
                 this->cmbAcademicYear,
                 this->cmbTerm,
@@ -2934,10 +2947,10 @@ void InitializeComponent()
             })
             {
                 combo->Dock =
-                    DockStyle::Fill;
+                    System::Windows::Forms::DockStyle::Fill;
 
                 combo->DropDownStyle =
-                    ComboBoxStyle::DropDownList;
+                    System::Windows::Forms::ComboBoxStyle::DropDownList;
             }
 
 
@@ -2957,13 +2970,13 @@ void InitializeComponent()
 
 
             this->btnRefresh =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->btnRefresh->Text =
                 L"Refresh";
 
             this->btnRefresh->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->btnRefresh->MinimumSize =
                 System::Drawing::Size(
@@ -3033,16 +3046,16 @@ void InitializeComponent()
                 gcnew System::Windows::Forms::Label();
 
             this->lblExamCount->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->lblExamCount->Text =
                 L"Examinations: 0";
 
             this->lblExamCount->ForeColor =
-                Color::DimGray;
+                System::Drawing::Color::DimGray;
 
             this->lblExamCount->TextAlign =
-                ContentAlignment::MiddleLeft;
+                System::Drawing::ContentAlignment::MiddleLeft;
 
 
             // ---------------------------------------------------------
@@ -3050,10 +3063,10 @@ void InitializeComponent()
             // ---------------------------------------------------------
 
             this->examinationsGrid =
-                gcnew DataGridView();
+                gcnew System::Windows::Forms::DataGridView();
 
             this->examinationsGrid->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->examinationsGrid->ReadOnly = true;
 
@@ -3065,7 +3078,7 @@ void InitializeComponent()
                 false;
 
             this->examinationsGrid->SelectionMode =
-                DataGridViewSelectionMode::FullRowSelect;
+                System::Windows::Forms::DataGridViewSelectionMode::FullRowSelect;
 
             this->examinationsGrid->MultiSelect =
                 false;
@@ -3074,10 +3087,10 @@ void InitializeComponent()
                 false;
 
             this->examinationsGrid->BackgroundColor =
-                Color::White;
+                System::Drawing::Color::White;
 
             this->examinationsGrid->BorderStyle =
-                BorderStyle::None;
+                System::Windows::Forms::BorderStyle::None;
 
             this->examinationsGrid->ColumnHeadersHeight =
                 42;
@@ -3091,7 +3104,7 @@ void InitializeComponent()
             this->examinationsGrid
                 ->ColumnHeadersDefaultCellStyle
                 ->BackColor =
-                Color::FromArgb(
+                System::Drawing::Color::FromArgb(
                     30,
                     41,
                     59
@@ -3100,7 +3113,7 @@ void InitializeComponent()
             this->examinationsGrid
                 ->ColumnHeadersDefaultCellStyle
                 ->ForeColor =
-                Color::White;
+                System::Drawing::Color::White;
 
             this->examinationsGrid
                 ->ColumnHeadersDefaultCellStyle
@@ -3108,7 +3121,7 @@ void InitializeComponent()
                 gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
                     9.5F,
-                    FontStyle::Bold
+                    System::Drawing::FontStyle::Bold
                 );
 
 
@@ -3242,10 +3255,10 @@ void InitializeComponent()
             // ---------------------------------------------------------
 
             this->actionPanel =
-                gcnew FlowLayoutPanel();
+                gcnew System::Windows::Forms::FlowLayoutPanel();
 
             this->actionPanel->Dock =
-                DockStyle::Fill;
+                System::Windows::Forms::DockStyle::Fill;
 
             this->actionPanel->FlowDirection =
                 FlowDirection::LeftToRight;
@@ -3266,7 +3279,7 @@ void InitializeComponent()
 
 
             this->btnNew =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->btnNew->Text =
                 L"New Examination";
@@ -3279,7 +3292,7 @@ void InitializeComponent()
 
 
             this->btnEdit =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->btnEdit->Text =
                 L"Edit";
@@ -3295,7 +3308,7 @@ void InitializeComponent()
 
 
             this->btnSubjects =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->btnSubjects->Text =
                 L"Manage Subjects";
@@ -3311,7 +3324,7 @@ void InitializeComponent()
 
 
             this->btnMarks =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->btnMarks->Text =
                 L"Enter Marks";
@@ -3327,7 +3340,7 @@ void InitializeComponent()
 
 
             this->btnResults =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->btnResults->Text =
                 L"View Results";
@@ -3343,7 +3356,7 @@ void InitializeComponent()
 
 
             this->btnBack =
-                gcnew Button();
+                gcnew System::Windows::Forms::Button();
 
             this->btnBack->Text =
                 L"Back to Dashboard";
