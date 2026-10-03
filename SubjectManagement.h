@@ -2049,7 +2049,7 @@ namespace SchoolCore
                 FormStartPosition::CenterScreen;
 
             this->WindowState =
-                FormWindowState::Maximized;
+                FormWindowState::Normal;
 
             this->FormBorderStyle =
                 System::Windows::Forms::FormBorderStyle::Sizable;
@@ -2309,6 +2309,9 @@ namespace SchoolCore
                     24
                 );
 
+            this->lblSearch->Anchor =
+                AnchorStyles::Top | AnchorStyles::Right;
+
 
             this->txtSearch->Font =
                 gcnew System::Drawing::Font(
@@ -2321,6 +2324,9 @@ namespace SchoolCore
                     475,
                     19
                 );
+
+            this->txtSearch->Anchor =
+                AnchorStyles::Top | AnchorStyles::Right;
 
             this->txtSearch->Size =
                 System::Drawing::Size(
@@ -2343,6 +2349,9 @@ namespace SchoolCore
                     845,
                     18
                 );
+
+            this->btnSearch->Anchor =
+                AnchorStyles::Top | AnchorStyles::Right;
 
             this->btnSearch->Size =
                 System::Drawing::Size(
