@@ -76,8 +76,6 @@ namespace SchoolCore
                 control->ForeColor = text;
             }
             else if (dynamic_cast<System::Windows::Forms::Panel^>(control) != nullptr ||
-                     dynamic_cast<TableLayoutSystem::Windows::Forms::Panel^>(control) != nullptr ||
-                     dynamic_cast<FlowLayoutSystem::Windows::Forms::Panel^>(control) != nullptr ||
                      dynamic_cast<System::Windows::Forms::GroupBox^>(control) != nullptr)
             {
                 control->BackColor = surface;
@@ -109,7 +107,7 @@ namespace SchoolCore
                 control->ForeColor = text;
             }
             else if (dynamic_cast<System::Windows::Forms::CheckBox^>(control) != nullptr ||
-                     dynamic_cast<RadioSystem::Windows::Forms::Button^>(control) != nullptr)
+                     dynamic_cast<System::Windows::Forms::RadioButton^>(control) != nullptr)
             {
                 control->BackColor = surface;
                 control->ForeColor = text;
