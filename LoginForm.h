@@ -21,7 +21,7 @@ using namespace System::Drawing;
     public ref class LoginForm : public System::Windows::Forms::Form
     {
     public:
-                LoginForm()
+                LoginForm(void)
                 {
                     InitializeComponent();
                 }
@@ -30,7 +30,7 @@ using namespace System::Drawing;
 
 
     protected:
-        ~LoginForm()
+        ~LoginForm(void)
         {
             if (this->components)
             {
@@ -425,7 +425,7 @@ using namespace System::Drawing;
 
         #pragma region Windows Form Designer generated code
 
-void InitializeComponent()
+void InitializeComponent(void)
         {
             this->components = gcnew System::ComponentModel::Container();
             this->SuspendLayout();
