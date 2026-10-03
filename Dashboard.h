@@ -622,7 +622,7 @@ namespace SchoolCore {
 						gcnew Panel();
 
 					item->Width =
-						activityList->ClientSize.Width - 10;
+						420;
 
 					item->Height =
 						52;
@@ -872,7 +872,7 @@ namespace SchoolCore {
 			button->FlatAppearance->BorderSize =
 				1;
 
-			button->Enabled =
+			button->Visible =
 				enabled;
 
 			button->Click +=
