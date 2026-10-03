@@ -53,7 +53,10 @@ namespace SchoolCore
 			this->btnViewProfile->Enabled = false;
 			this->btnEditStudent->Enabled = false;
 
-			LoadStudents();
+			if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
+			{
+				LoadStudents();
+			}
 		}
 
 	protected:
@@ -332,7 +335,7 @@ namespace SchoolCore
 			String^ labelText,
 			String^ valueText)
 		{
-			Label^ label = gcnew Label();
+			System::Windows::Forms::Label^ label = gcnew Label();
 			label->Text = labelText;
 			label->Dock = DockStyle::Fill;
 			label->Font = gcnew System::Drawing::Font(
@@ -341,7 +344,7 @@ namespace SchoolCore
 			label->TextAlign = ContentAlignment::MiddleLeft;
 			label->Margin = System::Windows::Forms::Padding(0, 3, 12, 3);
 
-			Label^ value = gcnew Label();
+			System::Windows::Forms::Label^ value = gcnew Label();
 			value->Text =
 				String::IsNullOrWhiteSpace(valueText)
 					? L"Not provided"
@@ -634,7 +637,7 @@ namespace SchoolCore
 				profileHeader->BackColor = Color::FromArgb(30, 41, 59);
 				profileHeader->Padding = System::Windows::Forms::Padding(120, 16, 24, 12);
 
-				Label^ nameLabel = gcnew Label();
+				System::Windows::Forms::Label^ nameLabel = gcnew Label();
 				nameLabel->Text = fullName;
 				nameLabel->Dock = DockStyle::Top;
 				nameLabel->Height = 42;
@@ -643,7 +646,7 @@ namespace SchoolCore
 				nameLabel->ForeColor = Color::White;
 				nameLabel->TextAlign = ContentAlignment::MiddleLeft;
 
-				Label^ registrationLabel = gcnew Label();
+				System::Windows::Forms::Label^ registrationLabel = gcnew Label();
 				registrationLabel->Text = L"Registration No.  " + registration;
 				registrationLabel->Dock = DockStyle::Top;
 				registrationLabel->Height = 28;
@@ -652,7 +655,7 @@ namespace SchoolCore
 				registrationLabel->ForeColor = Color::Gainsboro;
 				registrationLabel->TextAlign = ContentAlignment::MiddleLeft;
 
-				Label^ statusLabel = gcnew Label();
+				System::Windows::Forms::Label^ statusLabel = gcnew Label();
 				statusLabel->Text = L"Status: " + status;
 				statusLabel->Dock = DockStyle::Top;
 				statusLabel->Height = 28;
