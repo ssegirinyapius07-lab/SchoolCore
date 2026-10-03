@@ -656,7 +656,7 @@ namespace SchoolCore {
 
 					detail->Text =
 						name +
-						L"  •  " +
+						L"  |  " +
 						registration;
 
 					detail->ForeColor =
@@ -757,7 +757,7 @@ namespace SchoolCore {
 
 					detail->Text =
 						first + L" " + last +
-						L"  •  " + staff;
+						L"  |  " + staff;
 
 					detail->ForeColor =
 						Color::DimGray;
@@ -842,13 +842,13 @@ namespace SchoolCore {
 
 			button->Size =
 				System::Drawing::Size(
-					175,
+					155,
 					42
 				);
 
 			button->Margin =
 				System::Windows::Forms::Padding(
-					0, 0, 8, 10
+					0, 0, 8, 8
 				);
 
 			button->BackColor =
@@ -951,6 +951,8 @@ namespace SchoolCore {
 				System::Windows::Forms::Padding(
 					0, 8, 0, 0
 				);
+
+			actions->PerformLayout();
 
 			actions->Controls->Add(
 				CreateQuickActionButton(
@@ -1373,6 +1375,7 @@ namespace SchoolCore {
 			this->Controls->Add(this->headerPanel);
 			this->Name = L"Dashboard";
 			this->StartPosition = System::Windows::Forms::FormStartPosition::CenterScreen;
+			this->WindowState = System::Windows::Forms::FormWindowState::Maximized;
 			this->Text = L"SchoolCore";
 			this->headerPanel->ResumeLayout(false);
 			this->sidebarPanel->ResumeLayout(false);
