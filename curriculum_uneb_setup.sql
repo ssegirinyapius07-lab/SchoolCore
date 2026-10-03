@@ -108,6 +108,11 @@ ALTER TABLE subject_papers
     MODIFY COLUMN subject_id INT(10) UNSIGNED NULL,
     MODIFY COLUMN academic_level_id INT(10) UNSIGNED NULL;
 
+-- Keep a dedicated index for the existing subject foreign key.
+-- The old composite unique index is also being replaced below.
+ALTER TABLE subject_papers
+    ADD INDEX idx_subject_papers_subject_id (subject_id);
+
 ALTER TABLE subject_papers
     DROP INDEX uq_subject_paper_code;
 
