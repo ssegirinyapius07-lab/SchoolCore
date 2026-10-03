@@ -326,6 +326,37 @@ namespace SchoolCore
 				this->studentsGrid->SelectedRows->Count > 0;
 		}
 
+		void AddProfileField(
+			TableLayoutPanel^ layout,
+			int row,
+			String^ labelText,
+			String^ valueText)
+		{
+			Label^ label = gcnew Label();
+			label->Text = labelText;
+			label->Dock = DockStyle::Fill;
+			label->Font = gcnew System::Drawing::Font(
+				L"Segoe UI", 9.5F, FontStyle::Bold);
+			label->ForeColor = Color::FromArgb(71, 85, 105);
+			label->TextAlign = ContentAlignment::MiddleLeft;
+			label->Margin = System::Windows::Forms::Padding(0, 0, 12, 0);
+
+			Label^ value = gcnew Label();
+			value->Text =
+				String::IsNullOrWhiteSpace(valueText)
+					? L"—"
+					: valueText;
+			value->Dock = DockStyle::Fill;
+			value->Font = gcnew System::Drawing::Font(
+				L"Segoe UI", 9.5F, FontStyle::Regular);
+			value->ForeColor = Color::FromArgb(30, 41, 59);
+			value->TextAlign = ContentAlignment::MiddleLeft;
+
+			layout->Controls->Add(label, 0, row);
+			layout->Controls->Add(value, 1, row);
+		}
+
+
 		System::Void btnViewProfile_Click(
 			System::Object^ sender,
 			System::EventArgs^ e)
@@ -371,7 +402,9 @@ namespace SchoolCore
 						"g.full_name AS guardian_name, "
 						"g.relationship AS guardian_relationship, "
 						"g.phone_number AS guardian_phone, "
-						"g.email AS guardian_email "
+						"g.alternative_phone AS guardian_alternative_phone, "
+						"g.email AS guardian_email, "
+						"g.address AS guardian_address "
 						"FROM students s "
 						"LEFT JOIN enrollments e "
 						"ON e.enrollment_id = ("
@@ -459,29 +492,253 @@ namespace SchoolCore
 				String^ guardianEmail =
 					result->isNull("guardian_email")
 						? L""
-						: gcnew String(result->getString("guardian_email").c_str());
+						: gcnew String(
+							result->getString("guardian_email").c_str()
+						);
 
-				String^ profile =
-					L"Registration No.: " + registration +
-					L"\nName: " + fullName +
-					L"\nGender: " + gcnew String(result->getString("gender").c_str()) +
-					L"\nDate of Birth: " + gcnew String(result->getString("date_of_birth").c_str()) +
-					L"\nAdmission Date: " + gcnew String(result->getString("admission_date").c_str()) +
-					L"\nClass: " + className +
-					L"\nStream: " + streamName +
-					L"\nStatus: " + gcnew String(result->getString("status").c_str()) +
-					L"\n\nHome Address: " + gcnew String(result->getString("home_address").c_str()) +
-					L"\n\nGuardian: " + guardianName +
-					L"\nRelationship: " + guardianRelationship +
-					L"\nPhone: " + guardianPhone +
-					L"\nEmail: " + guardianEmail;
+				String^ guardianAlternativePhone =
+					result->isNull("guardian_alternative_phone")
+						? L""
+						: gcnew String(
+							result->getString("guardian_alternative_phone").c_str()
+						);
 
-				MessageBox::Show(
-					profile,
-					L"Student Profile",
-					MessageBoxButtons::OK,
-					MessageBoxIcon::Information
-				);
+				String^ guardianAddress =
+					result->isNull("guardian_address")
+						? L""
+						: gcnew String(
+							result->getString("guardian_address").c_str()
+						);
+
+				String^ gender =
+					gcnew String(result->getString("gender").c_str());
+
+				String^ dateOfBirth =
+					gcnew String(result->getString("date_of_birth").c_str());
+
+				String^ admissionDate =
+					gcnew String(result->getString("admission_date").c_str());
+
+				String^ enrollmentDate =
+					result->isNull("enrollment_date")
+						? L"Not recorded"
+						: gcnew String(
+							result->getString("enrollment_date").c_str()
+						);
+
+				String^ status =
+					gcnew String(result->getString("status").c_str());
+
+				String^ homeAddress =
+					gcnew String(result->getString("home_address").c_str());
+
+
+				// =====================================================
+				// PROFESSIONAL PROFILE DIALOG
+				// =====================================================
+
+				Form^ profileForm = gcnew Form();
+
+				profileForm->Text = L"Student Profile";
+				profileForm->StartPosition = FormStartPosition::CenterParent;
+				profileForm->FormBorderStyle = FormBorderStyle::FixedDialog;
+				profileForm->MaximizeBox = false;
+				profileForm->MinimizeBox = false;
+				profileForm->ShowInTaskbar = false;
+				profileForm->ClientSize = System::Drawing::Size(720, 760);
+				profileForm->BackColor = Color::FromArgb(248, 250, 252);
+
+				// Header
+				Panel^ profileHeader = gcnew Panel();
+				profileHeader->Dock = DockStyle::Top;
+				profileHeader->Height = 125;
+				profileHeader->BackColor = Color::FromArgb(30, 41, 59);
+				profileHeader->Padding = System::Windows::Forms::Padding(24, 16, 24, 12);
+
+				Label^ nameLabel = gcnew Label();
+				nameLabel->Text = fullName;
+				nameLabel->Dock = DockStyle::Top;
+				nameLabel->Height = 42;
+				nameLabel->Font = gcnew System::Drawing::Font(
+					L"Segoe UI Semibold", 20.0F, FontStyle::Bold);
+				nameLabel->ForeColor = Color::White;
+				nameLabel->TextAlign = ContentAlignment::MiddleLeft;
+
+				Label^ registrationLabel = gcnew Label();
+				registrationLabel->Text = L"Registration No.  " + registration;
+				registrationLabel->Dock = DockStyle::Top;
+				registrationLabel->Height = 28;
+				registrationLabel->Font = gcnew System::Drawing::Font(
+					L"Segoe UI", 10.0F);
+				registrationLabel->ForeColor = Color::Gainsboro;
+				registrationLabel->TextAlign = ContentAlignment::MiddleLeft;
+
+				Label^ statusLabel = gcnew Label();
+				statusLabel->Text = L"Status: " + status;
+				statusLabel->Dock = DockStyle::Top;
+				statusLabel->Height = 28;
+				statusLabel->Font = gcnew System::Drawing::Font(
+					L"Segoe UI Semibold", 9.0F, FontStyle::Bold);
+				statusLabel->ForeColor =
+					status->Equals(
+						L"Active",
+						StringComparison::OrdinalIgnoreCase)
+						? Color::FromArgb(167, 243, 208)
+						: Color::FromArgb(254, 202, 202);
+				statusLabel->TextAlign = ContentAlignment::MiddleLeft;
+
+				profileHeader->Controls->Add(statusLabel);
+				profileHeader->Controls->Add(registrationLabel);
+				profileHeader->Controls->Add(nameLabel);
+
+
+				// Scrollable content
+				Panel^ contentPanel = gcnew Panel();
+				contentPanel->Dock = DockStyle::Fill;
+				contentPanel->AutoScroll = true;
+				contentPanel->Padding = System::Windows::Forms::Padding(20);
+
+				TableLayoutPanel^ contentLayout = gcnew TableLayoutPanel();
+				contentLayout->Dock = DockStyle::Top;
+				contentLayout->AutoSize = true;
+				contentLayout->ColumnCount = 1;
+				contentLayout->RowCount = 3;
+				contentLayout->ColumnStyles->Add(
+					gcnew ColumnStyle(SizeType::Percent, 100.0F));
+
+
+				// Student section
+				GroupBox^ studentSection = gcnew GroupBox();
+				studentSection->Text = L"Student Information";
+				studentSection->Dock = DockStyle::Top;
+				studentSection->Height = 220;
+				studentSection->Padding =
+					System::Windows::Forms::Padding(14, 18, 14, 10);
+				studentSection->Margin =
+					System::Windows::Forms::Padding(0, 0, 0, 12);
+
+				TableLayoutPanel^ studentLayout = gcnew TableLayoutPanel();
+				studentLayout->Dock = DockStyle::Fill;
+				studentLayout->ColumnCount = 2;
+				studentLayout->RowCount = 6;
+				studentLayout->ColumnStyles->Add(
+					gcnew ColumnStyle(SizeType::Absolute, 150.0F));
+				studentLayout->ColumnStyles->Add(
+					gcnew ColumnStyle(SizeType::Percent, 100.0F));
+
+				for (int i = 0; i < 6; i++)
+				{
+					studentLayout->RowStyles->Add(
+						gcnew RowStyle(SizeType::Absolute, 30.0F));
+				}
+
+				AddProfileField(studentLayout, 0, L"Full Name", fullName);
+				AddProfileField(studentLayout, 1, L"Gender", gender);
+				AddProfileField(studentLayout, 2, L"Date of Birth", dateOfBirth);
+				AddProfileField(studentLayout, 3, L"Admission Date", admissionDate);
+				AddProfileField(studentLayout, 4, L"Home Address", homeAddress);
+				AddProfileField(studentLayout, 5, L"Student Status", status);
+
+				studentSection->Controls->Add(studentLayout);
+
+
+				// Enrollment section
+				GroupBox^ enrollmentSection = gcnew GroupBox();
+				enrollmentSection->Text = L"Enrollment Information";
+				enrollmentSection->Dock = DockStyle::Top;
+				enrollmentSection->Height = 150;
+				enrollmentSection->Padding =
+					System::Windows::Forms::Padding(14, 18, 14, 10);
+				enrollmentSection->Margin =
+					System::Windows::Forms::Padding(0, 0, 0, 12);
+
+				TableLayoutPanel^ enrollmentLayout = gcnew TableLayoutPanel();
+				enrollmentLayout->Dock = DockStyle::Fill;
+				enrollmentLayout->ColumnCount = 2;
+				enrollmentLayout->RowCount = 4;
+				enrollmentLayout->ColumnStyles->Add(
+					gcnew ColumnStyle(SizeType::Absolute, 150.0F));
+				enrollmentLayout->ColumnStyles->Add(
+					gcnew ColumnStyle(SizeType::Percent, 100.0F));
+
+				for (int i = 0; i < 4; i++)
+				{
+					enrollmentLayout->RowStyles->Add(
+						gcnew RowStyle(SizeType::Absolute, 30.0F));
+				}
+
+				AddProfileField(enrollmentLayout, 0, L"Class", className);
+				AddProfileField(enrollmentLayout, 1, L"Stream", streamName);
+				AddProfileField(enrollmentLayout, 2, L"Enrollment Date", enrollmentDate);
+				AddProfileField(enrollmentLayout, 3, L"Enrollment Status", L"Active");
+
+				enrollmentSection->Controls->Add(enrollmentLayout);
+
+
+				// Guardian section
+				GroupBox^ guardianSection = gcnew GroupBox();
+				guardianSection->Text = L"Guardian Information";
+				guardianSection->Dock = DockStyle::Top;
+				guardianSection->Height = 205;
+				guardianSection->Padding =
+					System::Windows::Forms::Padding(14, 18, 14, 10);
+
+				TableLayoutPanel^ guardianLayout = gcnew TableLayoutPanel();
+				guardianLayout->Dock = DockStyle::Fill;
+				guardianLayout->ColumnCount = 2;
+				guardianLayout->RowCount = 6;
+				guardianLayout->ColumnStyles->Add(
+					gcnew ColumnStyle(SizeType::Absolute, 150.0F));
+				guardianLayout->ColumnStyles->Add(
+					gcnew ColumnStyle(SizeType::Percent, 100.0F));
+
+				for (int i = 0; i < 6; i++)
+				{
+					guardianLayout->RowStyles->Add(
+						gcnew RowStyle(SizeType::Absolute, 30.0F));
+				}
+
+				AddProfileField(guardianLayout, 0, L"Full Name", guardianName);
+				AddProfileField(guardianLayout, 1, L"Relationship", guardianRelationship);
+				AddProfileField(guardianLayout, 2, L"Phone", guardianPhone);
+				AddProfileField(guardianLayout, 3, L"Alternative Phone", guardianAlternativePhone);
+				AddProfileField(guardianLayout, 4, L"Email", guardianEmail);
+				AddProfileField(guardianLayout, 5, L"Address", guardianAddress);
+
+				guardianSection->Controls->Add(guardianLayout);
+
+
+				contentLayout->Controls->Add(studentSection, 0, 0);
+				contentLayout->Controls->Add(enrollmentSection, 0, 1);
+				contentLayout->Controls->Add(guardianSection, 0, 2);
+				contentPanel->Controls->Add(contentLayout);
+
+
+				// Footer
+				Panel^ footerPanel = gcnew Panel();
+				footerPanel->Dock = DockStyle::Bottom;
+				footerPanel->Height = 60;
+				footerPanel->Padding =
+					System::Windows::Forms::Padding(20, 8, 20, 10);
+
+				Button^ closeButton = gcnew Button();
+				closeButton->Text = L"Close";
+				closeButton->Dock = DockStyle::Right;
+				closeButton->Width = 110;
+				closeButton->Height = 38;
+				closeButton->BackColor = Color::FromArgb(30, 41, 59);
+				closeButton->ForeColor = Color::White;
+				closeButton->FlatStyle = FlatStyle::Flat;
+				closeButton->FlatAppearance->BorderSize = 0;
+				closeButton->DialogResult = DialogResult::Cancel;
+
+				footerPanel->Controls->Add(closeButton);
+
+				profileForm->Controls->Add(contentPanel);
+				profileForm->Controls->Add(footerPanel);
+				profileForm->Controls->Add(profileHeader);
+
+				profileForm->ShowDialog(this);
 			}
 			catch (sql::SQLException& ex)
 			{
