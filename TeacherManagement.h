@@ -1420,7 +1420,7 @@ namespace SchoolCore
                 profileForm->MinimizeBox = false;
                 profileForm->ShowInTaskbar = false;
                 profileForm->ClientSize =
-                    System::Drawing::Size(720, 700);
+                    System::Drawing::Size(720, 620);
 
                 profileForm->BackColor =
                     Color::FromArgb(
@@ -1545,6 +1545,12 @@ namespace SchoolCore
                     DockStyle::Fill;
 
                 content->AutoScroll =
+                    true;
+
+                content->HorizontalScroll->Visible =
+                    false;
+
+                content->VerticalScroll->Visible =
                     true;
 
                 content->Padding =
