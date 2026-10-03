@@ -234,7 +234,7 @@ namespace SchoolCore
             this->AutoScaleMode =
                 System::Windows::Forms::AutoScaleMode::Dpi;
             this->ClientSize = Drawing::Size(1000, 650);
-            this->MinimumSize = Drawing::Size(900, 600);
+            this->MinimumSize = Drawing::Size(680, 560);
             this->BackColor = Color::White;
             this->DoubleBuffered = true;
 
@@ -269,14 +269,17 @@ namespace SchoolCore
             TableLayoutPanel^ metrics = gcnew TableLayoutPanel();
             metrics->Dock = DockStyle::Fill;
             metrics->Margin = System::Windows::Forms::Padding(0);
-            metrics->ColumnCount = MetricCount;
-            metrics->RowCount = 1;
+            metrics->ColumnCount = 2;
+            metrics->RowCount = 2;
 
-            for (int i = 0; i < MetricCount; ++i)
-                metrics->ColumnStyles->Add(
-                    gcnew ColumnStyle(
-                        SizeType::Percent,
-                        100.0F / MetricCount));
+            metrics->ColumnStyles->Add(
+                gcnew ColumnStyle(SizeType::Percent, 50.0F));
+            metrics->ColumnStyles->Add(
+                gcnew ColumnStyle(SizeType::Percent, 50.0F));
+            metrics->RowStyles->Add(
+                gcnew RowStyle(SizeType::Percent, 50.0F));
+            metrics->RowStyles->Add(
+                gcnew RowStyle(SizeType::Percent, 50.0F));
 
             array<String^>^ metricNames = gcnew array<String^>
             {
@@ -288,7 +291,7 @@ namespace SchoolCore
 
             for (int i = 0; i < MetricCount; ++i)
                 metrics->Controls->Add(
-                    CreateMetricCard(metricNames[i], i), i, 0);
+                    CreateMetricCard(metricNames[i], i), i % 2, i / 2);
 
             if (!canView)
                 ShowRestrictedMetrics();
@@ -353,14 +356,12 @@ namespace SchoolCore
                     i / 2);
             }
 
-            String^ noteText =
-                L"Electronic payments use a payment method and transaction reference. "
-                L"Sensitive credentials such as PINs, CVVs and full card numbers are never stored.";
+            String^ noteText = L"";
 
             if (!canView)
             {
-                noteText +=
-                    L"\r\n\r\nYour account does not have access to financial records. "
+                noteText =
+                    L"Your account does not have access to financial records. "
                     L"Contact an administrator if you need it.";
             }
 
