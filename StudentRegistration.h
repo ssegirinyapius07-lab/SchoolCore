@@ -939,13 +939,13 @@ namespace SchoolCore
 
             this->picStudentPhoto->Size =
                 System::Drawing::Size(
-                    105,
-                    105
+                    100,
+                    100
                 );
 
             this->picStudentPhoto->Location =
                 System::Drawing::Point(
-                    19,
+                    21,
                     8
                 );
 
@@ -958,9 +958,6 @@ namespace SchoolCore
             this->picStudentPhoto->BorderStyle =
                 BorderStyle::FixedSingle;
 
-            MakeCircularPictureBox(
-                this->picStudentPhoto
-            );
 
 
             this->btnChoosePhoto =
