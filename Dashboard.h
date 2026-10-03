@@ -8,6 +8,7 @@
 #include "ClassesStreams.h"
 #include "SubjectManagement.h"
 #include "Timetable.h"
+#include "Attendance.h"
 #include "AuthSession.h"
 
 namespace SchoolCore {
@@ -138,6 +139,7 @@ namespace SchoolCore {
 				gcnew TeacherManagement();
 
 			form->ShowDialog(this);
+			ShowDashboardOverview();
 		}
 
 		System::Void btnSubjects_Click(
@@ -148,28 +150,18 @@ namespace SchoolCore {
 				gcnew SubjectManagement();
 
 			form->ShowDialog(this);
+			ShowDashboardOverview();
 		}
 
 		System::Void btnTimetable_Click(
 			System::Object^ sender,
 			System::EventArgs^ e)
 		{
-			this->contentPanel->Controls->Clear();
-
 			SchoolCore::Timetable^ form =
 				gcnew SchoolCore::Timetable();
 
-			form->TopLevel = false;
-			form->FormBorderStyle =
-				System::Windows::Forms::FormBorderStyle::None;
-			form->Dock =
-				System::Windows::Forms::DockStyle::Fill;
-			form->WindowState =
-				System::Windows::Forms::FormWindowState::Normal;
-
-			this->contentPanel->Controls->Add(form);
-
-			form->Show();
+			form->ShowDialog(this);
+			ShowDashboardOverview();
 		}
 
 		System::Void btnStudents_Click(
@@ -180,50 +172,40 @@ namespace SchoolCore {
 				gcnew StudentManagement();
 
 			form->ShowDialog(this);
+			ShowDashboardOverview();
+		}
+
+		System::Void btnAttendance_Click(
+			System::Object^ sender,
+			System::EventArgs^ e)
+		{
+			SchoolCore::Attendance^ form =
+				gcnew SchoolCore::Attendance();
+
+			form->ShowDialog(this);
+			ShowDashboardOverview();
 		}
 
 		System::Void btnClasses_Click(
 			System::Object^ sender,
 			System::EventArgs^ e)
 		{
-			this->contentPanel->Controls->Clear();
-
 			ClassesStreams^ form =
 				gcnew ClassesStreams();
 
-			form->TopLevel = false;
-			form->FormBorderStyle =
-				System::Windows::Forms::FormBorderStyle::None;
-			form->Dock =
-				System::Windows::Forms::DockStyle::Fill;
-			form->WindowState =
-				System::Windows::Forms::FormWindowState::Normal;
-
-			this->contentPanel->Controls->Add(form);
-
-			form->Show();
+			form->ShowDialog(this);
+			ShowDashboardOverview();
 		}
 
 		System::Void btnAcademic_Click(
 			System::Object^ sender,
 			System::EventArgs^ e)
 		{
-			this->contentPanel->Controls->Clear();
-
 			SchoolCore::AcademicYearsTerms^ form =
 				gcnew SchoolCore::AcademicYearsTerms();
 
-			form->TopLevel = false;
-			form->FormBorderStyle =
-				System::Windows::Forms::FormBorderStyle::None;
-			form->Dock =
-				System::Windows::Forms::DockStyle::Fill;
-			form->WindowState =
-				System::Windows::Forms::FormWindowState::Normal;
-
-			this->contentPanel->Controls->Add(form);
-
-			form->Show();
+			form->ShowDialog(this);
+			ShowDashboardOverview();
 		}
 
 
@@ -1135,7 +1117,7 @@ namespace SchoolCore {
 			this->btnDashboard->ForeColor = System::Drawing::Color::White;
 			this->btnDashboard->Location = System::Drawing::Point(15, 20);
 			this->btnDashboard->Name = L"btnDashboard";
-			this->btnDashboard->Size = System::Drawing::Size(200, 45);
+			this->btnDashboard->Size = System::Drawing::Size(250, 45);
 			this->btnDashboard->TabIndex = 0;
 			this->btnDashboard->Text = L"Dashboard";
 			this->btnDashboard->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
@@ -1151,7 +1133,7 @@ namespace SchoolCore {
 			this->btnStudents->ForeColor = System::Drawing::Color::White;
 			this->btnStudents->Location = System::Drawing::Point(15, 75);
 			this->btnStudents->Name = L"btnStudents";
-			this->btnStudents->Size = System::Drawing::Size(200, 45);
+			this->btnStudents->Size = System::Drawing::Size(250, 45);
 			this->btnStudents->TabIndex = 1;
 			this->btnStudents->Text = L"Students";
 			this->btnStudents->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
@@ -1168,7 +1150,7 @@ namespace SchoolCore {
 			this->btnTeachers->ForeColor = System::Drawing::Color::White;
 			this->btnTeachers->Location = System::Drawing::Point(15, 130);
 			this->btnTeachers->Name = L"btnTeachers";
-			this->btnTeachers->Size = System::Drawing::Size(200, 45);
+			this->btnTeachers->Size = System::Drawing::Size(250, 45);
 			this->btnTeachers->TabIndex = 2;
 			this->btnTeachers->Text = L"Teachers";
 			this->btnTeachers->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
@@ -1184,7 +1166,7 @@ namespace SchoolCore {
 			this->btnClasses->ForeColor = System::Drawing::Color::White;
 			this->btnClasses->Location = System::Drawing::Point(15, 185);
 			this->btnClasses->Name = L"btnClasses";
-			this->btnClasses->Size = System::Drawing::Size(200, 45);
+			this->btnClasses->Size = System::Drawing::Size(250, 45);
 			this->btnClasses->TabIndex = 3;
 			this->btnClasses->Text = L"Classes && Streams";
 			this->btnClasses->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
@@ -1206,7 +1188,7 @@ namespace SchoolCore {
 			this->btnSubjects->ForeColor = System::Drawing::Color::White;
 			this->btnSubjects->Location = System::Drawing::Point(15, 240);
 			this->btnSubjects->Name = L"btnSubjects";
-			this->btnSubjects->Size = System::Drawing::Size(200, 45);
+			this->btnSubjects->Size = System::Drawing::Size(250, 45);
 			this->btnSubjects->TabIndex = 4;
 			this->btnSubjects->Text = L"Subjects";
 			this->btnSubjects->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
