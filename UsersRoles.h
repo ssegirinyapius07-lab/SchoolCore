@@ -13,6 +13,7 @@ namespace SchoolCore
 {
     using namespace System;
     using namespace System::Drawing;
+    using namespace System::Data;
     using namespace System::Security::Cryptography;
     using namespace System::Windows::Forms;
 
