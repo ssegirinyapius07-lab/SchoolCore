@@ -2095,7 +2095,7 @@ namespace SchoolCore
                 1;
 
             this->mainLayout->RowCount =
-                5;
+                6;
 
             this->mainLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
