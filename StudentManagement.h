@@ -44,6 +44,12 @@ namespace SchoolCore
 					&StudentManagement::btnViewProfile_Click
 				);
 
+			this->btnEditStudent->Click +=
+				gcnew System::EventHandler(
+					this,
+					&StudentManagement::btnEditStudent_Click
+				);
+
 			this->btnViewProfile->Enabled = false;
 			this->btnEditStudent->Enabled = false;
 
@@ -254,6 +260,7 @@ namespace SchoolCore
 					fullName += lastName;
 
 					this->studentsGrid->Rows->Add(
+						result->getInt64("student_id"),
 						registration,
 						fullName,
 						className,
@@ -307,6 +314,9 @@ namespace SchoolCore
 			System::EventArgs^ e)
 		{
 			this->btnViewProfile->Enabled =
+				this->studentsGrid->SelectedRows->Count > 0;
+
+			this->btnEditStudent->Enabled =
 				this->studentsGrid->SelectedRows->Count > 0;
 		}
 
@@ -477,6 +487,43 @@ namespace SchoolCore
 				);
 			}
 		}
+
+
+		System::Void btnEditStudent_Click(
+			System::Object^ sender,
+			System::EventArgs^ e)
+		{
+			if (this->studentsGrid->SelectedRows->Count == 0)
+			{
+				MessageBox::Show(
+					L"Please select a student.",
+					L"Students",
+					MessageBoxButtons::OK,
+					MessageBoxIcon::Warning
+				);
+				return;
+			}
+
+			long long studentId =
+				Convert::ToInt64(
+					this->studentsGrid
+					->SelectedRows[0]
+					->Cells["StudentId"]
+					->Value
+				);
+
+			StudentRegistration^ form =
+				gcnew StudentRegistration(studentId);
+
+			if (
+				form->ShowDialog(this) ==
+				System::Windows::Forms::DialogResult::OK
+			)
+			{
+				LoadStudents();
+			}
+		}
+
 
 		void InitializeComponent(void)
 		{
@@ -950,6 +997,22 @@ namespace SchoolCore
 			// GRID COLUMNS
 			// ============================================================
 
+			System::Windows::Forms::DataGridViewTextBoxColumn^ studentIdColumn =
+				gcnew System::Windows::Forms::DataGridViewTextBoxColumn();
+
+			studentIdColumn->HeaderText =
+				L"Student ID";
+
+			studentIdColumn->Name =
+				L"StudentId";
+
+			studentIdColumn->Visible = false;
+
+			this->studentsGrid->Columns->Add(
+				studentIdColumn
+			);
+
+
 			System::Windows::Forms::DataGridViewTextBoxColumn^ registrationColumn =
 				gcnew System::Windows::Forms::DataGridViewTextBoxColumn();
 
@@ -1069,11 +1132,6 @@ namespace SchoolCore
 			// Edit
 			this->btnEditStudent->Text =
 				L"Edit Student";
-
-			// Editing is intentionally disabled until a dedicated
-			// edit form is added, so the interface does not expose
-			// a button that has no implemented action.
-			this->btnEditStudent->Enabled = false;
 
 			this->btnEditStudent->Font =
 				regularFont;
