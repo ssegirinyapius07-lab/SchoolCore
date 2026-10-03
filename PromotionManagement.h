@@ -92,7 +92,7 @@ namespace SchoolCore
 
             this->mainLayout = gcnew TableLayoutPanel();
             this->mainLayout->Dock = DockStyle::Fill;
-            this->mainLayout->Padding = Padding(28);
+            this->mainLayout->Padding = System::Windows::Forms::Padding(28);
             this->mainLayout->ColumnCount = 2;
             this->mainLayout->RowCount = 10;
             this->mainLayout->BackColor = Color::White;
@@ -132,7 +132,7 @@ namespace SchoolCore
             this->txtSearchStudent = gcnew TextBox();
             this->txtSearchStudent->Dock = DockStyle::Fill;
             this->txtSearchStudent->Height = 32;
-            this->txtSearchStudent->Margin = Padding(0, 7, 8, 7);
+            this->txtSearchStudent->Margin = System::Windows::Forms::Padding(0, 7, 8, 7);
 
             this->btnSearchStudent = gcnew Button();
             this->btnSearchStudent->Text = L"Search";
@@ -222,7 +222,7 @@ namespace SchoolCore
             this->btnCancel->Text = L"Cancel";
             this->btnCancel->Width = 100;
             this->btnCancel->Height = 36;
-            this->btnCancel->DialogResult = DialogResult::Cancel;
+            this->btnCancel->DialogResult = System::Windows::Forms::DialogResult::Cancel;
 
             buttonPanel->Controls->Add(this->btnPromote);
             buttonPanel->Controls->Add(this->btnCancel);
@@ -242,7 +242,7 @@ namespace SchoolCore
                 L"Segoe UI Semibold", 9.5F, FontStyle::Bold);
             label->ForeColor = Color::FromArgb(71, 85, 105);
             label->TextAlign = ContentAlignment::MiddleLeft;
-            label->Margin = Padding(0, 2, 12, 2);
+            label->Margin = System::Windows::Forms::Padding(0, 2, 12, 2);
             return label;
         }
 
@@ -263,7 +263,7 @@ namespace SchoolCore
             combo->Dock = DockStyle::Fill;
             combo->DropDownStyle = ComboBoxStyle::DropDownList;
             combo->Height = 32;
-            combo->Margin = Padding(0, 7, 8, 7);
+            combo->Margin = System::Windows::Forms::Padding(0, 7, 8, 7);
             return combo;
         }
 
@@ -1007,7 +1007,7 @@ namespace SchoolCore
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Information);
 
-                this->DialogResult = DialogResult::OK;
+                this->DialogResult = System::Windows::Forms::DialogResult::OK;
                 this->Close();
             }
             catch (sql::SQLException& ex)
