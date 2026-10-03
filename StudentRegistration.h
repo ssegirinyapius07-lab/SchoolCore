@@ -580,11 +580,13 @@ namespace SchoolCore
             this->lblFirstName->Dock =
                 DockStyle::Fill;
 
+            this->lblFirstName->AutoSize = false;
+
             this->lblFirstName->TextAlign =
                 ContentAlignment::MiddleLeft;
 
             this->lblFirstName->Margin =
-                System::Windows::Forms::Padding(3, 4, 3, 4);
+                System::Windows::Forms::Padding(3, 0, 3, 0);
 
 
             this->txtFirstName =
@@ -610,11 +612,13 @@ namespace SchoolCore
             this->lblLastName->Dock =
                 DockStyle::Fill;
 
+            this->lblLastName->AutoSize = false;
+
             this->lblLastName->TextAlign =
                 ContentAlignment::MiddleLeft;
 
             this->lblLastName->Margin =
-                System::Windows::Forms::Padding(3, 4, 3, 4);
+                System::Windows::Forms::Padding(3, 0, 3, 0);
 
 
             this->txtLastName =
@@ -640,11 +644,13 @@ namespace SchoolCore
             this->lblMiddleName->Dock =
                 DockStyle::Fill;
 
+            this->lblMiddleName->AutoSize = false;
+
             this->lblMiddleName->TextAlign =
                 ContentAlignment::MiddleLeft;
 
             this->lblMiddleName->Margin =
-                System::Windows::Forms::Padding(3, 4, 3, 4);
+                System::Windows::Forms::Padding(3, 0, 3, 0);
 
 
             this->txtMiddleName =
@@ -670,11 +676,13 @@ namespace SchoolCore
             this->lblGender->Dock =
                 DockStyle::Fill;
 
+            this->lblGender->AutoSize = false;
+
             this->lblGender->TextAlign =
                 ContentAlignment::MiddleLeft;
 
             this->lblGender->Margin =
-                System::Windows::Forms::Padding(3, 4, 3, 4);
+                System::Windows::Forms::Padding(3, 0, 3, 0);
 
 
             this->cmbGender =
@@ -717,11 +725,13 @@ namespace SchoolCore
             this->lblDob->Dock =
                 DockStyle::Fill;
 
+            this->lblDob->AutoSize = false;
+
             this->lblDob->TextAlign =
                 ContentAlignment::MiddleLeft;
 
             this->lblDob->Margin =
-                System::Windows::Forms::Padding(3, 4, 3, 4);
+                System::Windows::Forms::Padding(3, 0, 3, 0);
 
 
             this->dtpDob =
@@ -768,11 +778,13 @@ namespace SchoolCore
             this->lblAdmissionDate->Dock =
                 DockStyle::Fill;
 
+            this->lblAdmissionDate->AutoSize = false;
+
             this->lblAdmissionDate->TextAlign =
                 ContentAlignment::MiddleLeft;
 
             this->lblAdmissionDate->Margin =
-                System::Windows::Forms::Padding(3, 4, 3, 4);
+                System::Windows::Forms::Padding(3, 0, 3, 0);
 
 
             this->dtpAdmissionDate =
@@ -819,11 +831,13 @@ namespace SchoolCore
             this->lblHomeAddress->Dock =
                 DockStyle::Fill;
 
+            this->lblHomeAddress->AutoSize = false;
+
             this->lblHomeAddress->TextAlign =
                 ContentAlignment::MiddleLeft;
 
             this->lblHomeAddress->Margin =
-                System::Windows::Forms::Padding(3, 4, 3, 4);
+                System::Windows::Forms::Padding(3, 0, 3, 0);
 
 
             this->txtHomeAddress =
@@ -1207,11 +1221,13 @@ namespace SchoolCore
             this->lblAcademicYear->Dock =
                 DockStyle::Fill;
 
+            this->lblAcademicYear->AutoSize = false;
+
             this->lblAcademicYear->TextAlign =
                 ContentAlignment::MiddleLeft;
 
             this->lblAcademicYear->Margin =
-                System::Windows::Forms::Padding(3, 4, 3, 4);
+                System::Windows::Forms::Padding(3, 0, 3, 0);
 
 
             this->cmbAcademicYear =
@@ -1238,11 +1254,13 @@ namespace SchoolCore
             this->lblTerm->Dock =
                 DockStyle::Fill;
 
+            this->lblTerm->AutoSize = false;
+
             this->lblTerm->TextAlign =
                 ContentAlignment::MiddleLeft;
 
             this->lblTerm->Margin =
-                System::Windows::Forms::Padding(3, 4, 3, 4);
+                System::Windows::Forms::Padding(3, 0, 3, 0);
 
 
             this->cmbTerm =
@@ -1272,11 +1290,13 @@ namespace SchoolCore
             this->lblClass->Dock =
                 DockStyle::Fill;
 
+            this->lblClass->AutoSize = false;
+
             this->lblClass->TextAlign =
                 ContentAlignment::MiddleLeft;
 
             this->lblClass->Margin =
-                System::Windows::Forms::Padding(3, 4, 3, 4);
+                System::Windows::Forms::Padding(3, 0, 3, 0);
 
 
             this->cmbClass =
@@ -1303,11 +1323,13 @@ namespace SchoolCore
             this->lblStream->Dock =
                 DockStyle::Fill;
 
+            this->lblStream->AutoSize = false;
+
             this->lblStream->TextAlign =
                 ContentAlignment::MiddleLeft;
 
             this->lblStream->Margin =
-                System::Windows::Forms::Padding(3, 4, 3, 4);
+                System::Windows::Forms::Padding(3, 0, 3, 0);
 
 
             this->cmbStream =
@@ -1510,7 +1532,7 @@ namespace SchoolCore
                 ContentAlignment::MiddleLeft;
 
             this->lblGuardianName->Margin =
-                System::Windows::Forms::Padding(3, 3, 3, 3);
+                System::Windows::Forms::Padding(3, 0, 3, 0);
 
             this->lblGuardianName->AutoSize = false;
 
@@ -1546,7 +1568,7 @@ namespace SchoolCore
                 ContentAlignment::MiddleLeft;
 
             this->lblGuardianRelationship->Margin =
-                System::Windows::Forms::Padding(3, 3, 3, 3);
+                System::Windows::Forms::Padding(3, 0, 3, 0);
 
             this->lblGuardianRelationship->AutoSize = false;
 
@@ -1582,7 +1604,7 @@ namespace SchoolCore
                 ContentAlignment::MiddleLeft;
 
             this->lblGuardianPhone->Margin =
-                System::Windows::Forms::Padding(3, 3, 3, 3);
+                System::Windows::Forms::Padding(3, 0, 3, 0);
 
             this->lblGuardianPhone->AutoSize = false;
 
@@ -1618,7 +1640,7 @@ namespace SchoolCore
                 ContentAlignment::MiddleLeft;
 
             this->lblGuardianAlternativePhone->Margin =
-                System::Windows::Forms::Padding(3, 3, 3, 3);
+                System::Windows::Forms::Padding(3, 0, 3, 0);
 
             this->lblGuardianAlternativePhone->AutoSize = false;
 
@@ -1654,7 +1676,7 @@ namespace SchoolCore
                 ContentAlignment::MiddleLeft;
 
             this->lblGuardianEmail->Margin =
-                System::Windows::Forms::Padding(3, 3, 3, 3);
+                System::Windows::Forms::Padding(3, 0, 3, 0);
 
             this->lblGuardianEmail->AutoSize = false;
 
@@ -1690,7 +1712,7 @@ namespace SchoolCore
                 ContentAlignment::MiddleLeft;
 
             this->lblGuardianAddress->Margin =
-                System::Windows::Forms::Padding(3, 3, 3, 3);
+                System::Windows::Forms::Padding(3, 0, 3, 0);
 
             this->lblGuardianAddress->AutoSize = false;
 
@@ -1817,10 +1839,10 @@ namespace SchoolCore
                 L"Save Student";
 
             this->btnSave->Width =
-                125;
+                110;
 
             this->btnSave->Height =
-                42;
+                38;
 
             this->btnSave->Dock =
                 DockStyle::Right;
@@ -1844,7 +1866,7 @@ namespace SchoolCore
                 L"Back to Students";
 
             this->btnCancel->Width =
-                125;
+                145;
 
             this->btnCancel->Height =
                 42;
@@ -1859,7 +1881,7 @@ namespace SchoolCore
                 L"Clear";
 
             this->btnClear->Width =
-                125;
+                105;
 
             this->btnClear->Height =
                 42;
@@ -1868,10 +1890,10 @@ namespace SchoolCore
             // Put buttons next to each other
 
             this->btnCancel->Location =
-                Point(270, 12);
+                Point(0, 12);
 
             this->btnClear->Location =
-                Point(135, 12);
+                Point(155, 12);
 
 
             this->buttonPanel->Controls->Add(
