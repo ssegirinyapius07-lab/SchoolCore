@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DbConnection.h"
+#include "ThemeManager.h"
 #include "AuthSession.h"
 
 #include <mariadb/conncpp.hpp>
@@ -23,7 +24,8 @@ namespace SchoolCore
         UsersRoles(void)
         {
             InitializeComponent();
-            LoadRoles();
+                                ThemeManager::ApplyToForm(this);
+                    LoadRoles();
             LoadUsers();
             ApplyPermissions();
         }
