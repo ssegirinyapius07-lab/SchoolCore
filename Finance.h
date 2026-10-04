@@ -160,6 +160,24 @@ namespace SchoolCore
             return label;
         }
 
+        static Label^ CreateFieldLabel(String^ text)
+        {
+            Label^ label =
+                CreateLabel(
+                    text,
+                    FinanceTheme::Body,
+                    FinanceTheme::TextStrong);
+
+            label->Dock = DockStyle::Fill;
+            label->AutoSize = false;
+            label->AutoEllipsis = false;
+            label->TextAlign = ContentAlignment::MiddleLeft;
+            label->Margin =
+                System::Windows::Forms::Padding(0, 0, 10, 0);
+
+            return label;
+        }
+
         static Panel^ CreateHeader(String^ title, String^ subtitle,
             Drawing::Font^ titleFont, int height, int titleHeight)
         {
@@ -1188,8 +1206,8 @@ namespace SchoolCore
             paymentForm->MaximizeBox = false;
             paymentForm->MinimizeBox = false;
             paymentForm->ShowInTaskbar = false;
-            paymentForm->ClientSize = Drawing::Size(760, 600);
-            paymentForm->MinimumSize = Drawing::Size(720, 560);
+            paymentForm->ClientSize = Drawing::Size(720, 540);
+            paymentForm->MinimumSize = Drawing::Size(680, 500);
             paymentForm->BackColor = ThemeManager::Canvas();
 
             TableLayoutPanel^ root =
@@ -1198,37 +1216,24 @@ namespace SchoolCore
             root->Dock = DockStyle::Fill;
             root->Padding =
                 System::Windows::Forms::Padding(20);
-            root->ColumnCount = 2;
-            root->RowCount = 12;
-            root->ColumnStyles->Add(
-                gcnew ColumnStyle(SizeType::Absolute, 155.0F));
+            root->ColumnCount = 1;
+            root->RowCount = 6;
+
             root->ColumnStyles->Add(
                 gcnew ColumnStyle(SizeType::Percent, 100.0F));
 
             root->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 36.0F));
-            root->RowStyles->Add(
                 gcnew RowStyle(SizeType::Absolute, 42.0F));
             root->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 26.0F));
+                gcnew RowStyle(SizeType::Absolute, 28.0F));
             root->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 42.0F));
+                gcnew RowStyle(SizeType::Absolute, 178.0F));
             root->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 50.0F));
+                gcnew RowStyle(SizeType::Absolute, 34.0F));
             root->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 42.0F));
+                gcnew RowStyle(SizeType::Absolute, 74.0F));
             root->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 42.0F));
-            root->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 42.0F));
-            root->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 42.0F));
-            root->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 42.0F));
-            root->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 64.0F));
-            root->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 50.0F));
+                gcnew RowStyle(SizeType::Percent, 100.0F));
 
             Label^ title =
                 CreateLabel(
@@ -1236,15 +1241,42 @@ namespace SchoolCore
                     FinanceTheme::Dialog,
                     FinanceTheme::TextStrong);
             title->Dock = DockStyle::Fill;
+            title->TextAlign = ContentAlignment::MiddleLeft;
+            title->AutoEllipsis = false;
 
-            Label^ studentInfo =
+            paymentStudentInfoLabel =
                 CreateLabel(
                     L"Select a student to view outstanding charges.",
                     FinanceTheme::Small,
                     FinanceTheme::TextMuted);
-            studentInfo->Dock = DockStyle::Fill;
-            studentInfo->AutoEllipsis = true;
-            paymentStudentInfoLabel = studentInfo;
+            paymentStudentInfoLabel->Dock = DockStyle::Fill;
+            paymentStudentInfoLabel->TextAlign =
+                ContentAlignment::MiddleLeft;
+            paymentStudentInfoLabel->AutoEllipsis = false;
+
+            TableLayoutPanel^ details =
+                gcnew TableLayoutPanel();
+
+            details->Dock = DockStyle::Fill;
+            details->Padding =
+                System::Windows::Forms::Padding(12);
+            details->ColumnCount = 4;
+            details->RowCount = 4;
+
+            details->ColumnStyles->Add(
+                gcnew ColumnStyle(SizeType::Absolute, 138.0F));
+            details->ColumnStyles->Add(
+                gcnew ColumnStyle(SizeType::Percent, 50.0F));
+            details->ColumnStyles->Add(
+                gcnew ColumnStyle(SizeType::Absolute, 138.0F));
+            details->ColumnStyles->Add(
+                gcnew ColumnStyle(SizeType::Percent, 50.0F));
+
+            for (int i = 0; i < 4; ++i)
+            {
+                details->RowStyles->Add(
+                    gcnew RowStyle(SizeType::Percent, 25.0F));
+            }
 
             paymentStudentBox = gcnew ComboBox();
             paymentStudentBox->Dock = DockStyle::Fill;
@@ -1295,39 +1327,101 @@ namespace SchoolCore
                 ScrollBars::Vertical;
             paymentRemarksBox->MaxLength = 255;
 
+            details->Controls->Add(
+                CreateFieldLabel(L"Student"),
+                0, 0);
+            details->Controls->Add(
+                paymentStudentBox,
+                1, 0);
+
+            details->Controls->Add(
+                CreateFieldLabel(L"Fee Charge"),
+                2, 0);
+            details->Controls->Add(
+                paymentChargeBox,
+                3, 0);
+
+            details->Controls->Add(
+                CreateFieldLabel(L"Amount (UGX)"),
+                0, 1);
+            details->Controls->Add(
+                paymentAmountBox,
+                1, 1);
+
+            details->Controls->Add(
+                CreateFieldLabel(L"Payment Date"),
+                2, 1);
+            details->Controls->Add(
+                paymentDatePicker,
+                3, 1);
+
+            details->Controls->Add(
+                CreateFieldLabel(L"Payment Method"),
+                0, 2);
+            details->Controls->Add(
+                paymentMethodBox,
+                1, 2);
+
+            details->Controls->Add(
+                CreateFieldLabel(L"Provider"),
+                2, 2);
+            details->Controls->Add(
+                paymentProviderBox,
+                3, 2);
+
+            details->Controls->Add(
+                CreateFieldLabel(L"Transaction Reference"),
+                0, 3);
+            details->Controls->Add(
+                paymentReferenceBox,
+                1, 3);
+
+            details->Controls->Add(
+                CreateFieldLabel(L"Payer Contact"),
+                2, 3);
+            details->Controls->Add(
+                paymentPayerContactBox,
+                3, 3);
+
+            Panel^ balancePanel = gcnew Panel();
+            balancePanel->Dock = DockStyle::Fill;
+            balancePanel->Padding =
+                System::Windows::Forms::Padding(12, 4, 12, 4);
+            balancePanel->BackColor =
+                FinanceTheme::Surface;
+
             paymentBalanceLabel =
-                gcnew Label();
-            paymentBalanceLabel->Text =
-                L"Outstanding: UGX 0.00";
-            paymentBalanceLabel->Dock =
-                DockStyle::Fill;
+                CreateLabel(
+                    L"Outstanding: UGX 0.00",
+                    FinanceTheme::Small,
+                    FinanceTheme::TextStrong);
+            paymentBalanceLabel->Dock = DockStyle::Right;
+            paymentBalanceLabel->AutoEllipsis = false;
+            paymentBalanceLabel->AutoSize = true;
             paymentBalanceLabel->TextAlign =
                 ContentAlignment::MiddleRight;
-            paymentBalanceLabel->ForeColor =
-                ThemeManager::TextSecondary();
 
-            Panel^ amountPanel = gcnew Panel();
-            amountPanel->Dock = DockStyle::Fill;
-            amountPanel->Padding =
-                System::Windows::Forms::Padding(0, 0, 0, 0);
-            amountPanel->Controls->Add(paymentAmountBox);
-            amountPanel->Controls->Add(paymentBalanceLabel);
+            balancePanel->Controls->Add(
+                paymentBalanceLabel);
 
-            paymentBalanceLabel->Dock =
-                DockStyle::Bottom;
-            paymentBalanceLabel->Height = 22;
-            paymentAmountBox->Dock =
-                DockStyle::Top;
+            Panel^ remarksPanel = gcnew Panel();
+            remarksPanel->Dock = DockStyle::Fill;
+            remarksPanel->Padding =
+                System::Windows::Forms::Padding(12, 4, 12, 4);
 
-            Button^ cancel = gcnew Button();
-            cancel->Text = L"Cancel";
-            cancel->Width = 110;
-            cancel->DialogResult =
-                System::Windows::Forms::DialogResult::Cancel;
+            Label^ remarksLabel =
+                CreateLabel(
+                    L"Remarks",
+                    FinanceTheme::Small,
+                    FinanceTheme::TextMuted);
+            remarksLabel->Dock = DockStyle::Top;
+            remarksLabel->Height = 22;
+            remarksLabel->AutoEllipsis = false;
 
-            paymentSaveButton = gcnew Button();
-            paymentSaveButton->Text = L"Record Payment";
-            paymentSaveButton->Width = 150;
+            remarksPanel->Controls->Add(
+                remarksLabel);
+            remarksPanel->Controls->Add(
+                paymentRemarksBox);
 
             FlowLayoutPanel^ footer =
                 gcnew FlowLayoutPanel();
@@ -1335,97 +1429,41 @@ namespace SchoolCore
             footer->FlowDirection =
                 FlowDirection::RightToLeft;
             footer->WrapContents = false;
+            footer->Padding =
+                System::Windows::Forms::Padding(0, 8, 0, 0);
+
+            Button^ cancel = gcnew Button();
+            cancel->Text = L"Cancel";
+            cancel->Width = 100;
+            cancel->Height = 32;
+            cancel->DialogResult =
+                System::Windows::Forms::DialogResult::Cancel;
+
+            paymentSaveButton = gcnew Button();
+            paymentSaveButton->Text = L"Record Payment";
+            paymentSaveButton->Width = 140;
+            paymentSaveButton->Height = 32;
+
             footer->Controls->Add(cancel);
-            footer->Controls->Add(paymentSaveButton);
+            footer->Controls->Add(
+                paymentSaveButton);
 
             root->Controls->Add(title, 0, 0);
-            root->SetColumnSpan(title, 2);
-
-            root->Controls->Add(paymentStudentBox, 1, 1);
             root->Controls->Add(
-                CreateLabel(
-                    L"Student",
-                    FinanceTheme::Body,
-                    FinanceTheme::TextStrong),
+                paymentStudentInfoLabel,
                 0, 1);
-
-            root->Controls->Add(paymentStudentInfoLabel, 1, 2);
-            root->SetColumnSpan(paymentStudentInfoLabel, 2);
-
             root->Controls->Add(
-                CreateLabel(
-                    L"Fee Charge",
-                    FinanceTheme::Body,
-                    FinanceTheme::TextStrong),
+                details,
+                0, 2);
+            root->Controls->Add(
+                balancePanel,
                 0, 3);
-            root->Controls->Add(paymentChargeBox, 1, 3);
-
             root->Controls->Add(
-                CreateLabel(
-                    L"Amount (UGX)",
-                    FinanceTheme::Body,
-                    FinanceTheme::TextStrong),
+                remarksPanel,
                 0, 4);
-            root->Controls->Add(amountPanel, 1, 4);
-
-            root->Controls->Add(
-                CreateLabel(
-                    L"Payment Date",
-                    FinanceTheme::Body,
-                    FinanceTheme::TextStrong),
-                0, 5);
-            root->Controls->Add(paymentDatePicker, 1, 5);
-
-            root->Controls->Add(
-                CreateLabel(
-                    L"Payment Method",
-                    FinanceTheme::Body,
-                    FinanceTheme::TextStrong),
-                0, 6);
-            root->Controls->Add(paymentMethodBox, 1, 6);
-
-            root->Controls->Add(
-                CreateLabel(
-                    L"Provider",
-                    FinanceTheme::Body,
-                    FinanceTheme::TextStrong),
-                0, 7);
-            root->Controls->Add(paymentProviderBox, 1, 7);
-
-            root->Controls->Add(
-                CreateLabel(
-                    L"Transaction Reference",
-                    FinanceTheme::Body,
-                    FinanceTheme::TextStrong),
-                0, 8);
-            root->Controls->Add(
-                paymentReferenceBox,
-                1, 8);
-
-            root->Controls->Add(
-                CreateLabel(
-                    L"Payer Contact",
-                    FinanceTheme::Body,
-                    FinanceTheme::TextStrong),
-                0, 9);
-            root->Controls->Add(
-                paymentPayerContactBox,
-                1, 9);
-
-            root->Controls->Add(
-                CreateLabel(
-                    L"Remarks",
-                    FinanceTheme::Body,
-                    FinanceTheme::TextStrong),
-                0, 10);
-            root->Controls->Add(
-                paymentRemarksBox,
-                1, 10);
-
             root->Controls->Add(
                 footer,
-                0, 11);
-            root->SetColumnSpan(footer, 2);
+                0, 5);
 
             paymentStudentBox->SelectedIndexChanged +=
                 gcnew EventHandler(
