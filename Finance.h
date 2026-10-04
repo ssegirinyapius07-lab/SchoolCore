@@ -2973,13 +2973,13 @@ namespace SchoolCore
                 std::unique_ptr<sql::PreparedStatement> stmt(
                     con->prepareStatement(
                         "SELECT fs.fee_structure_id, ay.year_name, t.term_name, "
-                        "c.class_name, COALESCE(st.stream_name, 'All Streams') AS stream_name, "
+                        "c.class_name, COALESCE(ss.session_name, 'Unassigned') AS session_name, "
                         "fs.fee_name, fs.amount, fs.due_date, fs.status "
                         "FROM fee_structures fs "
                         "INNER JOIN academic_years ay ON ay.academic_year_id = fs.academic_year_id "
                         "INNER JOIN terms t ON t.term_id = fs.term_id "
                         "INNER JOIN classes c ON c.class_id = fs.class_id "
-                        "LEFT JOIN streams st ON st.stream_id = fs.stream_id "
+                        "LEFT JOIN student_sessions ss ON ss.session_id = fs.session_id "
                         "ORDER BY ay.start_date DESC, t.term_id, c.class_name, fs.fee_name"
                     )
                 );
@@ -3000,7 +3000,7 @@ namespace SchoolCore
                         gcnew String(result->getString("year_name").c_str()),
                         gcnew String(result->getString("term_name").c_str()),
                         gcnew String(result->getString("class_name").c_str()),
-                        gcnew String(result->getString("stream_name").c_str()),
+                        gcnew String(result->getString("session_name").c_str()),
                         gcnew String(result->getString("fee_name").c_str()),
                         amount.ToString(L"N2", System::Globalization::CultureInfo::InvariantCulture),
                         gcnew String(result->getString("due_date").c_str()),
@@ -3150,7 +3150,7 @@ namespace SchoolCore
 
             array<String^>^ headers = gcnew array<String^>
             {
-                L"ID", L"Academic Year", L"Term", L"Class", L"Stream",
+                L"ID", L"Academic Year", L"Term", L"Class", L"Session",
                 L"Fee", L"Amount (UGX)", L"Due Date", L"Status"
             };
 
@@ -3215,7 +3215,7 @@ namespace SchoolCore
                 std::unique_ptr<sql::PreparedStatement> stmt(
                     con->prepareStatement(
                         "SELECT fs.fee_structure_id, fs.fee_name, ay.year_name, "
-                        "t.term_name, c.class_name, COALESCE(st.stream_name, 'All Streams') AS stream_name, "
+                        "t.term_name, c.class_name, COALESCE(ss.session_name, 'Unassigned') AS session_name, "
                         "fs.amount, fs.due_date "
                         "FROM fee_structures fs "
                         "INNER JOIN academic_years ay ON ay.academic_year_id = fs.academic_year_id "
@@ -3223,6 +3223,7 @@ namespace SchoolCore
                         "INNER JOIN classes c ON c.class_id = fs.class_id "
                         "LEFT JOIN streams st ON st.stream_id = fs.stream_id "
                         "WHERE fs.status = 'Active' "
+                        "AND fs.session_id IS NOT NULL "
                         "ORDER BY ay.start_date DESC, t.term_id, c.class_name, fs.fee_name"
                     )
                 );
@@ -3294,7 +3295,7 @@ namespace SchoolCore
                         "LEFT JOIN payment_allocations pa ON pa.fee_charge_id = fc.fee_charge_id "
                         "GROUP BY fc.fee_charge_id, s.registration_number, s.first_name, s.middle_name, "
                         "s.last_name, fs.fee_name, ay.year_name, t.term_name, c.class_name, "
-                        "st.stream_name, fc.amount, fc.due_date, fc.status "
+                        "ss.session_name, fc.amount, fc.due_date, fc.status "
                         "ORDER BY fc.fee_charge_id DESC"
                     )
                 );
@@ -3388,7 +3389,7 @@ namespace SchoolCore
 
                 std::unique_ptr<sql::PreparedStatement> getStructure(
                     con->prepareStatement(
-                        "SELECT academic_year_id, term_id, class_id, stream_id, amount, due_date "
+                        "SELECT academic_year_id, term_id, class_id, session_id, amount, due_date "
                         "FROM fee_structures "
                         "WHERE fee_structure_id = ? AND status = 'Active' "
                         "FOR UPDATE"
@@ -3404,7 +3405,13 @@ namespace SchoolCore
                 int academicYearId = sr->getInt("academic_year_id");
                 int termId = sr->getInt("term_id");
                 int classId = sr->getInt("class_id");
-                int streamId = sr->getInt("stream_id");
+                int sessionId = sr->getInt("session_id");
+
+                if (sr->isNull("session_id") || sessionId <= 0)
+                    throw gcnew Exception(
+                        L"This fee structure is not linked to a session. "
+                        L"Deactivate the old structure and create a new Class + Session fee structure."
+                    );
 
                 Decimal amount = Decimal::Parse(
                     gcnew String(sr->getString("amount").c_str()),
@@ -3416,7 +3423,7 @@ namespace SchoolCore
 
                 String^ sqlText;
 
-                if (sr->isNull("stream_id"))
+                if (sr->isNull("session_id"))
                 {
                     sqlText =
                         L"INSERT INTO fee_charges "
@@ -3443,7 +3450,7 @@ namespace SchoolCore
                         L"WHERE e.academic_year_id = ? "
                         L"AND e.term_id = ? "
                         L"AND e.class_id = ? "
-                        L"AND e.stream_id = ? "
+                        L"AND e.session_id = ? "
                         L"AND e.status = 'Active' "
                         L"AND NOT EXISTS ("
                         L"    SELECT 1 FROM fee_charges fc "
@@ -3469,8 +3476,7 @@ namespace SchoolCore
                 insertCharges->setInt(p++, termId);
                 insertCharges->setInt(p++, classId);
 
-                if (!sr->isNull("stream_id"))
-                    insertCharges->setInt(p++, streamId);
+                insertCharges->setInt(p++, sessionId);
 
                 insertCharges->setInt(p++, structure->Id);
 
@@ -3611,7 +3617,7 @@ namespace SchoolCore
             array<String^>^ headers = gcnew array<String^>
             {
                 L"ID", L"Registration", L"Student", L"Fee",
-                L"Year", L"Term", L"Class", L"Stream",
+                L"Year", L"Term", L"Class", L"Session",
                 L"Amount (UGX)", L"Due Date", L"Status", L"Balance (UGX)"
             };
 
@@ -3875,7 +3881,7 @@ namespace SchoolCore
             {
                 gcnew FinanceOperation(
                     L"Fee Structures",
-                    L"Define and manage school fee structures by academic year, term, class and stream."),
+                    L"Define and manage school fee structures by academic year, term, class and session."),
                 gcnew FinanceOperation(
                     L"Student Charges",
                     L"Generate student charges from fee structures for active enrollments and review balances."),
