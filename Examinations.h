@@ -699,9 +699,15 @@ namespace SchoolCore
                         "SELECT academic_year_id, year_name "
                         "FROM academic_years "
                         "WHERE status = 'Active' "
+                        "OR academic_year_id = ? "
                         "ORDER BY academic_year_id DESC"
                     )
                 );
+
+                if (selectedYearId > 0)
+                    stmt->setInt(1, selectedYearId);
+                else
+                    stmt->setInt(1, -1);
 
                 std::unique_ptr<sql::ResultSet> result(
                     stmt->executeQuery()
