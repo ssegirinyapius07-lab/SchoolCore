@@ -270,6 +270,20 @@ namespace SchoolCore
                 box->ReadOnly
                 ? HeaderFill()
                 : Surface();
+
+            box->BorderStyle =
+                System::Windows::Forms::BorderStyle::FixedSingle;
+
+            box->ShortcutsEnabled = true;
+        }
+
+        static void StyleRichTextBox(System::Windows::Forms::RichTextBox^ box)
+        {
+            box->BorderStyle =
+                System::Windows::Forms::BorderStyle::FixedSingle;
+
+            box->ForeColor = Ink();
+            box->BackColor = Surface();
         }
 
         static void StyleComboBox(System::Windows::Forms::ComboBox^ combo)
@@ -279,6 +293,59 @@ namespace SchoolCore
 
             combo->ForeColor = Ink();
             combo->BackColor = Surface();
+            combo->IntegralHeight = true;
+        }
+
+        static void StyleDateTimePicker(
+            System::Windows::Forms::DateTimePicker^ picker)
+        {
+            picker->ForeColor = Ink();
+            picker->BackColor = Surface();
+            picker->CalendarForeColor = Ink();
+            picker->CalendarMonthBackground = Surface();
+            picker->CalendarTitleBackColor = HeaderFill();
+            picker->CalendarTitleForeColor = Ink();
+        }
+
+        static void StyleNumericUpDown(
+            System::Windows::Forms::NumericUpDown^ control)
+        {
+            control->BorderStyle =
+                System::Windows::Forms::BorderStyle::FixedSingle;
+
+            control->ForeColor = Ink();
+            control->BackColor = Surface();
+        }
+
+        static void StyleCheckBox(System::Windows::Forms::CheckBox^ box)
+        {
+            box->ForeColor = Ink();
+            box->BackColor = System::Drawing::Color::Transparent;
+            box->Cursor = System::Windows::Forms::Cursors::Hand;
+        }
+
+        static void StyleRadioButton(
+            System::Windows::Forms::RadioButton^ radio)
+        {
+            radio->ForeColor = Ink();
+            radio->BackColor = System::Drawing::Color::Transparent;
+            radio->Cursor = System::Windows::Forms::Cursors::Hand;
+        }
+
+        static void StyleGroupBox(System::Windows::Forms::GroupBox^ group)
+        {
+            group->ForeColor = Ink();
+        }
+
+        static void StyleLinkLabel(
+            System::Windows::Forms::LinkLabel^ link)
+        {
+            link->LinkColor = Accent();
+            link->ActiveLinkColor = AccentHover();
+            link->VisitedLinkColor = AccentHover();
+            link->LinkBehavior =
+                System::Windows::Forms::LinkBehavior::HoverUnderline;
+            link->Cursor = System::Windows::Forms::Cursors::Hand;
         }
 
         static void StylePrimaryButton(System::Windows::Forms::Button^ button)
@@ -363,6 +430,13 @@ namespace SchoolCore
             grid->DefaultCellStyle->ForeColor = Ink();
             grid->DefaultCellStyle->SelectionBackColor = Selection();
             grid->DefaultCellStyle->SelectionForeColor = Ink();
+            grid->DefaultCellStyle->Alignment =
+                System::Windows::Forms::DataGridViewContentAlignment::MiddleLeft;
+
+            grid->ColumnHeadersDefaultCellStyle->Alignment =
+                System::Windows::Forms::DataGridViewContentAlignment::MiddleLeft;
+            grid->ColumnHeadersDefaultCellStyle->WrapMode =
+                System::Windows::Forms::DataGridViewTriState::False;
 
             grid->ColumnHeadersHeightSizeMode =
                 System::Windows::Forms::DataGridViewColumnHeadersHeightSizeMode::DisableResizing;
@@ -396,6 +470,7 @@ namespace SchoolCore
 
             if (!IsFilledColor(fill))
             {
+                StyleSecondaryButton(button);
                 return;
             }
 
@@ -591,6 +666,15 @@ namespace SchoolCore
                     continue;
                 }
 
+                System::Windows::Forms::RichTextBox^ richTextBox =
+                    dynamic_cast<System::Windows::Forms::RichTextBox^>(control);
+
+                if (richTextBox != nullptr)
+                {
+                    StyleRichTextBox(richTextBox);
+                    continue;
+                }
+
                 System::Windows::Forms::ComboBox^ combo =
                     dynamic_cast<System::Windows::Forms::ComboBox^>(control);
 
@@ -598,6 +682,58 @@ namespace SchoolCore
                 {
                     StyleComboBox(combo);
                     continue;
+                }
+
+                System::Windows::Forms::DateTimePicker^ picker =
+                    dynamic_cast<System::Windows::Forms::DateTimePicker^>(control);
+
+                if (picker != nullptr)
+                {
+                    StyleDateTimePicker(picker);
+                    continue;
+                }
+
+                System::Windows::Forms::NumericUpDown^ numeric =
+                    dynamic_cast<System::Windows::Forms::NumericUpDown^>(control);
+
+                if (numeric != nullptr)
+                {
+                    StyleNumericUpDown(numeric);
+                    continue;
+                }
+
+                System::Windows::Forms::CheckBox^ checkBoxControl =
+                    dynamic_cast<System::Windows::Forms::CheckBox^>(control);
+
+                if (checkBoxControl != nullptr)
+                {
+                    StyleCheckBox(checkBoxControl);
+                    continue;
+                }
+
+                System::Windows::Forms::RadioButton^ radioButtonControl =
+                    dynamic_cast<System::Windows::Forms::RadioButton^>(control);
+
+                if (radioButtonControl != nullptr)
+                {
+                    StyleRadioButton(radioButtonControl);
+                    continue;
+                }
+
+                System::Windows::Forms::GroupBox^ groupBoxControl =
+                    dynamic_cast<System::Windows::Forms::GroupBox^>(control);
+
+                if (groupBoxControl != nullptr)
+                {
+                    StyleGroupBox(groupBoxControl);
+                }
+
+                System::Windows::Forms::LinkLabel^ linkControl =
+                    dynamic_cast<System::Windows::Forms::LinkLabel^>(control);
+
+                if (linkControl != nullptr)
+                {
+                    StyleLinkLabel(linkControl);
                 }
 
                 System::Windows::Forms::DataGridView^ grid =
@@ -663,6 +799,60 @@ namespace SchoolCore
                 return;
             }
 
+            System::Windows::Forms::DateTimePicker^ picker =
+                dynamic_cast<System::Windows::Forms::DateTimePicker^>(control);
+
+            if (picker != nullptr)
+            {
+                StyleDateTimePicker(picker);
+                return;
+            }
+
+            System::Windows::Forms::NumericUpDown^ numeric =
+                dynamic_cast<System::Windows::Forms::NumericUpDown^>(control);
+
+            if (numeric != nullptr)
+            {
+                StyleNumericUpDown(numeric);
+                return;
+            }
+
+            System::Windows::Forms::CheckBox^ checkBox =
+                dynamic_cast<System::Windows::Forms::CheckBox^>(control);
+
+            if (checkBox != nullptr)
+            {
+                StyleCheckBox(checkBox);
+                return;
+            }
+
+            System::Windows::Forms::RadioButton^ radio =
+                dynamic_cast<System::Windows::Forms::RadioButton^>(control);
+
+            if (radio != nullptr)
+            {
+                StyleRadioButton(radio);
+                return;
+            }
+
+            System::Windows::Forms::LinkLabel^ link =
+                dynamic_cast<System::Windows::Forms::LinkLabel^>(control);
+
+            if (link != nullptr)
+            {
+                StyleLinkLabel(link);
+                return;
+            }
+
+            System::Windows::Forms::RichTextBox^ richTextBox =
+                dynamic_cast<System::Windows::Forms::RichTextBox^>(control);
+
+            if (richTextBox != nullptr)
+            {
+                StyleRichTextBox(richTextBox);
+                return;
+            }
+
             System::Windows::Forms::DataGridView^ grid =
                 dynamic_cast<System::Windows::Forms::DataGridView^>(control);
 
@@ -698,6 +888,7 @@ namespace SchoolCore
 
             form->BackColor = Canvas();
             form->ForeColor = Ink();
+            form->DoubleBuffered = true;
 
             // Typography is global, including hand-styled forms/dialogs.
             // Colours and layout are still allowed to remain custom.
