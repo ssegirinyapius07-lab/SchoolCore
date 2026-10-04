@@ -1490,6 +1490,8 @@ namespace SchoolCore
             this->mainLayout->Dock =
                 System::Windows::Forms::DockStyle::Fill;
 
+            this->mainLayout->AutoScroll = true;
+
             this->mainLayout->ColumnCount = 1;
             this->mainLayout->RowCount = 4;
 
@@ -1517,7 +1519,7 @@ namespace SchoolCore
             this->mainLayout->RowStyles->Add(
                 gcnew System::Windows::Forms::RowStyle(
                     System::Windows::Forms::SizeType::Absolute,
-                    56.0F
+                    80.0FF
                 )
             );
 
