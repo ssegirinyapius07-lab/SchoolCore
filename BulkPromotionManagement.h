@@ -323,7 +323,7 @@ namespace SchoolCore
 
             this->lblSubtitle = gcnew Label();
             this->lblSubtitle->Text =
-                L"Load a current class, select students, then promote them to the next class.";
+                L"Load a current class, select students, then promote them within the applicable level.";
             this->lblSubtitle->Dock = DockStyle::Fill;
             this->lblSubtitle->Font =
                 gcnew Drawing::Font(
@@ -979,7 +979,34 @@ namespace SchoolCore
                 return;
             }
 
-            int nextGrade = source->Grade + 1;
+            // In the Ugandan secondary-school structure, Senior 4 completes
+            // O-Level/UCE. Senior 5 is the start of A-Level and is handled
+            // as a transition/admission process, not ordinary promotion.
+            if (source->Grade == 4)
+            {
+                UpdateTransitionLayout();
+
+                this->lblCount->Text =
+                    L"Senior 4 is the end of O-Level. "
+                    L"Use the A-Level transition/admission process for Senior 5.";
+
+                return;
+            }
+
+            // Senior 6 is the final A-Level year.
+            // There is no next class after Senior 6.
+            if (source->Grade == 6)
+            {
+                UpdateTransitionLayout();
+
+                this->lblCount->Text =
+                    L"Senior 6 is the final class. There is no further promotion.";
+
+                return;
+            }
+
+            int nextGrade =
+                source->Grade + 1;
 
             try
             {
@@ -997,6 +1024,7 @@ namespace SchoolCore
                         "ON al.academic_level_id = c.academic_level_id "
                         "WHERE c.status = 'Active' "
                         "AND al.status = 'Active' "
+                        "AND c.class_name LIKE 'Senior %' "
                         "ORDER BY c.class_id"
                     )
                 );
@@ -1788,10 +1816,30 @@ namespace SchoolCore
                 return;
             }
 
+            if (source->Grade == 4)
+            {
+                MessageBox::Show(
+                    L"Senior 4 to Senior 5 is an O-Level to A-Level transition, not an ordinary promotion. Use the A-Level admission/transition process.",
+                    L"Bulk Promotion",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Information);
+                return;
+            }
+
+            if (source->Grade == 6)
+            {
+                MessageBox::Show(
+                    L"Senior 6 is the final class. There is no further promotion.",
+                    L"Bulk Promotion",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Information);
+                return;
+            }
+
             if (target->Grade != source->Grade + 1)
             {
                 MessageBox::Show(
-                    L"Students can only be promoted to the next class.",
+                    L"Students can only be promoted to the next class within the applicable level.",
                     L"Bulk Promotion",
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Warning);
