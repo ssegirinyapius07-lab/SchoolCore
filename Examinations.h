@@ -1284,9 +1284,11 @@ namespace SchoolCore
                 return;
             }
 
+            std::unique_ptr<sql::Connection> con;
+
             try
             {
-                auto con =
+                con =
                     DbConnection::GetConnection();
 
                 std::string name =
@@ -1718,8 +1720,6 @@ namespace SchoolCore
                     ShowDatabaseError(ex);
                 }
             }
-        }
-
 
         void OpenExaminationEditor(
             int examinationId)
