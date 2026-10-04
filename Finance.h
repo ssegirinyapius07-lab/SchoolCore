@@ -2795,37 +2795,52 @@ namespace SchoolCore
             {
                 auto con = DbConnection::GetConnection();
 
+                String^ insertSql;
+
+                if (streamItem != nullptr && streamItem->Id > 0)
+                {
+                    insertSql =
+                        L"INSERT INTO fee_structures "
+                        L"(academic_year_id, term_id, class_id, stream_id, "
+                        L"fee_name, amount, due_date, description, status) "
+                        L"VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Active')";
+                }
+                else
+                {
+                    insertSql =
+                        L"INSERT INTO fee_structures "
+                        L"(academic_year_id, term_id, class_id, stream_id, "
+                        L"fee_name, amount, due_date, description, status) "
+                        L"VALUES (?, ?, ?, NULL, ?, ?, ?, ?, 'Active')";
+                }
+
                 std::unique_ptr<sql::PreparedStatement> stmt(
                     con->prepareStatement(
-                        "INSERT INTO fee_structures "
-                        "(academic_year_id, term_id, class_id, stream_id, "
-                        "fee_name, amount, due_date, description, status) "
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Active')"
+                        msclr::interop::marshal_as<std::string>(insertSql)
                     )
                 );
 
-                stmt->setInt(1, year->Id);
-                stmt->setInt(2, term->Id);
-                stmt->setInt(3, classItem->Id);
+                int p = 1;
+                stmt->setInt(p++, year->Id);
+                stmt->setInt(p++, term->Id);
+                stmt->setInt(p++, classItem->Id);
 
                 if (streamItem != nullptr && streamItem->Id > 0)
-                    stmt->setInt(4, streamItem->Id);
-                else
-                    stmt->setNull(4, sql::DataType::INTEGER);
+                    stmt->setInt(p++, streamItem->Id);
 
                 stmt->setString(
-                    5,
+                    p++,
                     msclr::interop::marshal_as<std::string>(feeName)
                 );
-                stmt->setDouble(6, Convert::ToDouble(amount));
+                stmt->setDouble(p++, Convert::ToDouble(amount));
                 stmt->setString(
-                    7,
+                    p++,
                     msclr::interop::marshal_as<std::string>(
                         feeStructureDueDatePicker->Value.ToString(L"yyyy-MM-dd")
                     )
                 );
                 stmt->setString(
-                    8,
+                    p++,
                     msclr::interop::marshal_as<std::string>(
                         feeStructureDescriptionBox->Text->Trim()
                     )
@@ -3393,10 +3408,16 @@ namespace SchoolCore
                 return;
             }
 
+            std::unique_ptr<sql::Connection> conOwner;
+            sql::Connection* con = nullptr;
+            bool transactionStarted = false;
+
             try
             {
-                auto con = DbConnection::GetConnection();
+                conOwner = DbConnection::GetConnection();
+                con = conOwner.get();
                 con->setAutoCommit(false);
+                transactionStarted = true;
 
                 std::unique_ptr<sql::PreparedStatement> getStructure(
                     con->prepareStatement(
@@ -3490,6 +3511,7 @@ namespace SchoolCore
 
                 con->commit();
                 con->setAutoCommit(true);
+                transactionStarted = false;
 
                 LoadStudentCharges();
 
@@ -3504,6 +3526,18 @@ namespace SchoolCore
             }
             catch (sql::SQLException& ex)
             {
+                if (transactionStarted && con != nullptr)
+                {
+                    try
+                    {
+                        con->rollback();
+                        con->setAutoCommit(true);
+                    }
+                    catch (Exception^)
+                    {
+                    }
+                }
+
                 MessageBox::Show(
                     studentChargesForm,
                     gcnew String(ex.what()),
@@ -3514,6 +3548,18 @@ namespace SchoolCore
             }
             catch (Exception^ ex)
             {
+                if (transactionStarted && con != nullptr)
+                {
+                    try
+                    {
+                        con->rollback();
+                        con->setAutoCommit(true);
+                    }
+                    catch (Exception^)
+                    {
+                    }
+                }
+
                 MessageBox::Show(
                     studentChargesForm,
                     ex->Message,
