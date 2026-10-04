@@ -2,6 +2,7 @@
 
 #include "DbConnection.h"
 #include "ThemeManager.h"
+#include "AcademicContext.h"
 
 #include <mariadb/conncpp.hpp>
 #include <msclr/marshal_cppstd.h>
@@ -463,6 +464,7 @@ namespace SchoolCore
                 DockStyle::Fill;
             this->cmbAcademicYear->DropDownStyle =
                 ComboBoxStyle::DropDownList;
+            this->cmbAcademicYear->Enabled = false;
             this->cmbAcademicYear->SelectedIndexChanged +=
                 gcnew EventHandler(
                     this,
@@ -862,52 +864,27 @@ namespace SchoolCore
 
         void LoadAcademicYears()
         {
+            this->cmbAcademicYear->Items->Clear();
+
             try
             {
-                auto con =
-                    DbConnection::GetConnection();
+                AcademicYearInfo^ activeYear =
+                    AcademicContext::GetActiveAcademicYear();
 
-                std::unique_ptr<sql::PreparedStatement> stmt(
-                    con->prepareStatement(
-                        "SELECT "
-                        "academic_year_id, "
-                        "year_name "
-                        "FROM academic_years "
-                        "WHERE status = 'Active' "
-                        "ORDER BY academic_year_id DESC"
-                    )
-                );
+                this->cmbAcademicYear->Items->Add(
+                    gcnew ComboItem(
+                        activeYear->Id,
+                        activeYear->Name,
+                        L"",
+                        0));
 
-                std::unique_ptr<sql::ResultSet> result(
-                    stmt->executeQuery());
-
-                this->cmbAcademicYear->Items->Clear();
-
-                while (result->next())
-                {
-                    this->cmbAcademicYear->Items->Add(
-                        gcnew ComboItem(
-                            result->getInt(
-                                "academic_year_id"),
-                            gcnew String(
-                                result->getString(
-                                    "year_name").c_str()),
-                            L"",
-                            0
-                        )
-                    );
-                }
-
-                if (this->cmbAcademicYear->Items->Count > 0)
-                {
-                    this->cmbAcademicYear->SelectedIndex = 0;
-                }
+                this->cmbAcademicYear->SelectedIndex = 0;
             }
-            catch (sql::SQLException& ex)
+            catch (std::exception& ex)
             {
                 MessageBox::Show(
                     gcnew String(ex.what()),
-                    L"Database Error",
+                    L"Academic Year",
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Error);
             }
@@ -1158,33 +1135,6 @@ namespace SchoolCore
                 return;
             }
 
-            ComboItem^ yearItem =
-                GetSelectedClassItem(
-                    this->cmbAcademicYear);
-
-            if (this->cmbAcademicYear->SelectedIndex < 0)
-            {
-                return;
-            }
-
-            yearItem =
-                dynamic_cast<ComboItem^>(
-                    this->cmbAcademicYear->SelectedItem);
-
-            if (yearItem == nullptr)
-            {
-                return;
-            }
-
-            ComboItem^ target =
-                GetSelectedClassItem(
-                    this->cmbTargetClass);
-
-            if (target == nullptr)
-            {
-                return;
-            }
-
             try
             {
                 auto con =
@@ -1195,31 +1145,35 @@ namespace SchoolCore
                         "SELECT DISTINCT "
                         "s.subject_id, "
                         "s.subject_name "
-                        "FROM academic_years ay "
-                        "INNER JOIN curricula c "
-                        "ON c.curriculum_id = ay.curriculum_id "
+                        "FROM curricula c "
                         "INNER JOIN academic_levels al "
                         "ON al.academic_level_id = c.academic_level_id "
                         "INNER JOIN curriculum_subjects cs "
                         "ON cs.curriculum_id = c.curriculum_id "
                         "INNER JOIN subjects s "
                         "ON s.subject_id = cs.subject_id "
-                        "WHERE ay.academic_year_id = ? "
-                        "AND al.level_code = ? "
+                        "WHERE c.status = 'Active' "
+                        "AND al.status = 'Active' "
+                        "AND al.level_code = 'O_LEVEL' "
                         "AND cs.requirement_type = 'Optional' "
                         "AND cs.status = 'Active' "
                         "AND s.status = 'Active' "
+                        "AND c.curriculum_id = ("
+                            "SELECT c2.curriculum_id "
+                            "FROM curricula c2 "
+                            "INNER JOIN academic_levels al2 "
+                            "ON al2.academic_level_id = c2.academic_level_id "
+                            "WHERE c2.status = 'Active' "
+                            "AND al2.status = 'Active' "
+                            "AND al2.level_code = 'O_LEVEL' "
+                            "ORDER BY "
+                                "c2.effective_from_year DESC, "
+                                "c2.curriculum_id DESC "
+                            "LIMIT 1"
+                        ") "
                         "ORDER BY s.subject_name"
                     )
                 );
-
-                stmt->setInt(
-                    1,
-                    yearItem->Id);
-
-                stmt->setString(
-                    2,
-                    "O_LEVEL");
 
                 std::unique_ptr<sql::ResultSet> result(
                     stmt->executeQuery());
@@ -1228,32 +1182,73 @@ namespace SchoolCore
                 {
                     ComboItem^ item =
                         gcnew ComboItem(
-                            result->getInt(
-                                "subject_id"),
+                            result->getInt("subject_id"),
                             gcnew String(
                                 result->getString(
                                     "subject_name").c_str()),
-                            L"",
+                            L"O_LEVEL",
                             0);
 
-                    this->option1Column->Items->Add(
-                        item);
+                    this->option1Column->Items->Add(item);
 
                     this->option2Column->Items->Add(
                         gcnew ComboItem(
                             item->Id,
                             item->Text,
-                            L"",
-                            0));
+                            item->LevelCode,
+                            item->Grade));
+                }
+
+                SetDefaultOptionCellsForNewSelection();
+
+                if (TargetRequiresNewOptions() &&
+                    this->option1Column->Items->Count < 2)
+                {
+                    this->lblCount->Text =
+                        L"Fewer than two Optional subjects are configured "
+                        L"for the active O-Level curriculum.";
                 }
             }
             catch (sql::SQLException& ex)
             {
                 MessageBox::Show(
                     gcnew String(ex.what()),
-                    L"Database Error",
+                    L"Optional Subjects",
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Error);
+            }
+        }
+
+        void SetDefaultOptionCellsForNewSelection()
+        {
+            if (!TargetRequiresNewOptions() ||
+                this->option1Column->Items->Count < 2)
+            {
+                return;
+            }
+
+            ComboItem^ first =
+                safe_cast<ComboItem^>(
+                    this->option1Column->Items[0]);
+
+            ComboItem^ second =
+                safe_cast<ComboItem^>(
+                    this->option2Column->Items[1]);
+
+            for each (DataGridViewRow^ row in
+                this->studentsGrid->Rows)
+            {
+                if (row->Cells["Option1"]->Value == nullptr)
+                {
+                    row->Cells["Option1"]->Value =
+                        first;
+                }
+
+                if (row->Cells["Option2"]->Value == nullptr)
+                {
+                    row->Cells["Option2"]->Value =
+                        second;
+                }
             }
         }
 
@@ -1881,7 +1876,7 @@ namespace SchoolCore
                         option2 == nullptr)
                     {
                         MessageBox::Show(
-                            L"Every selected Senior 2 student must have two optional subjects.",
+                            L"Every selected student entering Senior 3 must have two different optional subjects configured for the active O-Level curriculum.",
                             L"Bulk Promotion",
                             MessageBoxButtons::OK,
                             MessageBoxIcon::Warning);
