@@ -2330,7 +2330,7 @@ void InitializeComponent(void)
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
                     System::Windows::Forms::SizeType::Absolute,
-                    58.0F
+                    76.0F
                 )
             );
 
@@ -2915,7 +2915,7 @@ void InitializeComponent(void)
             this->buttonPanel->Padding =
                 System::Windows::Forms::Padding(
                     0,
-                    5,
+                    4,
                     0,
                     0
                 );
