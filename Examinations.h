@@ -238,13 +238,52 @@ namespace SchoolCore
                 AcademicYearInfo^ activeYear =
                     AcademicContext::GetActiveAcademicYear();
 
-                AddFilterItem(
-                    this->cmbAcademicYear,
-                    activeYear->Id,
-                    activeYear->Name
+                auto con =
+                    DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT academic_year_id, year_name, status "
+                        "FROM academic_years "
+                        "ORDER BY "
+                        "CASE WHEN status = 'Active' THEN 0 ELSE 1 END, "
+                        "academic_year_id DESC"
+                    )
                 );
 
-                this->cmbAcademicYear->SelectedIndex = 1;
+                std::unique_ptr<sql::ResultSet> result(
+                    stmt->executeQuery()
+                );
+
+                int selectedIndex = 0;
+                int index = 0;
+
+                while (result->next())
+                {
+                    index++;
+
+                    int id =
+                        result->getInt("academic_year_id");
+
+                    AddFilterItem(
+                        this->cmbAcademicYear,
+                        id,
+                        gcnew String(
+                            result->getString("year_name").c_str()
+                        )
+                    );
+
+                    if (id == activeYear->Id)
+                        selectedIndex = index;
+                }
+
+                this->cmbAcademicYear->SelectedIndex =
+                    selectedIndex;
+            }
+            catch (sql::SQLException& ex)
+            {
+                ShowDatabaseError(ex);
+                this->cmbAcademicYear->SelectedIndex = 0;
             }
             catch (std::exception& ex)
             {
@@ -1717,6 +1756,147 @@ namespace SchoolCore
             }
         }
 
+        void SetNewExaminationDateDefaults()
+        {
+            int yearId =
+                GetSelectedId(this->editorYear);
+
+            if (yearId <= 0)
+                return;
+
+            DateTime fallbackStart =
+                DateTime(
+                    DateTime::Today.Year,
+                    1,
+                    1
+                );
+
+            DateTime fallbackEnd =
+                DateTime(
+                    DateTime::Today.Year,
+                    12,
+                    31
+                );
+
+            try
+            {
+                auto con =
+                    DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT year_name, start_date, end_date "
+                        "FROM academic_years "
+                        "WHERE academic_year_id = ? "
+                        "LIMIT 1"
+                    )
+                );
+
+                stmt->setInt(1, yearId);
+
+                std::unique_ptr<sql::ResultSet> result(
+                    stmt->executeQuery()
+                );
+
+                if (!result->next())
+                    return;
+
+                int academicYearNumber = 0;
+
+                try
+                {
+                    academicYearNumber =
+                        Convert::ToInt32(
+                            gcnew String(
+                                result->getString("year_name").c_str()
+                            )
+                        );
+                }
+                catch (...)
+                {
+                    academicYearNumber = DateTime::Today.Year;
+                }
+
+                if (academicYearNumber >= 1900 &&
+                    academicYearNumber <= 2200)
+                {
+                    fallbackStart =
+                        DateTime(
+                            academicYearNumber,
+                            1,
+                            1
+                        );
+
+                    fallbackEnd =
+                        DateTime(
+                            academicYearNumber,
+                            12,
+                            31
+                        );
+                }
+
+                DateTime startDate =
+                    fallbackStart;
+
+                DateTime endDate =
+                    fallbackEnd;
+
+                if (!result->isNull("start_date"))
+                {
+                    startDate =
+                        DateTime::Parse(
+                            gcnew String(
+                                result->getString("start_date").c_str()
+                            )
+                        );
+                }
+
+                if (!result->isNull("end_date"))
+                {
+                    endDate =
+                        DateTime::Parse(
+                            gcnew String(
+                                result->getString("end_date").c_str()
+                            )
+                        );
+                }
+
+                DateTime today =
+                    DateTime::Today;
+
+                DateTime defaultStart =
+                    today >= startDate &&
+                    today <= endDate
+                    ? today
+                    : startDate;
+
+                DateTime defaultEnd =
+                    today >= startDate &&
+                    today <= endDate
+                    ? today
+                    : endDate;
+
+                this->editorStart->Value =
+                    defaultStart;
+
+                this->editorEnd->Value =
+                    defaultEnd;
+            }
+            catch (sql::SQLException& ex)
+            {
+                ShowDatabaseError(ex);
+            }
+            catch (System::Exception^)
+            {
+                this->editorStart->Value =
+                    fallbackStart;
+
+                this->editorEnd->Value =
+                    fallbackEnd;
+            }
+        }
+
+
         void OpenExaminationEditor(
             int examinationId)
         {
@@ -2284,6 +2464,11 @@ namespace SchoolCore
             this->LoadEditorYears(
                 0
             );
+
+            if (!this->editorEditMode)
+            {
+                this->SetNewExaminationDateDefaults();
+            }
 
             this->LoadEditorClasses(
                 0
