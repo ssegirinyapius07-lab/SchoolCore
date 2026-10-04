@@ -1796,7 +1796,7 @@ namespace SchoolCore {
 				static_cast<System::Int32>(static_cast<System::Byte>(42)));
 			this->btnCombinations->FlatAppearance->BorderSize = 0;
 			this->btnCombinations->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
-			this->btnCombinations->Font = (gcnew System::Drawing::Font(L"Segoe UI", 10));
+			this->btnCombinations->Font = (gcnew System::Drawing::Font(L"Segoe UI", 9.0F));
 			this->btnCombinations->ForeColor = System::Drawing::Color::White;
 			this->btnCombinations->Location = System::Drawing::Point(15, 240);
 			this->btnCombinations->Name = L"btnCombinations";
@@ -1834,7 +1834,7 @@ namespace SchoolCore {
 				static_cast<System::Int32>(static_cast<System::Byte>(42)));
 			this->btnAcademic->FlatAppearance->BorderSize = 0;
 			this->btnAcademic->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
-			this->btnAcademic->Font = (gcnew System::Drawing::Font(L"Segoe UI", 10));
+			this->btnAcademic->Font = (gcnew System::Drawing::Font(L"Segoe UI", 9.0F));
 			this->btnAcademic->ForeColor = System::Drawing::Color::White;
 			this->btnAcademic->Location = System::Drawing::Point(15, 350);
 			this->btnAcademic->Name = L"btnAcademic";
@@ -1895,7 +1895,7 @@ namespace SchoolCore {
 				static_cast<System::Int32>(static_cast<System::Byte>(42)));
 			this->btnExaminations->FlatAppearance->BorderSize = 0;
 			this->btnExaminations->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
-			this->btnExaminations->Font = (gcnew System::Drawing::Font(L"Segoe UI", 10));
+			this->btnExaminations->Font = (gcnew System::Drawing::Font(L"Segoe UI", 9.0F));
 			this->btnExaminations->ForeColor = System::Drawing::Color::White;
 			this->btnExaminations->Location = System::Drawing::Point(15, 515);
 			this->btnExaminations->Name = L"btnExaminations";
