@@ -267,7 +267,8 @@ namespace SchoolCore
                         "SELECT "
                         "academic_year_id, "
                         "term_id, "
-                        "class_id "
+                        "class_id, "
+                        "stream_id "
                         "FROM examinations "
                         "WHERE examination_id = ?"
                     )
@@ -290,6 +291,11 @@ namespace SchoolCore
 
                 int classId =
                     examResult->getInt("class_id");
+
+                int streamId =
+                    examResult->isNull("stream_id")
+                    ? 0
+                    : examResult->getInt("stream_id");
 
                 std::unique_ptr<sql::PreparedStatement> paperStmt(
                     con->prepareStatement(
@@ -366,6 +372,7 @@ namespace SchoolCore
                         "AND e.academic_year_id = ? "
                         "AND e.term_id = ? "
                         "AND e.class_id = ? "
+                        "AND (? = 0 OR e.stream_id = ?) "
                         "LEFT JOIN streams st "
                         "ON st.stream_id = e.stream_id "
                         "LEFT JOIN marks m "
@@ -383,7 +390,9 @@ namespace SchoolCore
                 stmt->setInt(1, academicYearId);
                 stmt->setInt(2, termId);
                 stmt->setInt(3, classId);
-                stmt->setInt(4, paperId);
+                stmt->setInt(4, streamId);
+                stmt->setInt(5, streamId);
+                stmt->setInt(6, paperId);
 
                 std::unique_ptr<sql::ResultSet> result(
                     stmt->executeQuery()
