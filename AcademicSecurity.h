@@ -39,6 +39,48 @@ namespace SchoolCore
             );
         }
 
+        static int GetPendingApprovalCount()
+        {
+            if (!HasInactiveYearOverridePermission() ||
+                AuthSession::UserId <= 0)
+            {
+                return 0;
+            }
+
+            try
+            {
+                auto con =
+                    DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT COUNT(*) AS total "
+                        "FROM academic_edit_approvals "
+                        "WHERE status = 'Pending' "
+                        "AND requested_by <> ?"
+                    )
+                );
+
+                stmt->setInt(
+                    1,
+                    AuthSession::UserId
+                );
+
+                std::unique_ptr<sql::ResultSet> result(
+                    stmt->executeQuery()
+                );
+
+                if (!result->next())
+                    return 0;
+
+                return result->getInt("total");
+            }
+            catch (sql::SQLException&)
+            {
+                return 0;
+            }
+        }
+
         static int CreateInactiveYearEditRequest(
             int academicYearId,
             int termId,
