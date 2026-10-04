@@ -168,6 +168,11 @@ namespace SchoolCore {
 		// Dashboard header labels
 		System::Windows::Forms::Label^ lblSchoolName;
 		System::Windows::Forms::Label^ lblSubtitle;
+		System::Windows::Forms::Label^ lblUserName;
+		System::Windows::Forms::Label^ lblUserRole;
+		System::Windows::Forms::Button^ btnLogout;
+		System::Windows::Forms::Button^ btnMenu;
+		bool mobileSidebarVisible = false;
 		// Sidebar navigation
 		System::Windows::Forms::Button^ btnDashboard;
 		System::Windows::Forms::Button^ btnStudents;
@@ -1337,6 +1342,196 @@ namespace SchoolCore {
 			return section;
 		}
 
+		void UpdateHeaderForResponsiveLayout()
+		{
+			if (this->headerPanel == nullptr)
+				return;
+
+			int width = this->ClientSize.Width;
+			bool compact = width <= 1000;
+			bool mobile = width <= 760;
+
+			if (mobile)
+			{
+				this->sidebarPanel->Width = 230;
+				this->btnMenu->Visible = true;
+
+				this->lblSchoolName->Location =
+					System::Drawing::Point(58, 8);
+				this->lblSchoolName->Size =
+					System::Drawing::Size(240, 42);
+				this->lblSchoolName->Font =
+					gcnew System::Drawing::Font(
+						L"Segoe UI",
+						17.0F,
+						System::Drawing::FontStyle::Bold);
+
+				this->lblSubtitle->Visible = false;
+
+				this->lblUserName->Location =
+					System::Drawing::Point(
+						Math::Max(250, width - 255),
+						8);
+				this->lblUserName->Size =
+					System::Drawing::Size(165, 26);
+				this->lblUserName->Font =
+					gcnew System::Drawing::Font(
+						L"Segoe UI Semibold",
+						9.0F,
+						System::Drawing::FontStyle::Bold);
+				this->lblUserName->TextAlign =
+					System::Drawing::ContentAlignment::MiddleRight;
+
+				this->lblUserRole->Visible = false;
+
+				this->btnLogout->Location =
+					System::Drawing::Point(
+						Math::Max(250, width - 82),
+						42);
+				this->btnLogout->Size =
+					System::Drawing::Size(70, 34);
+				this->btnLogout->Text = L"Logout";
+			}
+			else
+			{
+				this->btnMenu->Visible = false;
+
+				this->lblSchoolName->Location =
+					System::Drawing::Point(25, 12);
+				this->lblSchoolName->Size =
+					System::Drawing::Size(
+						compact ? 340 : 500,
+						48);
+				this->lblSchoolName->Font =
+					gcnew System::Drawing::Font(
+						L"Segoe UI",
+						compact ? 19.0F : 22.0F,
+						System::Drawing::FontStyle::Bold);
+
+				this->lblSubtitle->Visible = true;
+				this->lblSubtitle->Location =
+					System::Drawing::Point(25, 60);
+				this->lblSubtitle->Size =
+					System::Drawing::Size(
+						compact ? 420 : 600,
+						25);
+
+				this->lblUserName->Location =
+					System::Drawing::Point(
+						Math::Max(500, width - 430),
+						12);
+				this->lblUserName->Size =
+					System::Drawing::Size(250, 28);
+				this->lblUserName->TextAlign =
+					System::Drawing::ContentAlignment::MiddleRight;
+
+				this->lblUserRole->Visible = true;
+				this->lblUserRole->Location =
+					System::Drawing::Point(
+						Math::Max(500, width - 430),
+						43);
+				this->lblUserRole->Size =
+					System::Drawing::Size(250, 22);
+				this->lblUserRole->TextAlign =
+					System::Drawing::ContentAlignment::MiddleRight;
+
+				this->btnLogout->Location =
+					System::Drawing::Point(
+						Math::Max(760, width - 150),
+						28);
+				this->btnLogout->Size =
+					System::Drawing::Size(125, 40);
+				this->btnLogout->Text = L"Log Out";
+			}
+
+			if (!mobile)
+			{
+				this->sidebarPanel->Width =
+					compact ? 230 : 280;
+			}
+		}
+
+		System::Void Dashboard_Resize(
+			System::Object^ sender,
+			System::EventArgs^ e)
+		{
+			UpdateHeaderForResponsiveLayout();
+		}
+
+		System::Void btnMenu_Click(
+			System::Object^ sender,
+			System::EventArgs^ e)
+		{
+			this->mobileSidebarVisible =
+				!this->mobileSidebarVisible;
+
+			this->sidebarPanel->Visible =
+				this->mobileSidebarVisible;
+
+			if (this->mobileSidebarVisible)
+			{
+				this->sidebarPanel->BringToFront();
+			}
+		}
+
+		System::Void btnLogout_Click(
+			System::Object^ sender,
+			System::EventArgs^ e)
+		{
+			System::Windows::Forms::DialogResult result =
+				MessageBox::Show(
+					L"Are you sure you want to log out?",
+					L"SchoolCore | Log Out",
+					MessageBoxButtons::YesNo,
+					MessageBoxIcon::Question);
+
+			if (result !=
+				System::Windows::Forms::DialogResult::Yes)
+			{
+				return;
+			}
+
+			if (this->approvalNotificationTimer != nullptr)
+			{
+				this->approvalNotificationTimer->Stop();
+			}
+
+			AuthSession::Clear();
+
+			this->Hide();
+
+			LoginForm^ login =
+				gcnew LoginForm();
+
+			System::Windows::Forms::DialogResult loginResult =
+				login->ShowDialog();
+
+			delete login;
+
+			if (loginResult ==
+				System::Windows::Forms::DialogResult::OK)
+			{
+				this->ApplyRolePermissions();
+				this->lblUserName->Text =
+					String::IsNullOrWhiteSpace(AuthSession::FullName)
+					? AuthSession::Username
+					: AuthSession::FullName;
+				this->lblUserRole->Text =
+					String::IsNullOrWhiteSpace(AuthSession::RoleName)
+					? L"User"
+					: AuthSession::RoleName;
+				this->mobileSidebarVisible = false;
+				this->sidebarPanel->Visible = true;
+				this->UpdateHeaderForResponsiveLayout();
+				this->InitializeApprovalNotifications();
+				this->ShowDashboardOverview();
+				this->Show();
+				return;
+			}
+
+			this->Close();
+		}
+
 
 #pragma region Windows Form Designer generated code
 
@@ -1344,6 +1539,10 @@ namespace SchoolCore {
 		{
 			this->lblSchoolName = (gcnew System::Windows::Forms::Label());
 			this->lblSubtitle = (gcnew System::Windows::Forms::Label());
+			this->lblUserName = (gcnew System::Windows::Forms::Label());
+			this->lblUserRole = (gcnew System::Windows::Forms::Label());
+			this->btnLogout = (gcnew System::Windows::Forms::Button());
+			this->btnMenu = (gcnew System::Windows::Forms::Button());
 			this->headerPanel = (gcnew System::Windows::Forms::Panel());
 			this->sidebarPanel = (gcnew System::Windows::Forms::Panel());
 			this->btnDashboard = (gcnew System::Windows::Forms::Button());
@@ -1390,11 +1589,87 @@ namespace SchoolCore {
 			this->lblSubtitle->Text = L"Secondary School Management System";
 			this->lblSubtitle->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			this->lblSubtitle->UseCompatibleTextRendering = true;
+
+			// Current signed-in user
+			this->lblUserName->Font =
+				(gcnew System::Drawing::Font(
+					L"Segoe UI Semibold",
+					10.0F,
+					System::Drawing::FontStyle::Bold));
+			this->lblUserName->ForeColor = System::Drawing::Color::White;
+			this->lblUserName->Name = L"lblUserName";
+			this->lblUserName->Text =
+				String::IsNullOrWhiteSpace(AuthSession::FullName)
+				? AuthSession::Username
+				: AuthSession::FullName;
+			this->lblUserName->TextAlign =
+				System::Drawing::ContentAlignment::MiddleRight;
+			this->lblUserName->UseCompatibleTextRendering = true;
+
+			this->lblUserRole->Font =
+				(gcnew System::Drawing::Font(
+					L"Segoe UI",
+					9.0F));
+			this->lblUserRole->ForeColor =
+				System::Drawing::Color::Gainsboro;
+			this->lblUserRole->Name = L"lblUserRole";
+			this->lblUserRole->Text =
+				String::IsNullOrWhiteSpace(AuthSession::RoleName)
+				? L"User"
+				: AuthSession::RoleName;
+			this->lblUserRole->TextAlign =
+				System::Drawing::ContentAlignment::MiddleRight;
+			this->lblUserRole->UseCompatibleTextRendering = true;
+
+			this->btnLogout->BackColor =
+				System::Drawing::Color::Transparent;
+			this->btnLogout->FlatStyle =
+				System::Windows::Forms::FlatStyle::Flat;
+			this->btnLogout->FlatAppearance->BorderColor =
+				System::Drawing::Color::FromArgb(148, 163, 184);
+			this->btnLogout->FlatAppearance->BorderSize = 1;
+			this->btnLogout->ForeColor =
+				System::Drawing::Color::White;
+			this->btnLogout->Font =
+				(gcnew System::Drawing::Font(
+					L"Segoe UI Semibold",
+					9.0F,
+					System::Drawing::FontStyle::Bold));
+			this->btnLogout->Name = L"btnLogout";
+			this->btnLogout->Text = L"Log Out";
+			this->btnLogout->Cursor =
+				System::Windows::Forms::Cursors::Hand;
+			this->btnLogout->UseVisualStyleBackColor = false;
+
+			this->btnMenu->BackColor =
+				System::Drawing::Color::Transparent;
+			this->btnMenu->FlatStyle =
+				System::Windows::Forms::FlatStyle::Flat;
+			this->btnMenu->FlatAppearance->BorderSize = 0;
+			this->btnMenu->ForeColor =
+				System::Drawing::Color::White;
+			this->btnMenu->Font =
+				(gcnew System::Drawing::Font(
+					L"Segoe UI Semibold",
+					16.0F,
+					System::Drawing::FontStyle::Bold));
+			this->btnMenu->Name = L"btnMenu";
+			this->btnMenu->Text = L"≡";
+			this->btnMenu->Size = System::Drawing::Size(42, 42);
+			this->btnMenu->Location = System::Drawing::Point(8, 8);
+			this->btnMenu->Visible = false;
+			this->btnMenu->Cursor =
+				System::Windows::Forms::Cursors::Hand;
+
 			// 
 			// headerPanel
 			// 
 			this->headerPanel->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(30)), static_cast<System::Int32>(static_cast<System::Byte>(41)),
 				static_cast<System::Int32>(static_cast<System::Byte>(59)));
+			this->headerPanel->Controls->Add(this->btnMenu);
+			this->headerPanel->Controls->Add(this->btnLogout);
+			this->headerPanel->Controls->Add(this->lblUserRole);
+			this->headerPanel->Controls->Add(this->lblUserName);
 			this->headerPanel->Controls->Add(this->lblSubtitle);
 			this->headerPanel->Controls->Add(this->lblSchoolName);
 			this->headerPanel->Dock = System::Windows::Forms::DockStyle::Top;
@@ -1735,7 +2010,26 @@ namespace SchoolCore {
 			this->StartPosition = System::Windows::Forms::FormStartPosition::CenterScreen;
 			this->WindowState = System::Windows::Forms::FormWindowState::Maximized;
 			this->Text = L"SchoolCore";
-			this->headerPanel->ResumeLayout(false);
+			this->UpdateHeaderForResponsiveLayout();
+			this->btnMenu->Click +=
+				gcnew System::EventHandler(
+					this,
+					&Dashboard::btnMenu_Click
+				);
+
+			this->btnLogout->Click +=
+				gcnew System::EventHandler(
+					this,
+					&Dashboard::btnLogout_Click
+				);
+
+			this->Resize +=
+				gcnew System::EventHandler(
+					this,
+					&Dashboard::Dashboard_Resize
+				);
+
+this->headerPanel->ResumeLayout(false);
 			this->sidebarPanel->ResumeLayout(false);
 			this->ResumeLayout(false);
 
