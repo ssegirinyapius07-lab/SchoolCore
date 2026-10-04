@@ -28,6 +28,7 @@ namespace SchoolCore
                 System::ComponentModel::LicenseUsageMode::Designtime)
             {
                 LoadActiveYear();
+                LoadSubjects();
                 LoadCurricula();
             }
         }
@@ -36,7 +37,7 @@ namespace SchoolCore
         TableLayoutPanel^ mainLayout;
         ComboBox^ cmbCurriculum;
         Label^ lblActiveYear;
-        TextBox^ txtSubject;
+        ComboBox^ cmbSubject;
         TextBox^ txtUnebCode;
         TextBox^ txtSubjectGroup;
         ComboBox^ cmbRequirement;
@@ -213,11 +214,12 @@ namespace SchoolCore
             subjectLabel->TextAlign =
                 ContentAlignment::MiddleLeft;
 
-            this->txtSubject =
-                gcnew TextBox();
-            this->txtSubject->Dock =
+            this->cmbSubject =
+                gcnew ComboBox();
+            this->cmbSubject->Dock =
                 DockStyle::Fill;
-            this->txtSubject->ReadOnly = true;
+            this->cmbSubject->DropDownStyle =
+                ComboBoxStyle::DropDownList;
 
             Label^ codeLabel =
                 gcnew Label();
@@ -468,6 +470,50 @@ namespace SchoolCore
             }
         }
 
+        void LoadSubjects()
+        {
+            try
+            {
+                auto con =
+                    DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT subject_id, subject_name "
+                        "FROM subjects "
+                        "WHERE status = 'Active' "
+                        "ORDER BY subject_name"
+                    )
+                );
+
+                std::unique_ptr<sql::ResultSet> result(
+                    stmt->executeQuery()
+                );
+
+                this->cmbSubject->Items->Clear();
+
+                while (result->next())
+                {
+                    this->cmbSubject->Items->Add(
+                        gcnew ComboItem(
+                            result->getInt("subject_id"),
+                            gcnew String(
+                                result->getString(
+                                    "subject_name").c_str())
+                        )
+                    );
+                }
+            }
+            catch (sql::SQLException& ex)
+            {
+                MessageBox::Show(
+                    gcnew String(ex.what()),
+                    L"Database Error",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error);
+            }
+        }
+
         void LoadCurricula()
         {
             try
@@ -625,8 +671,14 @@ namespace SchoolCore
                 return;
             }
 
+            ComboItem^ subject =
+                dynamic_cast<ComboItem^>(
+                    this->cmbSubject->SelectedItem);
+
             String^ subjectName =
-                this->txtSubject->Text->Trim();
+                subject == nullptr
+                    ? L""
+                    : subject->Text;
 
             String^ code =
                 this->txtUnebCode->Text->Trim();
@@ -634,13 +686,13 @@ namespace SchoolCore
             String^ group =
                 this->txtSubjectGroup->Text->Trim();
 
-            if (String::IsNullOrWhiteSpace(subjectName))
+            if (subject == nullptr)
             {
                 MessageBox::Show(
-                    L"Subject selection is not configured yet. Use the Subjects module to select a subject, then add it here.",
+                    L"Select a subject.",
                     L"Curriculum Subjects",
                     MessageBoxButtons::OK,
-                    MessageBoxIcon::Information);
+                    MessageBoxIcon::Warning);
                 return;
             }
 
@@ -655,42 +707,13 @@ namespace SchoolCore
             }
 
             // This form deliberately does not invent subjects or UNEB codes.
-            // A subject must first exist in the general subjects table.
+            // The subject must already exist in the general Subjects table.
             try
             {
                 auto con =
                     DbConnection::GetConnection();
 
-                std::unique_ptr<sql::PreparedStatement> findSubject(
-                    con->prepareStatement(
-                        "SELECT subject_id "
-                        "FROM subjects "
-                        "WHERE subject_name = ? "
-                        "AND status = 'Active' "
-                        "LIMIT 1"
-                    )
-                );
-
-                findSubject->setString(
-                    1,
-                    msclr::interop::marshal_as<std::string>(
-                        subjectName));
-
-                std::unique_ptr<sql::ResultSet> subjectResult(
-                    findSubject->executeQuery());
-
-                if (!subjectResult->next())
-                {
-                    MessageBox::Show(
-                        L"The subject must first be created in the Subjects module.",
-                        L"Curriculum Subjects",
-                        MessageBoxButtons::OK,
-                        MessageBoxIcon::Warning);
-                    return;
-                }
-
-                int subjectId =
-                    subjectResult->getInt("subject_id");
+                int subjectId = subject->Id;
 
                 std::unique_ptr<sql::PreparedStatement> insert(
                     con->prepareStatement(
@@ -722,7 +745,7 @@ namespace SchoolCore
 
                 LoadSubjectsInCurriculum();
 
-                this->txtSubject->Clear();
+                this->cmbSubject->SelectedIndex = -1;
                 this->txtUnebCode->Clear();
 
                 MessageBox::Show(
