@@ -105,9 +105,11 @@ namespace SchoolCore
             if (this->examinationId == 0)
                 return;
 
+            std::unique_ptr<sql::Connection> con;
+
             try
             {
-                auto con = DbConnection::GetConnection();
+                con = DbConnection::GetConnection();
 
                 std::unique_ptr<sql::PreparedStatement> stmt(
                     con->prepareStatement(
