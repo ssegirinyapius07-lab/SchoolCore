@@ -1414,7 +1414,7 @@ namespace SchoolCore {
 
 				this->lblSubtitle->Visible = true;
 				this->lblSubtitle->Location =
-					System::Drawing::Point(25, 60);
+					System::Drawing::Point(25, 52);
 				this->lblSubtitle->Size =
 					System::Drawing::Size(
 						compact ? 420 : 600,
