@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DbConnection.h"
+#include "AcademicSecurity.h"
 #include "ThemeManager.h"
 #include "AuthSession.h"
 #include "GradingEngine.h"
@@ -510,8 +511,79 @@ namespace SchoolCore
             return 0;
         }
 
+        bool IsExaminationWriteAllowed()
+        {
+            if (this->examinationId <= 0)
+                return false;
+
+            try
+            {
+                auto con =
+                    DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT academic_year_id, term_id "
+                        "FROM examinations "
+                        "WHERE examination_id = ? "
+                        "LIMIT 1"
+                    )
+                );
+
+                stmt->setInt(
+                    1,
+                    this->examinationId
+                );
+
+                std::unique_ptr<sql::ResultSet> result(
+                    stmt->executeQuery()
+                );
+
+                if (!result->next())
+                {
+                    MessageBox::Show(
+                        L"The selected examination could not be found.",
+                        L"Marks Entry",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning
+                    );
+                    return false;
+                }
+
+                int yearId =
+                    result->getInt("academic_year_id");
+
+                int termId =
+                    result->getInt("term_id");
+
+                if (!AcademicSecurity::IsCurrentActivePeriod(
+                        yearId,
+                        termId))
+                {
+                    MessageBox::Show(
+                        L"Marks entry is blocked because this examination belongs to an inactive academic year or inactive term. Historical results can still be viewed, but entering or changing marks requires an approved academic-period override.",
+                        L"Protected Academic Record",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning
+                    );
+                    return false;
+                }
+
+                return true;
+            }
+            catch (sql::SQLException& ex)
+            {
+                ShowDatabaseError(ex);
+                return false;
+            }
+        }
+
+
         void SaveMarks()
         {
+            if (!IsExaminationWriteAllowed())
+                return;
+
             int paperId = GetSelectedId(this->cmbPaper);
 
             if (paperId == 0)
@@ -1298,6 +1370,12 @@ namespace SchoolCore
                 System::ComponentModel::LicenseManager::UsageMode
                 != System::ComponentModel::LicenseUsageMode::Designtime)
             {
+                if (!IsExaminationWriteAllowed())
+                {
+                    this->Close();
+                    return;
+                }
+
                 LoadSubjects();
             }
         }
