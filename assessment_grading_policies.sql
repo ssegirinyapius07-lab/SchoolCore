@@ -341,8 +341,6 @@ INNER JOIN (
     UNION ALL SELECT 6, 'P250', 'Arts'
     UNION ALL SELECT 10, 'P210', 'Arts'
     UNION ALL SELECT 7, 'P310', 'Arts'
-    UNION ALL SELECT 9, 'S850', 'General'
-    UNION ALL SELECT 14, 'P230', 'General'
 ) x ON x.subject_id = s.subject_id
 WHERE @uace_curriculum_id IS NOT NULL
   AND NOT EXISTS (
@@ -403,11 +401,22 @@ SET ssr.grade_point = NULL
 WHERE c.academic_level_id = cur.academic_level_id
   AND ssr.status = 'Calculated';
 
--- Existing provisional rows that are incomplete for their assigned examination
--- remain visible as Pending rather than being treated as a complete result.
+-- Any result that is not complete stays Pending.
+-- For aligned A-Level, the curriculum master paper count is the required count:
+-- a one-paper assignment for a two-paper subject cannot produce a final subject grade.
 UPDATE student_subject_results ssr
+INNER JOIN enrollments en
+    ON en.enrollment_id = ssr.enrollment_id
 INNER JOIN examination_subjects es
     ON es.examination_subject_id = ssr.examination_subject_id
+INNER JOIN examinations ex
+    ON ex.examination_id = es.examination_id
+INNER JOIN classes cl
+    ON cl.class_id = ex.class_id
+INNER JOIN curricula cur
+    ON cur.curriculum_code = 'UACE_ALIGNED'
+    AND cur.academic_level_id = cl.academic_level_id
+    AND cur.status = 'Active'
 SET
     ssr.status = 'Pending',
     ssr.grade = NULL,
@@ -418,22 +427,69 @@ SET
         (
             SELECT COUNT(*)
             FROM examination_papers ep
+            INNER JOIN subject_papers sp
+                ON sp.paper_id = ep.paper_id
+            INNER JOIN curriculum_subjects cs
+                ON cs.curriculum_subject_id = sp.curriculum_subject_id
             WHERE ep.examination_subject_id = ssr.examination_subject_id
               AND ep.status = 'Active'
+              AND sp.status = 'Active'
+              AND cs.curriculum_id = cur.curriculum_id
+              AND cs.subject_id = es.subject_id
         ),
-        ' assigned paper(s); recalculate after all required paper marks are entered.'
+        ' required paper(s); ',
+        (
+            SELECT COUNT(*)
+            FROM marks m
+            INNER JOIN examination_papers ep2
+                ON ep2.examination_paper_id = m.examination_paper_id
+            WHERE ep2.examination_subject_id = ssr.examination_subject_id
+              AND ep2.status = 'Active'
+              AND m.student_id = en.student_id
+        ),
+        ' paper(s) currently marked.'
     )
-WHERE ssr.examination_subject_id IN (
-    SELECT DISTINCT ssr2.examination_subject_id
-    FROM student_subject_results ssr2
-    LEFT JOIN marks m
-        ON m.examination_subject_id = ssr2.examination_subject_id
-        AND m.student_id = (
-            SELECT e2.student_id
-            FROM enrollments e2
-            WHERE e2.enrollment_id = ssr2.enrollment_id
-            LIMIT 1
-        )
-);
+WHERE
+    (
+        SELECT COUNT(*)
+        FROM subject_papers spm
+        INNER JOIN curriculum_subjects csm
+            ON csm.curriculum_subject_id = spm.curriculum_subject_id
+        WHERE csm.curriculum_id = cur.curriculum_id
+          AND csm.subject_id = es.subject_id
+          AND csm.status = 'Active'
+          AND spm.status = 'Active'
+    )
+    <>
+    (
+        SELECT COUNT(*)
+        FROM examination_papers epm
+        INNER JOIN subject_papers spm2
+            ON spm2.paper_id = epm.paper_id
+        INNER JOIN curriculum_subjects csm2
+            ON csm2.curriculum_subject_id = spm2.curriculum_subject_id
+        WHERE epm.examination_subject_id = ssr.examination_subject_id
+          AND epm.status = 'Active'
+          AND spm2.status = 'Active'
+          AND csm2.curriculum_id = cur.curriculum_id
+          AND csm2.subject_id = es.subject_id
+    )
+    OR
+    (
+        SELECT COUNT(*)
+        FROM marks mm
+        INNER JOIN examination_papers ep3
+            ON ep3.examination_paper_id = mm.examination_paper_id
+        WHERE ep3.examination_subject_id = ssr.examination_subject_id
+          AND ep3.status = 'Active'
+          AND mm.student_id = en.student_id
+    )
+    <
+    (
+        SELECT COUNT(*)
+        FROM examination_papers ep4
+        WHERE ep4.examination_subject_id = ssr.examination_subject_id
+          AND ep4.status = 'Active'
+    );
 
 -- End of migration.
