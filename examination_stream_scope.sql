@@ -126,7 +126,7 @@ SET @has_scope_unique := (
 );
 
 SET @sql := IF(
-    @has_scope_unique = 1,
+    @has_scope_unique > 0,
     'ALTER TABLE examination_stream_scopes DROP INDEX uq_examination_stream_scope',
     'SELECT 1'
 );
