@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DbConnection.h"
+#include "AcademicContext.h"
 #include "ThemeManager.h"
 
 #include <mariadb/conncpp.hpp>
@@ -363,49 +364,32 @@ namespace SchoolCore
             }
         }
 
-        void LoadAcademicYears()
-        {
+        void LoadAcademicYears(){
+            this->cmbAcademicYear->Items->Clear();
+
             try
             {
-                auto con = DbConnection::GetConnection();
+                AcademicYearInfo^ activeYear =
+                    AcademicContext::GetActiveAcademicYear();
 
-                std::unique_ptr<sql::PreparedStatement> stmt(
-                    con->prepareStatement(
-                        "SELECT academic_year_id, year_name "
-                        "FROM academic_years "
-                        "WHERE status = 'Active' "
-                        "ORDER BY academic_year_id DESC"
+                this->cmbAcademicYear->Items->Add(
+                    gcnew ComboItem(
+                        activeYear->Id,
+                        activeYear->Name
                     )
                 );
 
-                std::unique_ptr<sql::ResultSet> result(
-                    stmt->executeQuery());
-
-                this->cmbAcademicYear->Items->Clear();
-
-                while (result->next())
-                {
-                    this->cmbAcademicYear->Items->Add(
-                        gcnew ComboItem(
-                            result->getInt("academic_year_id"),
-                            gcnew String(result->getString("year_name").c_str())
-                        )
-                    );
-                }
-
-                if (this->cmbAcademicYear->Items->Count > 0)
-                {
-                    this->cmbAcademicYear->SelectedIndex = 0;
-                    LoadOptionalSubjects();
-                }
+                this->cmbAcademicYear->SelectedIndex = 0;
+                this->cmbAcademicYear->Enabled = false;
             }
-            catch (sql::SQLException& ex)
+            catch (std::exception& ex)
             {
                 MessageBox::Show(
                     gcnew String(ex.what()),
-                    L"Database Error",
+                    L"Academic Year",
                     MessageBoxButtons::OK,
-                    MessageBoxIcon::Error);
+                    MessageBoxIcon::Error
+                );
             }
         }
 
