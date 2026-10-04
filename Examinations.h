@@ -1241,6 +1241,11 @@ namespace SchoolCore
                     this->editorClass
                 );
 
+            int streamId =
+                GetSelectedId(
+                    this->editorStream
+                );
+
             int policyId =
                 GetSelectedId(
                     this->editorPolicy
@@ -1315,6 +1320,47 @@ namespace SchoolCore
                         : this->editorStatus->SelectedItem->ToString()
                     );
 
+                std::unique_ptr<sql::PreparedStatement> duplicateStmt(
+                    con->prepareStatement(
+                        "SELECT examination_id "
+                        "FROM examinations "
+                        "WHERE academic_year_id = ? "
+                        "AND term_id = ? "
+                        "AND class_id = ? "
+                        "AND COALESCE(stream_id, 0) = ? "
+                        "AND COALESCE(examination_type, '') = ? "
+                        "AND examination_id <> ? "
+                        "LIMIT 1"
+                    )
+                );
+
+                duplicateStmt->setInt(1, yearId);
+                duplicateStmt->setInt(2, termId);
+                duplicateStmt->setInt(3, classId);
+                duplicateStmt->setInt(4, streamId);
+                duplicateStmt->setString(5, type);
+                duplicateStmt->setInt(
+                    6,
+                    this->editorEditMode
+                    ? this->editingExaminationId
+                    : 0
+                );
+
+                std::unique_ptr<sql::ResultSet> duplicateResult(
+                    duplicateStmt->executeQuery()
+                );
+
+                if (duplicateResult->next())
+                {
+                    MessageBox::Show(
+                        L"An examination of this type already exists for the selected class and stream scope in this academic period.",
+                        L"Duplicate Examination",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning
+                    );
+                    return;
+                }
+
                 if (this->editorEditMode)
                 {
                     std::unique_ptr<sql::PreparedStatement> stmt(
@@ -1325,6 +1371,7 @@ namespace SchoolCore
                             "academic_year_id = ?, "
                             "term_id = ?, "
                             "class_id = ?, "
+                            "stream_id = ?, "
                             "grading_policy_id = ?, "
                             "start_date = ?, "
                             "end_date = ?, "
@@ -1339,16 +1386,21 @@ namespace SchoolCore
                     stmt->setInt(4, termId);
                     stmt->setInt(5, classId);
 
-                    if (policyId == 0)
+                    if (streamId == 0)
                         stmt->setNull(6, sql::DataType::INTEGER);
                     else
-                        stmt->setInt(6, policyId);
+                        stmt->setInt(6, streamId);
 
-                    stmt->setString(7, startDate);
-                    stmt->setString(8, endDate);
-                    stmt->setString(9, status);
+                    if (policyId == 0)
+                        stmt->setNull(7, sql::DataType::INTEGER);
+                    else
+                        stmt->setInt(7, policyId);
+
+                    stmt->setString(8, startDate);
+                    stmt->setString(9, endDate);
+                    stmt->setString(10, status);
                     stmt->setInt(
-                        10,
+                        11,
                         this->editingExaminationId
                     );
 
@@ -1370,6 +1422,7 @@ namespace SchoolCore
                             "academic_year_id, "
                             "term_id, "
                             "class_id, "
+                            "stream_id, "
                             "examination_name, "
                             "examination_type, "
                             "grading_policy_id, "
@@ -1377,24 +1430,30 @@ namespace SchoolCore
                             "end_date, "
                             "status"
                             ") "
-                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
                         )
                     );
 
                     stmt->setInt(1, yearId);
                     stmt->setInt(2, termId);
                     stmt->setInt(3, classId);
-                    stmt->setString(4, name);
-                    stmt->setString(5, type);
+
+                    if (streamId == 0)
+                        stmt->setNull(4, sql::DataType::INTEGER);
+                    else
+                        stmt->setInt(4, streamId);
+
+                    stmt->setString(5, name);
+                    stmt->setString(6, type);
 
                     if (policyId == 0)
-                        stmt->setNull(6, sql::DataType::INTEGER);
+                        stmt->setNull(7, sql::DataType::INTEGER);
                     else
-                        stmt->setInt(6, policyId);
+                        stmt->setInt(7, policyId);
 
-                    stmt->setString(7, startDate);
-                    stmt->setString(8, endDate);
-                    stmt->setString(9, status);
+                    stmt->setString(8, startDate);
+                    stmt->setString(9, endDate);
+                    stmt->setString(10, status);
 
                     stmt->executeUpdate();
 
