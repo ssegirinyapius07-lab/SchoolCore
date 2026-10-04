@@ -380,10 +380,9 @@ namespace SchoolCore
                         "AND m.examination_paper_id = ? "
                         "WHERE s.status = 'Active' "
                         "ORDER BY "
-                        "st.stream_name ASC, "
-                        "s.first_name ASC, "
-                        "s.middle_name ASC, "
-                        "s.last_name ASC"
+                        "COALESCE(s.last_name, '') ASC, "
+                        "COALESCE(s.first_name, '') ASC, "
+                        "COALESCE(s.middle_name, '') ASC"
                     )
                 );
 
