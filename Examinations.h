@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DbConnection.h"
+#include "AcademicContext.h"
 #include "ThemeManager.h"
 #include "AuthSession.h"
 
@@ -221,52 +222,29 @@ namespace SchoolCore
         // FILTER LOADING
         // =========================================================
 
-        void LoadAcademicYears()
-        {
+        void LoadAcademicYears(){
+            this->cmbAcademicYear->Items->Clear();
+            this->cmbAcademicYear->Items->Add(
+                L"All Academic Years"
+            );
+
             try
             {
-                auto con =
-                    DbConnection::GetConnection();
+                AcademicYearInfo^ activeYear =
+                    AcademicContext::GetActiveAcademicYear();
 
-                std::unique_ptr<sql::PreparedStatement> stmt(
-                    con->prepareStatement(
-                        "SELECT academic_year_id, year_name "
-                        "FROM academic_years "
-                        "WHERE status = 'Active' "
-                        "ORDER BY academic_year_id DESC"
-                    )
+                AddFilterItem(
+                    this->cmbAcademicYear,
+                    activeYear->Id,
+                    activeYear->Name
                 );
 
-                std::unique_ptr<sql::ResultSet> result(
-                    stmt->executeQuery()
-                );
-
-                this->cmbAcademicYear->Items->Clear();
-
-                this->cmbAcademicYear->Items->Add(
-                    L"All Academic Years"
-                );
-
-                while (result->next())
-                {
-                    AddFilterItem(
-                        this->cmbAcademicYear,
-                        result->getInt(
-                            "academic_year_id"
-                        ),
-                        gcnew String(
-                            result->getString(
-                                "year_name"
-                            ).c_str()
-                        )
-                    );
-                }
-
-                this->cmbAcademicYear->SelectedIndex = 0;
+                this->cmbAcademicYear->SelectedIndex = 1;
             }
-            catch (sql::SQLException& ex)
+            catch (std::exception& ex)
             {
                 ShowDatabaseError(ex);
+                this->cmbAcademicYear->SelectedIndex = 0;
             }
         }
 
