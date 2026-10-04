@@ -2661,6 +2661,13 @@ namespace SchoolCore
             Object^ sender,
             EventArgs^ e)
         {
+            if (!EnsureExaminationWriteAccess(
+                    this->subjectAssignmentExaminationId,
+                    L"Adding examination subjects"))
+            {
+                return;
+            }
+
             FilterItem^ subject =
                 dynamic_cast<FilterItem^>(
                     this->subjectCombo->SelectedItem
@@ -2865,6 +2872,13 @@ namespace SchoolCore
             Object^ sender,
             EventArgs^ e)
         {
+            if (!EnsureExaminationWriteAccess(
+                    this->subjectAssignmentExaminationId,
+                    L"Removing examination subjects"))
+            {
+                return;
+            }
+
             if (
                 this->assignedSubjectsGrid->SelectedRows->Count == 0)
             {
@@ -2919,9 +2933,93 @@ namespace SchoolCore
         }
 
 
+        bool EnsureExaminationWriteAccess(
+            int examinationId,
+            String^ actionName)
+        {
+            if (examinationId <= 0)
+            {
+                MessageBox::Show(
+                    L"A valid examination is required.",
+                    L"Protected Academic Record",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+                return false;
+            }
+
+            try
+            {
+                auto con =
+                    DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT academic_year_id, term_id "
+                        "FROM examinations "
+                        "WHERE examination_id = ? "
+                        "LIMIT 1"
+                    )
+                );
+
+                stmt->setInt(1, examinationId);
+
+                std::unique_ptr<sql::ResultSet> result(
+                    stmt->executeQuery()
+                );
+
+                if (!result->next())
+                {
+                    MessageBox::Show(
+                        L"The selected examination could not be found.",
+                        L"Examinations",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning
+                    );
+                    return false;
+                }
+
+                int yearId =
+                    result->getInt("academic_year_id");
+
+                int termId =
+                    result->getInt("term_id");
+
+                if (!AcademicSecurity::IsCurrentActivePeriod(
+                        yearId,
+                        termId))
+                {
+                    MessageBox::Show(
+                        actionName +
+                        L" is blocked because this examination belongs to an inactive academic year or inactive term. "
+                        L"Historical records remain available for viewing, but changes require an approved academic-period override.",
+                        L"Protected Academic Record",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning
+                    );
+                    return false;
+                }
+
+                return true;
+            }
+            catch (sql::SQLException& ex)
+            {
+                ShowDatabaseError(ex);
+                return false;
+            }
+        }
+
+
         void OpenSubjectAssignment(
             int examinationId)
         {
+            if (!EnsureExaminationWriteAccess(
+                    examinationId,
+                    L"Managing examination subjects"))
+            {
+                return;
+            }
+
             this->subjectAssignmentExaminationId =
                 examinationId;
 
@@ -3547,6 +3645,13 @@ namespace SchoolCore
                     MessageBoxIcon::Warning
                 );
 
+                return;
+            }
+
+            if (!EnsureExaminationWriteAccess(
+                    id,
+                    L"Entering marks"))
+            {
                 return;
             }
 
