@@ -147,6 +147,169 @@ namespace SchoolCore
             return password;
         }
 
+        void CopyGeneratedPassword(
+            Object^ sender,
+            EventArgs^ e)
+        {
+            Button^ button =
+                dynamic_cast<Button^>(sender);
+
+            if (button == nullptr)
+                return;
+
+            String^ password =
+                dynamic_cast<String^>(button->Tag);
+
+            if (String::IsNullOrWhiteSpace(password))
+                return;
+
+            try
+            {
+                Clipboard::SetText(password);
+                button->Text = L"Copied";
+            }
+            catch (Exception^)
+            {
+                button->Text = L"Copy Failed";
+            }
+        }
+
+        void ShowGeneratedPasswordDialog(
+            String^ username,
+            String^ temporaryPassword,
+            String^ title)
+        {
+            Form^ passwordForm = gcnew Form();
+
+            passwordForm->Text = title;
+            passwordForm->StartPosition = FormStartPosition::CenterParent;
+            passwordForm->FormBorderStyle =
+                System::Windows::Forms::FormBorderStyle::FixedDialog;
+            passwordForm->MaximizeBox = false;
+            passwordForm->MinimizeBox = false;
+            passwordForm->ShowInTaskbar = false;
+            passwordForm->ClientSize = Drawing::Size(560, 310);
+            passwordForm->MinimumSize = Drawing::Size(560, 310);
+            passwordForm->BackColor = ThemeManager::Canvas();
+
+            TableLayoutPanel^ layout =
+                gcnew TableLayoutPanel();
+
+            layout->Dock = DockStyle::Fill;
+            layout->Padding =
+                System::Windows::Forms::Padding(28);
+            layout->ColumnCount = 1;
+            layout->RowCount = 6;
+
+            layout->RowStyles->Add(
+                gcnew RowStyle(SizeType::Absolute, 34.0F));
+            layout->RowStyles->Add(
+                gcnew RowStyle(SizeType::Absolute, 28.0F));
+            layout->RowStyles->Add(
+                gcnew RowStyle(SizeType::Absolute, 52.0F));
+            layout->RowStyles->Add(
+                gcnew RowStyle(SizeType::Absolute, 44.0F));
+            layout->RowStyles->Add(
+                gcnew RowStyle(SizeType::Percent, 100.0F));
+            layout->RowStyles->Add(
+                gcnew RowStyle(SizeType::Absolute, 42.0F));
+
+            Label^ titleLabel = gcnew Label();
+            titleLabel->Text = L"Temporary Password";
+            titleLabel->Dock = DockStyle::Fill;
+            titleLabel->TextAlign =
+                ContentAlignment::MiddleLeft;
+            titleLabel->Font =
+                gcnew Drawing::Font(
+                    L"Segoe UI",
+                    16.0F,
+                    FontStyle::Bold
+                );
+            titleLabel->ForeColor =
+                ThemeManager::Ink();
+
+            Label^ infoLabel = gcnew Label();
+            infoLabel->Text =
+                L"Username: " +
+                username +
+                L"   |   The user must change this password after signing in.";
+            infoLabel->Dock = DockStyle::Fill;
+            infoLabel->TextAlign =
+                ContentAlignment::MiddleLeft;
+            infoLabel->ForeColor =
+                ThemeManager::TextSecondary();
+            infoLabel->AutoEllipsis = true;
+
+            TextBox^ passwordBox = gcnew TextBox();
+            passwordBox->Text = temporaryPassword;
+            passwordBox->ReadOnly = true;
+            passwordBox->Dock = DockStyle::Fill;
+            passwordBox->TextAlign =
+                System::Windows::Forms::HorizontalAlignment::Center;
+            passwordBox->Font =
+                gcnew Drawing::Font(
+                    L"Segoe UI",
+                    13.0F,
+                    FontStyle::Bold
+                );
+            passwordBox->BackColor =
+                ThemeManager::Surface();
+
+            Button^ copyButton = gcnew Button();
+            copyButton->Text = L"Copy to Clipboard";
+            copyButton->Dock = DockStyle::Right;
+            copyButton->Width = 160;
+            copyButton->Tag = temporaryPassword;
+
+            Button^ closeButton = gcnew Button();
+            closeButton->Text = L"Close";
+            closeButton->Dock = DockStyle::Right;
+            closeButton->Width = 100;
+            closeButton->DialogResult =
+                System::Windows::Forms::DialogResult::OK;
+
+            FlowLayoutPanel^ actions =
+                gcnew FlowLayoutPanel();
+
+            actions->Dock = DockStyle::Fill;
+            actions->FlowDirection =
+                FlowDirection::RightToLeft;
+            actions->WrapContents = false;
+
+            actions->Controls->Add(closeButton);
+            actions->Controls->Add(copyButton);
+
+            Label^ noteLabel = gcnew Label();
+            noteLabel->Text =
+                L"Keep this password secure. It will not be shown again.";
+            noteLabel->Dock = DockStyle::Fill;
+            noteLabel->TextAlign =
+                ContentAlignment::MiddleLeft;
+            noteLabel->ForeColor =
+                ThemeManager::TextMuted();
+
+            layout->Controls->Add(titleLabel, 0, 0);
+            layout->Controls->Add(infoLabel, 0, 1);
+            layout->Controls->Add(passwordBox, 0, 2);
+            layout->Controls->Add(actions, 0, 3);
+            layout->Controls->Add(noteLabel, 0, 4);
+
+            passwordForm->Controls->Add(layout);
+
+            copyButton->Click +=
+                gcnew EventHandler(
+                    this,
+                    &UsersRoles::CopyGeneratedPassword
+                );
+
+            passwordForm->AcceptButton = closeButton;
+            passwordForm->CancelButton = closeButton;
+
+            ThemeManager::ApplyToForm(passwordForm);
+
+            passwordForm->ShowDialog(this);
+        }
+
         String^ GetSelectedUsername()
         {
             if (usersGrid->CurrentRow == nullptr)
@@ -685,17 +848,10 @@ namespace SchoolCore
                     stmt->setInt(5, roleId);
                     stmt->execute();
 
-                    MessageBox::Show(
-                        L"User created successfully.\\n\\n"
-                        L"Username: " + username +
-                        L"\\nTemporary password: " +
-                        temporaryPassword +
-                        L"\\n\\n"
-                        L"Give this temporary password to the user. "
-                        L"It will not be shown again.",
-                        L"User Created",
-                        MessageBoxButtons::OK,
-                        MessageBoxIcon::Information
+                    ShowGeneratedPasswordDialog(
+                        username,
+                        temporaryPassword,
+                        L"User Created"
                     );
                 }
                 else
@@ -1140,16 +1296,10 @@ namespace SchoolCore
                 stmt->setInt(2, userId);
                 stmt->execute();
 
-                MessageBox::Show(
-                    L"Temporary password for " + username +
-                    L":\n\n" +
-                    temporaryPassword +
-                    L"\n\n"
-                    L"Give it to the user securely. "
-                    L"It will not be shown again.",
-                    L"Password Reset",
-                    MessageBoxButtons::OK,
-                    MessageBoxIcon::Information
+                ShowGeneratedPasswordDialog(
+                    username,
+                    temporaryPassword,
+                    L"Password Reset"
                 );
 
                 LoadUsers();
