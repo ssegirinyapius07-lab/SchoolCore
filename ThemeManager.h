@@ -419,6 +419,55 @@ namespace SchoolCore
                     continue;
                 }
 
+                // Keep the existing font size and visual scale, but make
+                // application text consistently heavier and easier to read.
+                if (control->Font != nullptr)
+                {
+                    float size = control->Font->SizeInPoints;
+
+                    System::Windows::Forms::Label^ label =
+                        dynamic_cast<System::Windows::Forms::Label^>(control);
+
+                    System::Windows::Forms::Button^ buttonForFont =
+                        dynamic_cast<System::Windows::Forms::Button^>(control);
+
+                    System::Windows::Forms::CheckBox^ checkBox =
+                        dynamic_cast<System::Windows::Forms::CheckBox^>(control);
+
+                    System::Windows::Forms::RadioButton^ radioButton =
+                        dynamic_cast<System::Windows::Forms::RadioButton^>(control);
+
+                    System::Windows::Forms::LinkLabel^ linkLabel =
+                        dynamic_cast<System::Windows::Forms::LinkLabel^>(control);
+
+                    System::Windows::Forms::GroupBox^ groupBox =
+                        dynamic_cast<System::Windows::Forms::GroupBox^>(control);
+
+                    System::Drawing::FontStyle style =
+                        System::Drawing::FontStyle::Regular;
+
+                    if (label != nullptr ||
+                        buttonForFont != nullptr ||
+                        checkBox != nullptr ||
+                        radioButton != nullptr ||
+                        linkLabel != nullptr ||
+                        groupBox != nullptr)
+                    {
+                        style = System::Drawing::FontStyle::Bold;
+                    }
+                    else
+                    {
+                        style = System::Drawing::FontStyle::Bold;
+                    }
+
+                    control->Font =
+                        gcnew System::Drawing::Font(
+                            L"Segoe UI",
+                            size,
+                            style
+                        );
+                }
+
                 System::Windows::Forms::TextBox^ box =
                     dynamic_cast<System::Windows::Forms::TextBox^>(control);
 
@@ -468,6 +517,18 @@ namespace SchoolCore
             if (control == nullptr)
             {
                 return;
+            }
+
+            if (control->Font != nullptr)
+            {
+                float size = control->Font->SizeInPoints;
+
+                control->Font =
+                    gcnew System::Drawing::Font(
+                        L"Segoe UI",
+                        size,
+                        System::Drawing::FontStyle::Bold
+                    );
             }
 
             System::Windows::Forms::TextBox^ box =
