@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DbConnection.h"
+#include "AcademicContext.h"
 #include "ThemeManager.h"
 
 #include <mariadb/conncpp.hpp>
@@ -160,40 +161,24 @@ namespace SchoolCore
 
             try
             {
-                auto con = DbConnection::GetConnection();
+                AcademicYearInfo^ activeYear =
+                    AcademicContext::GetActiveAcademicYear();
 
-                std::unique_ptr<sql::PreparedStatement> stmt(
-                    con->prepareStatement(
-                        "SELECT academic_year_id, year_name "
-                        "FROM academic_years "
-                        "ORDER BY academic_year_id DESC"
+                combo->Items->Add(
+                    gcnew ComboItem(
+                        activeYear->Id,
+                        activeYear->Name
                     )
                 );
 
-                std::unique_ptr<sql::ResultSet> result(
-                    stmt->executeQuery()
-                );
-
-                while (result->next())
-                {
-                    combo->Items->Add(
-                        gcnew ComboItem(
-                            result->getInt("academic_year_id"),
-                            gcnew String(
-                                result->getString("year_name").c_str()
-                            )
-                        )
-                    );
-                }
-
-                if (combo->Items->Count > 0)
-                    combo->SelectedIndex = 0;
+                combo->SelectedIndex = 0;
+                combo->Enabled = false;
             }
-            catch (sql::SQLException& ex)
+            catch (std::exception& ex)
             {
                 MessageBox::Show(
                     gcnew String(ex.what()),
-                    L"Database Error",
+                    L"Academic Year",
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Error
                 );
