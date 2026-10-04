@@ -5,6 +5,7 @@
 #include "ThemeManager.h"
 #include "AuthSession.h"
 #include "MarksEntryManagement.h"
+#include "ResultsManagement.h"
 
 #include <mariadb/conncpp.hpp>
 #include <msclr/marshal_cppstd.h>
@@ -2875,6 +2876,34 @@ namespace SchoolCore
         }
 
 
+        System::Void ResultsClicked(
+            Object^ sender,
+            EventArgs^ e)
+        {
+            int id =
+                GetSelectedExaminationId();
+
+            if (id == 0)
+            {
+                MessageBox::Show(
+                    L"Select an examination first.",
+                    L"Results",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+
+                return;
+            }
+
+            ResultsManagement^ form =
+                gcnew ResultsManagement(id);
+
+            form->ShowDialog(this);
+
+            LoadExaminations();
+        }
+
+
         System::Void GridSelectionChanged(
             Object^ sender,
             EventArgs^ e)
@@ -3835,6 +3864,12 @@ void InitializeComponent(void)
                 gcnew EventHandler(
                     this,
                     &Examinations::MarksClicked
+                );
+
+            this->btnResults->Click +=
+                gcnew EventHandler(
+                    this,
+                    &Examinations::ResultsClicked
                 );
 
             this->btnBack->Click +=
