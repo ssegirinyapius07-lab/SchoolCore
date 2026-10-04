@@ -39,6 +39,94 @@ namespace SchoolCore
             );
         }
 
+        static int GetApprovedOverrideId(
+            int academicYearId,
+            int termId,
+            String^ operation,
+            String^ tableName,
+            String^ recordId)
+        {
+            if (academicYearId <= 0 ||
+                AuthSession::UserId <= 0)
+            {
+                return 0;
+            }
+
+            try
+            {
+                std::string operationText =
+                    msclr::interop::marshal_as<std::string>(
+                        operation == nullptr
+                        ? L"UPDATE"
+                        : operation
+                    );
+
+                std::string tableText =
+                    msclr::interop::marshal_as<std::string>(
+                        tableName == nullptr
+                        ? L""
+                        : tableName
+                    );
+
+                std::string recordText =
+                    msclr::interop::marshal_as<std::string>(
+                        recordId == nullptr
+                        ? L""
+                        : recordId
+                    );
+
+                auto con =
+                    DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT approval_id "
+                        "FROM academic_edit_approvals "
+                        "WHERE academic_year_id = ? "
+                        "AND (term_id = ? OR (? = 0 AND term_id IS NULL)) "
+                        "AND operation = ? "
+                        "AND table_name = ? "
+                        "AND COALESCE(record_id, '') = ? "
+                        "AND requested_by = ? "
+                        "AND status = 'Approved' "
+                        "AND approved_by IS NOT NULL "
+                        "AND approved_by <> requested_by "
+                        "ORDER BY approval_id DESC "
+                        "LIMIT 1"
+                    )
+                );
+
+                stmt->setInt(1, academicYearId);
+
+                if (termId > 0)
+                    stmt->setInt(2, termId);
+                else
+                    stmt->setNull(
+                        2,
+                        sql::DataType::INTEGER
+                    );
+
+                stmt->setInt(3, termId);
+                stmt->setString(4, operationText);
+                stmt->setString(5, tableText);
+                stmt->setString(6, recordText);
+                stmt->setInt(7, AuthSession::UserId);
+
+                std::unique_ptr<sql::ResultSet> result(
+                    stmt->executeQuery()
+                );
+
+                if (!result->next())
+                    return 0;
+
+                return result->getInt("approval_id");
+            }
+            catch (sql::SQLException&)
+            {
+                return 0;
+            }
+        }
+
         static int GetPendingApprovalCount()
         {
             if (!HasInactiveYearOverridePermission() ||
