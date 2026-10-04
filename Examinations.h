@@ -4326,6 +4326,8 @@ void InitializeComponent(void)
             this->mainLayout->Dock =
                 System::Windows::Forms::DockStyle::Fill;
 
+            this->mainLayout->AutoScroll = true;
+
             this->mainLayout->Padding =
                 System::Windows::Forms::Padding(
                     20
@@ -4372,7 +4374,7 @@ void InitializeComponent(void)
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
                     System::Windows::Forms::SizeType::Absolute,
-                    76.0F
+                    96.0FF
                 )
             );
 
