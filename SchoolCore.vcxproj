@@ -149,6 +149,10 @@
       <FileType>CppForm</FileType>
     </ClInclude>
     <ClInclude Include="DbConnection.h" />
+    <ClInclude Include="AcademicContext.h" />
+    <ClInclude Include="CurriculumSubjectsManagement.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
     <ClInclude Include="StudentManagement.h">
       <FileType>CppForm</FileType>
     </ClInclude>
