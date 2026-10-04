@@ -569,6 +569,12 @@ namespace SchoolCore
                     )
                 );
 
+                System::Collections::Generic::List<int>^ savedStudentIds =
+                    gcnew System::Collections::Generic::List<int>();
+
+                int examinationSubjectId =
+                    this->GetExaminationSubjectId(paperId);
+
                 for each (DataGridViewRow^ row in this->marksGrid->Rows)
                 {
                     if (row->IsNewRow)
@@ -605,14 +611,17 @@ namespace SchoolCore
                         return;
                     }
 
+                    int studentId =
+                        Convert::ToInt32(
+                            row->Cells["StudentId"]->Value
+                        );
+
                     String^ remarks =
                         row->Cells["Remarks"]->Value == nullptr
                         ? L""
                         : row->Cells["Remarks"]->Value->ToString();
 
-                    upsert->setInt(1, Convert::ToInt32(
-                        row->Cells["StudentId"]->Value
-                    ));
+                    upsert->setInt(1, studentId);
 
                     upsert->setDouble(2, score);
 
@@ -632,18 +641,24 @@ namespace SchoolCore
 
                     upsert->executeUpdate();
 
-                    // Recalculate the whole subject only when all configured
-                    // papers now have marks for this student.
-                    GradingEngine::RecalculateSubjectResult(
-                        this->GetExaminationSubjectId(paperId),
-                        Convert::ToInt32(
-                            row->Cells["StudentId"]->Value
-                        )
-                    );
+                    savedStudentIds->Add(studentId);
                 }
 
                 con->commit();
                 con->setAutoCommit(true);
+
+                // Recalculate only after the marks transaction has committed,
+                // so the grading engine can see the newly saved paper marks.
+                if (examinationSubjectId > 0)
+                {
+                    for each (int studentId in savedStudentIds)
+                    {
+                        GradingEngine::RecalculateSubjectResult(
+                            examinationSubjectId,
+                            studentId
+                        );
+                    }
+                }
 
                 LoadStudents();
 
