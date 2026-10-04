@@ -123,6 +123,14 @@ namespace SchoolCore
         bool editorEditMode = false;
         int editingExaminationId = 0;
 
+        // Emergency override request dialog state
+        Form^ overrideRequestForm;
+        TextBox^ overrideReasonBox;
+        int overrideRequestExaminationId = 0;
+        int overrideRequestAcademicYearId = 0;
+        int overrideRequestTermId = 0;
+        int overrideCreatedApprovalId = 0;
+
 
         // =========================================================
         // SUBJECT ASSIGNMENT DIALOG
@@ -1898,28 +1906,109 @@ namespace SchoolCore
 
 
 
+        void SubmitExaminationEditOverrideRequest(
+            Object^ sender,
+            EventArgs^ e)
+        {
+            if (this->overrideReasonBox == nullptr ||
+                String::IsNullOrWhiteSpace(
+                    this->overrideReasonBox->Text))
+            {
+                MessageBox::Show(
+                    L"Enter a clear reason for the emergency correction.",
+                    L"Reason Required",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+
+                if (this->overrideReasonBox != nullptr)
+                    this->overrideReasonBox->Focus();
+
+                return;
+            }
+
+            try
+            {
+                this->overrideCreatedApprovalId =
+                    AcademicSecurity::CreateInactiveYearEditRequest(
+                        this->overrideRequestAcademicYearId,
+                        this->overrideRequestTermId,
+                        L"UPDATE",
+                        L"examinations",
+                        this->overrideRequestExaminationId.ToString(),
+                        this->overrideReasonBox->Text->Trim()
+                    );
+
+                MessageBox::Show(
+                    L"Emergency edit request #" +
+                    this->overrideCreatedApprovalId.ToString() +
+                    L" has been submitted for independent approval.",
+                    L"Request Submitted",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Information
+                );
+
+                this->overrideRequestForm->DialogResult =
+                    System::Windows::Forms::DialogResult::OK;
+            }
+            catch (System::Exception^ ex)
+            {
+                MessageBox::Show(
+                    ex->Message,
+                    L"Unable to Submit Request",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+        }
+
+
+        void CancelExaminationEditOverrideRequest(
+            Object^ sender,
+            EventArgs^ e)
+        {
+            if (this->overrideRequestForm != nullptr)
+            {
+                this->overrideRequestForm->DialogResult =
+                    System::Windows::Forms::DialogResult::Cancel;
+            }
+        }
+
+
         int RequestExaminationEditOverride(
             int examinationId,
             int academicYearId,
             int termId)
         {
-            Form^ requestForm =
+            this->overrideRequestExaminationId =
+                examinationId;
+
+            this->overrideRequestAcademicYearId =
+                academicYearId;
+
+            this->overrideRequestTermId =
+                termId;
+
+            this->overrideCreatedApprovalId =
+                0;
+
+            this->overrideRequestForm =
                 gcnew Form();
 
-            requestForm->Text =
+            this->overrideRequestForm->Text =
                 L"Request Emergency Override";
 
-            requestForm->StartPosition =
+            this->overrideRequestForm->StartPosition =
                 FormStartPosition::CenterParent;
 
-            requestForm->FormBorderStyle =
-                FormBorderStyle::FixedDialog;
+            this->overrideRequestForm->FormBorderStyle =
+                System::Windows::Forms::FormBorderStyle::FixedDialog;
 
-            requestForm->MaximizeBox = false;
-            requestForm->MinimizeBox = false;
-            requestForm->ShowInTaskbar = false;
+            this->overrideRequestForm->MaximizeBox = false;
+            this->overrideRequestForm->MinimizeBox = false;
+            this->overrideRequestForm->ShowInTaskbar = false;
 
-            requestForm->ClientSize =
+            this->overrideRequestForm->ClientSize =
                 Drawing::Size(620, 360);
 
             Panel^ header =
@@ -1987,20 +2076,21 @@ namespace SchoolCore
             reasonLabel->Size =
                 Drawing::Size(560, 24);
 
-            TextBox^ reasonBox =
+            this->overrideReasonBox =
                 gcnew TextBox();
 
-            reasonBox->Multiline = true;
-            reasonBox->ScrollBars =
+            this->overrideReasonBox->Multiline = true;
+
+            this->overrideReasonBox->ScrollBars =
                 ScrollBars::Vertical;
 
-            reasonBox->Location =
+            this->overrideReasonBox->Location =
                 Drawing::Point(20, 130);
 
-            reasonBox->Size =
+            this->overrideReasonBox->Size =
                 Drawing::Size(580, 125);
 
-            reasonBox->Anchor =
+            this->overrideReasonBox->Anchor =
                 AnchorStyles::Top |
                 AnchorStyles::Left |
                 AnchorStyles::Right;
@@ -2045,97 +2135,44 @@ namespace SchoolCore
             cancelButton->Location =
                 Drawing::Point(480, 305);
 
-            int createdApprovalId = 0;
-
             submitButton->Click +=
                 gcnew EventHandler(
-                    [requestForm,
-                     reasonBox,
-                     examinationId,
-                     academicYearId,
-                     termId,
-                     &createdApprovalId]
-                    (Object^, EventArgs^)
-                    {
-                        if (String::IsNullOrWhiteSpace(
-                                reasonBox->Text))
-                        {
-                            MessageBox::Show(
-                                L"Enter a clear reason for the emergency correction.",
-                                L"Reason Required",
-                                MessageBoxButtons::OK,
-                                MessageBoxIcon::Warning
-                            );
-
-                            reasonBox->Focus();
-                            return;
-                        }
-
-                        try
-                        {
-                            createdApprovalId =
-                                AcademicSecurity::CreateInactiveYearEditRequest(
-                                    academicYearId,
-                                    termId,
-                                    L"UPDATE",
-                                    L"examinations",
-                                    examinationId.ToString(),
-                                    reasonBox->Text
-                                );
-
-                            MessageBox::Show(
-                                L"Emergency edit request #" +
-                                createdApprovalId.ToString() +
-                                L" has been submitted for independent approval.",
-                                L"Request Submitted",
-                                MessageBoxButtons::OK,
-                                MessageBoxIcon::Information
-                            );
-
-                            requestForm->DialogResult =
-                                System::Windows::Forms::DialogResult::OK;
-                        }
-                        catch (System::Exception^ ex)
-                        {
-                            MessageBox::Show(
-                                ex->Message,
-                                L"Unable to Submit Request",
-                                MessageBoxButtons::OK,
-                                MessageBoxIcon::Error
-                            );
-                        }
-                    }
+                    this,
+                    &Examinations::SubmitExaminationEditOverrideRequest
                 );
 
             cancelButton->Click +=
                 gcnew EventHandler(
-                    [requestForm]
-                    (Object^, EventArgs^)
-                    {
-                        requestForm->DialogResult =
-                            System::Windows::Forms::DialogResult::Cancel;
-                    }
+                    this,
+                    &Examinations::CancelExaminationEditOverrideRequest
                 );
 
-            requestForm->Controls->Add(cancelButton);
-            requestForm->Controls->Add(submitButton);
-            requestForm->Controls->Add(scopeLabel);
-            requestForm->Controls->Add(reasonBox);
-            requestForm->Controls->Add(reasonLabel);
-            requestForm->Controls->Add(header);
+            this->overrideRequestForm->Controls->Add(cancelButton);
+            this->overrideRequestForm->Controls->Add(submitButton);
+            this->overrideRequestForm->Controls->Add(scopeLabel);
+            this->overrideRequestForm->Controls->Add(this->overrideReasonBox);
+            this->overrideRequestForm->Controls->Add(reasonLabel);
+            this->overrideRequestForm->Controls->Add(header);
 
-            requestForm->AcceptButton =
+            this->overrideRequestForm->AcceptButton =
                 submitButton;
 
-            requestForm->CancelButton =
+            this->overrideRequestForm->CancelButton =
                 cancelButton;
 
-            requestForm->ShowDialog(this);
+            this->overrideRequestForm->ShowDialog(this);
 
-            delete requestForm;
+            int createdApprovalId =
+                this->overrideCreatedApprovalId;
+
+            delete this->overrideRequestForm;
+
+            this->overrideRequestForm = nullptr;
+            this->overrideReasonBox = nullptr;
 
             return createdApprovalId;
         }
+
 
         void OpenExaminationEditor(
             int examinationId)
