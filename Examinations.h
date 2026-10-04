@@ -2,6 +2,7 @@
 
 #include "DbConnection.h"
 #include "AcademicContext.h"
+#include "AcademicSecurity.h"
 #include "ThemeManager.h"
 #include "AuthSession.h"
 #include "MarksEntryManagement.h"
@@ -1719,6 +1720,76 @@ namespace SchoolCore
         void OpenExaminationEditor(
             int examinationId)
         {
+            if (examinationId > 0)
+            {
+                try
+                {
+                    auto securityCon =
+                        DbConnection::GetConnection();
+
+                    std::unique_ptr<sql::PreparedStatement> securityStmt(
+                        securityCon->prepareStatement(
+                            "SELECT academic_year_id, term_id "
+                            "FROM examinations "
+                            "WHERE examination_id = ? "
+                            "LIMIT 1"
+                        )
+                    );
+
+                    securityStmt->setInt(
+                        1,
+                        examinationId
+                    );
+
+                    std::unique_ptr<sql::ResultSet> securityResult(
+                        securityStmt->executeQuery()
+                    );
+
+                    if (!securityResult->next())
+                    {
+                        MessageBox::Show(
+                            L"The selected examination could not be found.",
+                            L"Examinations",
+                            MessageBoxButtons::OK,
+                            MessageBoxIcon::Warning
+                        );
+                        return;
+                    }
+
+                    int existingYearId =
+                        securityResult->getInt(
+                            "academic_year_id"
+                        );
+
+                    int existingTermId =
+                        securityResult->getInt(
+                            "term_id"
+                        );
+
+                    if (!AcademicSecurity::IsCurrentActivePeriod(
+                            existingYearId,
+                            existingTermId))
+                    {
+                        MessageBox::Show(
+                            L"This examination belongs to an inactive academic year or inactive term. Normal editing is blocked. An approved academic-period override is required for an emergency correction.",
+                            L"Protected Academic Record",
+                            MessageBoxButtons::OK,
+                            MessageBoxIcon::Warning
+                        );
+                        return;
+                    }
+                }
+                catch (sql::SQLException& ex)
+                {
+                    ShowDatabaseError(ex);
+                    return;
+                }
+            }
+            this->editorEditMode =
+                examinationId > 0;
+
+            this->editingExaminationId =
+                examinationId;
             this->editorEditMode =
                 examinationId > 0;
 
