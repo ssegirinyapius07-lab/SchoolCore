@@ -1720,6 +1720,7 @@ namespace SchoolCore
                     ShowDatabaseError(ex);
                 }
             }
+        }
 
         void OpenExaminationEditor(
             int examinationId)
