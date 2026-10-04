@@ -3,6 +3,7 @@
 #include "DbConnection.h"
 #include "ThemeManager.h"
 #include "AuthSession.h"
+#include "GradingEngine.h"
 
 #include <mariadb/conncpp.hpp>
 #include <msclr/marshal_cppstd.h>
@@ -466,6 +467,39 @@ namespace SchoolCore
             return true;
         }
 
+        int GetExaminationSubjectId(int paperId)
+        {
+            try
+            {
+                auto con =
+                    DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT examination_subject_id "
+                        "FROM examination_papers "
+                        "WHERE examination_paper_id = ?"
+                    )
+                );
+
+                stmt->setInt(1, paperId);
+
+                std::unique_ptr<sql::ResultSet> result(
+                    stmt->executeQuery()
+                );
+
+                if (result->next())
+                    return result->getInt(
+                        "examination_subject_id"
+                    );
+            }
+            catch (sql::SQLException&)
+            {
+            }
+
+            return 0;
+        }
+
         void SaveMarks()
         {
             int paperId = GetSelectedId(this->cmbPaper);
@@ -597,6 +631,15 @@ namespace SchoolCore
                     upsert->setInt(5, paperId);
 
                     upsert->executeUpdate();
+
+                    // Recalculate the whole subject only when all configured
+                    // papers now have marks for this student.
+                    GradingEngine::RecalculateSubjectResult(
+                        this->GetExaminationSubjectId(paperId),
+                        Convert::ToInt32(
+                            row->Cells["StudentId"]->Value
+                        )
+                    );
                 }
 
                 con->commit();
