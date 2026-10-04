@@ -5,6 +5,7 @@
 #include <mariadb/conncpp.hpp>
 #include <memory>
 #include <string>
+#include <stdexcept>
 
 namespace SchoolCore
 {
