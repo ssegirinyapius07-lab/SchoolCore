@@ -56,10 +56,106 @@ PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
--- Remove any earlier trigger versions.
-DROP TRIGGER IF EXISTS trg_examinations_validate_stream_insert;
-DROP TRIGGER IF EXISTS trg_examinations_validate_stream_update;
+-- Database-level examination scope enforcement.
+--
+-- Every examination gets one scope row per stream it covers.
+-- An All Streams examination therefore expands to all active streams
+-- belonging to its class, while a stream-specific examination gets one row.
+--
+-- The UNIQUE constraint is the final database-level protection:
+-- for the same academic year, term, class, examination name and type,
+-- two examination scopes cannot claim the same stream.
+--
+-- This makes these combinations impossible:
+--   All Streams + South
+--   South + All Streams
+--   South + South
+--
+-- while allowing:
+--   South + West
+--   South + East
+--   West + North
 
--- Stream/class and overlapping-scope validation is enforced by the application
--- in Examinations.h. The foreign key above ensures stream_id references a real stream.
+CREATE TABLE IF NOT EXISTS examination_stream_scopes (
+    examination_scope_id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    examination_id INT(10) UNSIGNED NOT NULL,
+    academic_year_id INT(10) UNSIGNED NOT NULL,
+    term_id INT(10) UNSIGNED NOT NULL,
+    class_id INT(10) UNSIGNED NOT NULL,
+    examination_name VARCHAR(100) NOT NULL,
+    examination_type VARCHAR(50) NOT NULL DEFAULT '',
+    stream_id INT(10) UNSIGNED NOT NULL,
+
+    PRIMARY KEY (examination_scope_id),
+
+    UNIQUE KEY uq_examination_stream_scope (
+        academic_year_id,
+        term_id,
+        class_id,
+        examination_name,
+        examination_type,
+        stream_id
+    ),
+
+    KEY idx_examination_scope_exam (
+        examination_id
+    ),
+
+    CONSTRAINT fk_examination_scope_exam
+        FOREIGN KEY (examination_id)
+        REFERENCES examinations(examination_id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_examination_scope_stream
+        FOREIGN KEY (stream_id)
+        REFERENCES streams(stream_id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+);
+
+-- Seed scope rows for examinations that already exist.
+-- INSERT IGNORE keeps the migration safely re-runnable.
+INSERT IGNORE INTO examination_stream_scopes (
+    examination_id,
+    academic_year_id,
+    term_id,
+    class_id,
+    examination_name,
+    examination_type,
+    stream_id
+)
+SELECT
+    e.examination_id,
+    e.academic_year_id,
+    e.term_id,
+    e.class_id,
+    TRIM(e.examination_name),
+    TRIM(COALESCE(e.examination_type, '')),
+    s.stream_id
+FROM examinations e
+INNER JOIN streams s
+    ON s.class_id = e.class_id
+   AND s.status = 'Active'
+WHERE e.stream_id IS NULL;
+
+INSERT IGNORE INTO examination_stream_scopes (
+    examination_id,
+    academic_year_id,
+    term_id,
+    class_id,
+    examination_name,
+    examination_type,
+    stream_id
+)
+SELECT
+    e.examination_id,
+    e.academic_year_id,
+    e.term_id,
+    e.class_id,
+    TRIM(e.examination_name),
+    TRIM(COALESCE(e.examination_type, '')),
+    e.stream_id
+FROM examinations e
+WHERE e.stream_id IS NOT NULL;
 
