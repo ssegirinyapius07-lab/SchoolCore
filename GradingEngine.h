@@ -27,11 +27,68 @@ namespace SchoolCore
             );
         }
 
+        static void UpsertPendingResult(
+            sql::Connection* con,
+            int enrollmentId,
+            int examinationSubjectId,
+            double totalScore,
+            double totalMaxScore,
+            double percentage,
+            int activePaperCount,
+            int scoredPaperCount)
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                con->prepareStatement(
+                    "INSERT INTO student_subject_results "
+                    "(enrollment_id, examination_subject_id, "
+                    "total_score, total_max_score, percentage, "
+                    "grade, grade_point, grade_weight, remarks, "
+                    "paper_count, status, calculated_at) "
+                    "VALUES (?, ?, ?, ?, ?, NULL, NULL, NULL, ?, ?, 'Pending', CURRENT_TIMESTAMP) "
+                    "ON DUPLICATE KEY UPDATE "
+                    "total_score = VALUES(total_score), "
+                    "total_max_score = VALUES(total_max_score), "
+                    "percentage = VALUES(percentage), "
+                    "grade = NULL, "
+                    "grade_point = NULL, "
+                    "grade_weight = NULL, "
+                    "remarks = VALUES(remarks), "
+                    "paper_count = VALUES(paper_count), "
+                    "status = 'Pending', "
+                    "calculated_at = CURRENT_TIMESTAMP"
+                )
+            );
+
+            stmt->setInt(1, enrollmentId);
+            stmt->setInt(2, examinationSubjectId);
+            stmt->setDouble(3, totalScore);
+            stmt->setDouble(4, totalMaxScore);
+            stmt->setDouble(5, percentage);
+            stmt->setString(
+                6,
+                "Pending: " +
+                std::to_string(scoredPaperCount) +
+                "/" +
+                std::to_string(activePaperCount) +
+                " assigned papers have marks."
+            );
+            stmt->setInt(7, activePaperCount);
+            stmt->executeUpdate();
+        }
+
     public:
 
-        // Recalculate the complete subject result for one student.
-        // A subject result is produced only after every active paper
-        // assigned to that examination subject has a mark.
+        // Calculates the subject result for an examination.
+        //
+        // Important rules:
+        //   1. Every active paper assigned to the examination subject is required.
+        //   2. Scores are combined using each paper's real maximum score.
+        //   3. An incomplete subject never receives a final grade, point or weight.
+        //   4. The grading policy is curriculum-aware:
+        //        - UACE aligned (2025+): A-E + 5..1 performance weight, no legacy 6..0 points.
+        //        - UACE legacy: A=6 ... F=0 points.
+        //        - UCE CBC: provisional A-E policy.
+        //        - School custom: database-configurable policy.
         static bool RecalculateSubjectResult(
             int examinationSubjectId,
             int studentId)
@@ -45,6 +102,9 @@ namespace SchoolCore
                 int termId = 0;
                 int classId = 0;
                 int enrollmentId = 0;
+                int academicLevelId = 0;
+                int curriculumId = 0;
+                int gradingPolicyId = 0;
 
                 {
                     std::unique_ptr<sql::PreparedStatement> stmt(
@@ -52,18 +112,39 @@ namespace SchoolCore
                             "SELECT "
                             "e.academic_year_id, "
                             "e.term_id, "
-                            "e.class_id "
+                            "e.class_id, "
+                            "c.academic_level_id, "
+                            "(SELECT cur2.curriculum_id "
+                            " FROM curricula cur2 "
+                            " WHERE cur2.academic_level_id = c.academic_level_id "
+                            " AND cur2.status = 'Active' "
+                            " ORDER BY cur2.effective_from_year DESC, cur2.curriculum_id DESC "
+                            " LIMIT 1) AS resolved_curriculum_id, "
+                            "COALESCE(e.grading_policy_id, "
+                            "  (SELECT gp.policy_id "
+                            "   FROM grading_policies gp "
+                            "   WHERE gp.status = 'Active' "
+                            "   AND gp.academic_level_id = c.academic_level_id "
+                            "   AND gp.curriculum_id = "
+                            "       (SELECT cur3.curriculum_id "
+                            "        FROM curricula cur3 "
+                            "        WHERE cur3.academic_level_id = c.academic_level_id "
+                            "        AND cur3.status = 'Active' "
+                            "        ORDER BY cur3.effective_from_year DESC, cur3.curriculum_id DESC "
+                            "        LIMIT 1) "
+                            "   ORDER BY gp.effective_from_year DESC, gp.policy_id DESC "
+                            "   LIMIT 1) "
+                            ") AS resolved_policy_id "
                             "FROM examination_subjects es "
                             "INNER JOIN examinations e "
                             "ON e.examination_id = es.examination_id "
+                            "INNER JOIN classes c "
+                            "ON c.class_id = e.class_id "
                             "WHERE es.examination_subject_id = ?"
                         )
                     );
 
-                    stmt->setInt(
-                        1,
-                        examinationSubjectId
-                    );
+                    stmt->setInt(1, examinationSubjectId);
 
                     std::unique_ptr<sql::ResultSet> result(
                         stmt->executeQuery()
@@ -80,6 +161,26 @@ namespace SchoolCore
 
                     classId =
                         result->getInt("class_id");
+
+                    academicLevelId =
+                        result->getInt("academic_level_id");
+
+                    curriculumId =
+                        result->getInt("resolved_curriculum_id");
+
+                    gradingPolicyId =
+                        result->getInt("resolved_policy_id");
+                }
+
+                if (
+                    academicYearId <= 0 ||
+                    termId <= 0 ||
+                    classId <= 0 ||
+                    academicLevelId <= 0 ||
+                    curriculumId <= 0 ||
+                    gradingPolicyId <= 0)
+                {
+                    return false;
                 }
 
                 {
@@ -111,35 +212,6 @@ namespace SchoolCore
 
                     enrollmentId =
                         result->getInt("enrollment_id");
-                }
-
-                int academicLevelId = 0;
-
-                {
-                    std::unique_ptr<sql::PreparedStatement> stmt(
-                        con->prepareStatement(
-                            "SELECT academic_level_id "
-                            "FROM classes "
-                            "WHERE class_id = ?"
-                        )
-                    );
-
-                    stmt->setInt(
-                        1,
-                        classId
-                    );
-
-                    std::unique_ptr<sql::ResultSet> result(
-                        stmt->executeQuery()
-                    );
-
-                    if (!result->next())
-                        return false;
-
-                    academicLevelId =
-                        result->getInt(
-                            "academic_level_id"
-                        );
                 }
 
                 int activePaperCount = 0;
@@ -177,29 +249,20 @@ namespace SchoolCore
                         return false;
 
                     activePaperCount =
-                        result->getInt(
-                            "active_papers"
-                        );
+                        result->getInt("active_papers");
 
                     scoredPaperCount =
-                        result->getInt(
-                            "scored_papers"
-                        );
+                        result->getInt("scored_papers");
 
                     totalScore =
-                        result->getDouble(
-                            "total_score"
-                        );
+                        result->getDouble("total_score");
 
                     totalMaxScore =
-                        result->getDouble(
-                            "total_max_score"
-                        );
+                        result->getDouble("total_max_score");
                 }
 
                 if (
                     activePaperCount == 0 ||
-                    scoredPaperCount != activePaperCount ||
                     totalMaxScore <= 0.0)
                 {
                     return false;
@@ -208,71 +271,106 @@ namespace SchoolCore
                 double percentage =
                     (totalScore / totalMaxScore) * 100.0;
 
+                // Do not produce a final subject grade until every assigned
+                // paper has a mark for this student.
+                if (scoredPaperCount != activePaperCount)
+                {
+                    UpsertPendingResult(
+                        con.get(),
+                        enrollmentId,
+                        examinationSubjectId,
+                        totalScore,
+                        totalMaxScore,
+                        percentage,
+                        activePaperCount,
+                        scoredPaperCount
+                    );
+
+                    return false;
+                }
+
+                String^ calculationMethod = L"";
                 String^ grade = L"";
-                double gradePoint = 0.0;
-                bool hasGradePoint = false;
                 String^ remarks = L"";
+                double gradePoint = 0.0;
+                double gradeWeight = 0.0;
+                bool hasGradePoint = false;
+                bool hasGradeWeight = false;
 
                 {
                     std::unique_ptr<sql::PreparedStatement> stmt(
                         con->prepareStatement(
                             "SELECT "
-                            "grade, "
-                            "grade_point, "
-                            "remarks "
-                            "FROM grading_scales "
-                            "WHERE academic_level_id = ? "
-                            "AND status = 'Active' "
-                            "AND min_score <= ? "
-                            "AND max_score >= ? "
-                            "ORDER BY min_score DESC "
+                            "gp.calculation_method, "
+                            "b.grade, "
+                            "b.grade_point, "
+                            "b.grade_weight, "
+                            "b.remarks "
+                            "FROM grading_policy_bands b "
+                            "INNER JOIN grading_policies gp "
+                            "ON gp.policy_id = b.policy_id "
+                            "WHERE b.policy_id = ? "
+                            "AND b.status = 'Active' "
+                            "AND ? BETWEEN b.min_value AND b.max_value "
+                            "AND gp.status = 'Active' "
+                            "ORDER BY b.band_order ASC "
                             "LIMIT 1"
                         )
                     );
 
-                    stmt->setInt(
-                        1,
-                        academicLevelId
-                    );
-
-                    stmt->setDouble(
-                        2,
-                        percentage
-                    );
-
-                    stmt->setDouble(
-                        3,
-                        percentage
-                    );
+                    stmt->setInt(1, gradingPolicyId);
+                    stmt->setDouble(2, percentage);
 
                     std::unique_ptr<sql::ResultSet> result(
                         stmt->executeQuery()
                     );
 
-                    if (result->next())
+                    if (!result->next())
+                        return false;
+
+                    calculationMethod =
+                        GetString(
+                            result.get(),
+                            "calculation_method"
+                        );
+
+                    grade =
+                        GetString(
+                            result.get(),
+                            "grade"
+                        );
+
+                    if (!result->isNull("grade_point"))
                     {
-                        grade =
-                            GetString(
-                                result.get(),
-                                "grade"
-                            );
+                        gradePoint =
+                            result->getDouble("grade_point");
 
-                        if (!result->isNull("grade_point"))
-                        {
-                            gradePoint =
-                                result->getDouble(
-                                    "grade_point"
-                                );
-
-                            hasGradePoint = true;
-                        }
-
-                        remarks =
-                            GetString(
-                                result.get(),
-                                "remarks"
-                            );
+                        hasGradePoint = true;
                     }
+
+                    if (!result->isNull("grade_weight"))
+                    {
+                        gradeWeight =
+                            result->getDouble("grade_weight");
+
+                        hasGradeWeight = true;
+                    }
+
+                    remarks =
+                        GetString(
+                            result.get(),
+                            "remarks"
+                        );
+                }
+
+                // Current UACE aligned curriculum is A-E with 5..1 performance
+                // weights. The historical A=6...F=0 points are deliberately
+                // unavailable unless the legacy policy is selected.
+                if (
+                    curriculumId == 2 &&
+                    calculationMethod == L"PAPER_AVERAGE_AE")
+                {
+                    hasGradePoint = false;
                 }
 
                 {
@@ -281,14 +379,16 @@ namespace SchoolCore
                             "INSERT INTO student_subject_results "
                             "(enrollment_id, examination_subject_id, "
                             "total_score, total_max_score, percentage, "
-                            "grade, grade_point, remarks, paper_count, status, calculated_at) "
-                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Calculated', CURRENT_TIMESTAMP) "
+                            "grade, grade_point, grade_weight, remarks, "
+                            "paper_count, status, calculated_at) "
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Calculated', CURRENT_TIMESTAMP) "
                             "ON DUPLICATE KEY UPDATE "
                             "total_score = VALUES(total_score), "
                             "total_max_score = VALUES(total_max_score), "
                             "percentage = VALUES(percentage), "
                             "grade = VALUES(grade), "
                             "grade_point = VALUES(grade_point), "
+                            "grade_weight = VALUES(grade_weight), "
                             "remarks = VALUES(remarks), "
                             "paper_count = VALUES(paper_count), "
                             "status = 'Calculated', "
@@ -317,20 +417,22 @@ namespace SchoolCore
                     else
                         stmt->setNull(7, sql::DataType::DECIMAL);
 
+                    if (hasGradeWeight)
+                        stmt->setDouble(8, gradeWeight);
+                    else
+                        stmt->setNull(8, sql::DataType::DECIMAL);
+
                     if (String::IsNullOrWhiteSpace(remarks))
-                        stmt->setNull(8, sql::DataType::VARCHAR);
+                        stmt->setNull(9, sql::DataType::VARCHAR);
                     else
                         stmt->setString(
-                            8,
+                            9,
                             msclr::interop::marshal_as<std::string>(
                                 remarks
                             )
                         );
 
-                    stmt->setInt(
-                        9,
-                        activePaperCount
-                    );
+                    stmt->setInt(10, activePaperCount);
 
                     stmt->executeUpdate();
                 }
