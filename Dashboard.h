@@ -1397,6 +1397,7 @@ namespace SchoolCore {
 			}
 			else
 			{
+				this->sidebarPanel->Visible = true;
 				this->btnMenu->Visible = false;
 
 				this->lblSchoolName->Location =
