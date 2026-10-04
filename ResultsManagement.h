@@ -145,6 +145,7 @@ namespace SchoolCore
                         "INNER JOIN subjects sub "
                         "ON sub.subject_id = es.subject_id "
                         "WHERE es.examination_id = ? "
+                        "AND (ex.stream_id IS NULL OR e.stream_id = ex.stream_id) "
                         "ORDER BY "
                         "st.stream_name ASC, "
                         "s.first_name ASC, "
