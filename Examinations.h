@@ -117,6 +117,7 @@ namespace SchoolCore
         System::Windows::Forms::DateTimePicker^ editorStart;
         System::Windows::Forms::DateTimePicker^ editorEnd;
         System::Windows::Forms::ComboBox^ editorStatus;
+        System::Windows::Forms::ComboBox^ editorPolicy;
         bool editorEditMode = false;
         int editingExaminationId = 0;
 
@@ -848,6 +849,7 @@ namespace SchoolCore
                         "academic_year_id, "
                         "term_id, "
                         "class_id, "
+                        "grading_policy_id, "
                         "start_date, "
                         "end_date, "
                         "status "
@@ -910,10 +912,16 @@ namespace SchoolCore
                         "class_id"
                     );
 
+                int policyId =
+                    result->isNull("grading_policy_id")
+                    ? 0
+                    : result->getInt("grading_policy_id");
+
                 this->editorYear->SelectedIndex = 0;
                 LoadEditorYears(yearId);
                 LoadEditorTerms(termId);
                 LoadEditorClasses(classId);
+                LoadEditorPolicies(policyId);
 
                 if (!result->isNull("start_date"))
                 {
@@ -965,6 +973,111 @@ namespace SchoolCore
         // =========================================================
         // EDITOR EVENTS
         // =========================================================
+        void LoadEditorPolicies(
+            int selectedPolicyId)
+        {
+            int classId =
+                GetSelectedId(
+                    this->editorClass
+                );
+
+            this->editorPolicy->Items->Clear();
+
+            this->editorPolicy->Items->Add(
+                gcnew FilterItem(
+                    0,
+                    L"Automatic - Current Curriculum"
+                )
+            );
+
+            try
+            {
+                if (classId > 0)
+                {
+                    auto con =
+                        DbConnection::GetConnection();
+
+                    std::unique_ptr<sql::PreparedStatement> stmt(
+                        con->prepareStatement(
+                            "SELECT "
+                            "gp.policy_id, "
+                            "gp.policy_name "
+                            "FROM grading_policies gp "
+                            "INNER JOIN classes c "
+                            "ON c.academic_level_id = gp.academic_level_id "
+                            "WHERE c.class_id = ? "
+                            "AND gp.status = 'Active' "
+                            "ORDER BY gp.policy_type ASC, gp.policy_name ASC"
+                        )
+                    );
+
+                    stmt->setInt(
+                        1,
+                        classId
+                    );
+
+                    std::unique_ptr<sql::ResultSet> result(
+                        stmt->executeQuery()
+                    );
+
+                    while (result->next())
+                    {
+                        this->editorPolicy->Items->Add(
+                            gcnew FilterItem(
+                                result->getInt(
+                                    "policy_id"
+                                ),
+                                gcnew String(
+                                    result->getString(
+                                        "policy_name"
+                                    ).c_str()
+                                )
+                            )
+                        );
+                    }
+                }
+            }
+            catch (sql::SQLException& ex)
+            {
+                ShowDatabaseError(ex);
+            }
+
+            int selectedIndex = 0;
+
+            for (int i = 0;
+                 i < this->editorPolicy->Items->Count;
+                 i++)
+            {
+                FilterItem^ item =
+                    dynamic_cast<FilterItem^>(
+                        this->editorPolicy->Items[i]
+                    );
+
+                if (item != nullptr &&
+                    item->Id == selectedPolicyId)
+                {
+                    selectedIndex = i;
+                    break;
+                }
+            }
+
+            this->editorPolicy->SelectedIndex =
+                selectedIndex;
+        }
+
+
+        System::Void EditorClassChanged(
+            Object^ sender,
+            EventArgs^ e)
+        {
+            if (this->editorPolicy == nullptr)
+                return;
+
+            LoadEditorPolicies(0);
+        }
+
+
+
 
         System::Void EditorYearChanged(
             Object^ sender,
@@ -1023,6 +1136,11 @@ namespace SchoolCore
             int classId =
                 GetSelectedId(
                     this->editorClass
+                );
+
+            int policyId =
+                GetSelectedId(
+                    this->editorPolicy
                 );
 
             if (
@@ -1104,6 +1222,7 @@ namespace SchoolCore
                             "academic_year_id = ?, "
                             "term_id = ?, "
                             "class_id = ?, "
+                            "grading_policy_id = ?, "
                             "start_date = ?, "
                             "end_date = ?, "
                             "status = ? "
@@ -1116,11 +1235,17 @@ namespace SchoolCore
                     stmt->setInt(3, yearId);
                     stmt->setInt(4, termId);
                     stmt->setInt(5, classId);
-                    stmt->setString(6, startDate);
-                    stmt->setString(7, endDate);
-                    stmt->setString(8, status);
+
+                    if (policyId == 0)
+                        stmt->setNull(6, sql::DataType::INTEGER);
+                    else
+                        stmt->setInt(6, policyId);
+
+                    stmt->setString(7, startDate);
+                    stmt->setString(8, endDate);
+                    stmt->setString(9, status);
                     stmt->setInt(
-                        9,
+                        10,
                         this->editingExaminationId
                     );
 
@@ -1144,11 +1269,12 @@ namespace SchoolCore
                             "class_id, "
                             "examination_name, "
                             "examination_type, "
+                            "grading_policy_id, "
                             "start_date, "
                             "end_date, "
                             "status"
                             ") "
-                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
                         )
                     );
 
@@ -1157,9 +1283,15 @@ namespace SchoolCore
                     stmt->setInt(3, classId);
                     stmt->setString(4, name);
                     stmt->setString(5, type);
-                    stmt->setString(6, startDate);
-                    stmt->setString(7, endDate);
-                    stmt->setString(8, status);
+
+                    if (policyId == 0)
+                        stmt->setNull(6, sql::DataType::INTEGER);
+                    else
+                        stmt->setInt(6, policyId);
+
+                    stmt->setString(7, startDate);
+                    stmt->setString(8, endDate);
+                    stmt->setString(9, status);
 
                     stmt->executeUpdate();
 
@@ -1218,13 +1350,13 @@ namespace SchoolCore
             this->editorForm->ClientSize =
                 System::Drawing::Size(
                     760,
-                    560
+                    620
                 );
 
             this->editorForm->MinimumSize =
                 System::Drawing::Size(
                     760,
-                    560
+                    620
                 );
 
             System::Windows::Forms::Panel^ header =
@@ -1310,7 +1442,7 @@ namespace SchoolCore
                 );
 
             formLayout->ColumnCount = 4;
-            formLayout->RowCount = 5;
+            formLayout->RowCount = 6;
 
             formLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
@@ -1340,12 +1472,12 @@ namespace SchoolCore
                 )
             );
 
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 6; i++)
             {
                 formLayout->RowStyles->Add(
                     gcnew RowStyle(
                         SizeType::Absolute,
-                        i == 4 ? 62.0F : 46.0F
+                        i == 5 ? 62.0F : 46.0F
                     )
                 );
             }
@@ -1373,6 +1505,9 @@ namespace SchoolCore
                 gcnew DateTimePicker();
 
             this->editorStatus =
+                gcnew ComboBox();
+
+            this->editorPolicy =
                 gcnew ComboBox();
 
 
@@ -1453,6 +1588,7 @@ namespace SchoolCore
             ApplyEditorStyle(this->editorStart);
             ApplyEditorStyle(this->editorEnd);
             ApplyEditorStyle(this->editorStatus);
+            ApplyEditorStyle(this->editorPolicy);
 
 
             AddFormLabel(
@@ -1562,6 +1698,19 @@ namespace SchoolCore
                 3
             );
 
+            AddFormLabel(
+                formLayout,
+                L"Grading Policy",
+                0,
+                4
+            );
+
+            formLayout->Controls->Add(
+                this->editorPolicy,
+                1,
+                4
+            );
+
 
             System::Windows::Forms::Button^ cancel =
                 gcnew Button();
@@ -1609,13 +1758,13 @@ namespace SchoolCore
             formLayout->Controls->Add(
                 cancel,
                 2,
-                4
+                5
             );
 
             formLayout->Controls->Add(
                 save,
                 3,
-                4
+                5
             );
 
 
@@ -1623,6 +1772,12 @@ namespace SchoolCore
                 gcnew EventHandler(
                     this,
                     &Examinations::EditorYearChanged
+                );
+
+            this->editorClass->SelectedIndexChanged +=
+                gcnew EventHandler(
+                    this,
+                    &Examinations::EditorClassChanged
                 );
 
             cancel->Click +=
@@ -1645,6 +1800,8 @@ namespace SchoolCore
             this->LoadEditorClasses(
                 0
             );
+
+            this->LoadEditorPolicies(0);
 
             if (this->editorEditMode)
                 this->LoadEditorForEdit();
