@@ -101,5 +101,8 @@
     <ClInclude Include="Examinations.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MarksEntryManagement.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
