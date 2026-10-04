@@ -4372,7 +4372,7 @@ void InitializeComponent(void)
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
                     System::Windows::Forms::SizeType::Absolute,
-                    64.0F
+                    76.0F
                 )
             );
 
