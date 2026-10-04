@@ -1009,6 +1009,7 @@ namespace SchoolCore
                 txtUsername->Enabled = false;
             }
 
+            ThemeManager::ApplyBoldTypographyToForm(editorForm);
             editorForm->ShowDialog(this);
 
             if (editorForm->DialogResult ==
