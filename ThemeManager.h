@@ -345,9 +345,18 @@ namespace SchoolCore
             grid->ColumnHeadersDefaultCellStyle->SelectionForeColor = Ink();
             grid->ColumnHeadersDefaultCellStyle->Font =
                 gcnew System::Drawing::Font(
-                    L"Segoe UI Semibold",
+                    L"Segoe UI",
                     9.0F,
-                    System::Drawing::FontStyle::Regular
+                    System::Drawing::FontStyle::Bold
+                );
+
+            grid->DefaultCellStyle->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI",
+                    grid->DefaultCellStyle->Font != nullptr
+                        ? grid->DefaultCellStyle->Font->SizeInPoints
+                        : 9.0F,
+                    System::Drawing::FontStyle::Bold
                 );
 
             grid->DefaultCellStyle->BackColor = Surface();
@@ -404,6 +413,27 @@ namespace SchoolCore
         // Applying the theme
         // -----------------------------------------------------
 
+        static void ApplyBoldTypographyToForm(
+            System::Windows::Forms::Form^ form)
+        {
+            if (form == nullptr)
+            {
+                return;
+            }
+
+            if (form->Font != nullptr)
+            {
+                form->Font =
+                    gcnew System::Drawing::Font(
+                        L"Segoe UI",
+                        form->Font->SizeInPoints,
+                        System::Drawing::FontStyle::Bold
+                    );
+            }
+
+            ApplyBoldTypography(form->Controls);
+        }
+
         static void ApplyBoldTypography(
             System::Windows::Forms::Control::ControlCollection^ controls)
         {
@@ -446,7 +476,7 @@ namespace SchoolCore
 
             for each (System::Windows::Forms::Control^ control in controls)
             {
-                if (control == nullptr || IsOptedOut(control))
+                if (control == nullptr)
                 {
                     continue;
                 }
@@ -619,7 +649,7 @@ namespace SchoolCore
 
             // Typography is global, including hand-styled forms/dialogs.
             // Colours and layout are still allowed to remain custom.
-            ApplyBoldTypography(form->Controls);
+            ApplyBoldTypographyToForm(form);
 
             // The dashboard uses a dark navigation rail that must
             // keep its own colours.
