@@ -1774,59 +1774,54 @@ namespace SchoolCore
         void LoadCombinationAwareSubjects()
         {
             this->subjectCombo->Items->Clear();
-
-            int classId = 0;
+            this->paperCombo->Items->Clear();
+            this->paperCombo->Enabled = false;
 
             try
             {
                 auto con =
                     DbConnection::GetConnection();
 
-                std::unique_ptr<sql::PreparedStatement> classStmt(
-                    con->prepareStatement(
-                        "SELECT "
-                        "e.class_id "
-                        "FROM examinations e "
-                        "WHERE e.examination_id = ?"
-                    )
-                );
-
-                classStmt->setInt(
-                    1,
-                    this->subjectAssignmentExaminationId
-                );
-
-                std::unique_ptr<sql::ResultSet> classResult(
-                    classStmt->executeQuery()
-                );
-
-                if (classResult->next())
-                {
-                    classId =
-                        classResult->getInt(
-                            "class_id"
-                        );
-                }
-
+                // Examination subjects come from the curriculum attached to
+                // the examination's academic year. If the year has no
+                // curriculum assigned yet, fall back to the active curriculum
+                // for the examination class's academic level.
                 std::unique_ptr<sql::PreparedStatement> subjectStmt(
                     con->prepareStatement(
                         "SELECT DISTINCT "
                         "s.subject_id, "
                         "s.subject_code, "
-                        "s.subject_name "
-                        "FROM class_subjects cs "
+                        "s.subject_name, "
+                        "cs.curriculum_subject_id "
+                        "FROM examinations e "
+                        "INNER JOIN academic_years ay "
+                        "ON ay.academic_year_id = e.academic_year_id "
+                        "INNER JOIN classes c "
+                        "ON c.class_id = e.class_id "
+                        "INNER JOIN curricula cur "
+                        "ON cur.curriculum_id = COALESCE( "
+                        "ay.curriculum_id, "
+                        "(SELECT c2.curriculum_id "
+                        " FROM curricula c2 "
+                        " WHERE c2.academic_level_id = c.academic_level_id "
+                        " AND c2.status = 'Active' "
+                        " ORDER BY c2.effective_from_year DESC, c2.curriculum_id DESC "
+                        " LIMIT 1) "
+                        ") "
+                        "INNER JOIN curriculum_subjects cs "
+                        "ON cs.curriculum_id = cur.curriculum_id "
+                        "AND cs.status = 'Active' "
                         "INNER JOIN subjects s "
                         "ON s.subject_id = cs.subject_id "
-                        "WHERE cs.class_id = ? "
-                        "AND cs.status = 'Active' "
                         "AND s.status = 'Active' "
+                        "WHERE e.examination_id = ? "
                         "ORDER BY s.subject_name ASC"
                     )
                 );
 
                 subjectStmt->setInt(
                     1,
-                    classId
+                    this->subjectAssignmentExaminationId
                 );
 
                 std::unique_ptr<sql::ResultSet> result(
@@ -1837,20 +1832,27 @@ namespace SchoolCore
                 {
                     this->subjectCombo->Items->Add(
                         gcnew FilterItem(
-                            result->getInt(
-                                "subject_id"
-                            ),
+                            result->getInt("subject_id"),
                             gcnew String(
-                                result->getString(
-                                    "subject_name"
-                                ).c_str()
+                                result->getString("subject_name").c_str()
                             )
                         )
                     );
                 }
 
                 if (this->subjectCombo->Items->Count > 0)
+                {
                     this->subjectCombo->SelectedIndex = 0;
+                }
+                else
+                {
+                    MessageBox::Show(
+                        L"No active curriculum subjects were found for this examination's class and academic year. Check the curriculum and Curriculum Requirements setup.",
+                        L"Examination Subjects",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Information
+                    );
+                }
             }
             catch (sql::SQLException& ex)
             {
@@ -1862,6 +1864,7 @@ namespace SchoolCore
         void LoadPapersForSelectedSubject()
         {
             this->paperCombo->Items->Clear();
+            this->paperCombo->Enabled = false;
 
             FilterItem^ subject =
                 dynamic_cast<FilterItem^>(
@@ -1875,7 +1878,6 @@ namespace SchoolCore
                 );
 
                 this->paperCombo->SelectedIndex = 0;
-                this->paperCombo->Enabled = false;
                 return;
             }
 
@@ -1884,9 +1886,12 @@ namespace SchoolCore
                 auto con =
                     DbConnection::GetConnection();
 
+                // UNEB papers belong to the curriculum-specific subject
+                // record, so load papers through curriculum_subjects rather
+                // than matching by subject_id alone.
                 std::unique_ptr<sql::PreparedStatement> stmt(
                     con->prepareStatement(
-                        "SELECT "
+                        "SELECT DISTINCT "
                         "sp.paper_id, "
                         "sp.paper_code, "
                         "sp.paper_name "
@@ -1895,17 +1900,24 @@ namespace SchoolCore
                         "ON ay.academic_year_id = e.academic_year_id "
                         "INNER JOIN classes c "
                         "ON c.class_id = e.class_id "
-                        "INNER JOIN subject_papers sp "
-                        "ON sp.subject_id = ? "
-                        "AND sp.academic_level_id = c.academic_level_id "
-                        "AND sp.status = 'Active' "
-                        "LEFT JOIN curriculum_subjects cs "
-                        "ON cs.curriculum_subject_id = sp.curriculum_subject_id "
-                        "WHERE e.examination_id = ? "
-                        "AND ("
-                        "ay.curriculum_id IS NULL "
-                        "OR cs.curriculum_id = ay.curriculum_id"
+                        "INNER JOIN curricula cur "
+                        "ON cur.curriculum_id = COALESCE( "
+                        "ay.curriculum_id, "
+                        "(SELECT c2.curriculum_id "
+                        " FROM curricula c2 "
+                        " WHERE c2.academic_level_id = c.academic_level_id "
+                        " AND c2.status = 'Active' "
+                        " ORDER BY c2.effective_from_year DESC, c2.curriculum_id DESC "
+                        " LIMIT 1) "
                         ") "
+                        "INNER JOIN curriculum_subjects cs "
+                        "ON cs.curriculum_id = cur.curriculum_id "
+                        "AND cs.subject_id = ? "
+                        "AND cs.status = 'Active' "
+                        "INNER JOIN subject_papers sp "
+                        "ON sp.curriculum_subject_id = cs.curriculum_subject_id "
+                        "AND sp.status = 'Active' "
+                        "WHERE e.examination_id = ? "
                         "ORDER BY sp.paper_code ASC"
                     )
                 );
@@ -1959,7 +1971,24 @@ namespace SchoolCore
                     this->paperCombo->Items->Count > 0;
 
                 if (this->paperCombo->Items->Count > 0)
+                {
                     this->paperCombo->SelectedIndex = 0;
+                }
+                else
+                {
+                    this->paperCombo->Items->Add(
+                        L"No papers configured"
+                    );
+
+                    this->paperCombo->SelectedIndex = 0;
+
+                    MessageBox::Show(
+                        L"No active UNEB papers are configured for this subject in the curriculum used by this examination. Open Subjects → UNEB Subject & Papers and add the official paper code first.",
+                        L"Examination Papers",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Information
+                    );
+                }
             }
             catch (sql::SQLException& ex)
             {
