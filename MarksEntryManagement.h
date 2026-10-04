@@ -544,23 +544,29 @@ namespace SchoolCore
 
                 con->setAutoCommit(false);
 
+                int examinationSubjectId =
+                    this->GetExaminationSubjectId(paperId);
+
+                if (examinationSubjectId == 0)
+                {
+                    con->rollback();
+                    con->setAutoCommit(true);
+
+                    MessageBox::Show(
+                        L"The selected examination paper is not linked to an examination subject.",
+                        L"Marks Entry",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning
+                    );
+
+                    return;
+                }
+
                 std::unique_ptr<sql::PreparedStatement> upsert(
                     con->prepareStatement(
                         "INSERT INTO marks "
                         "(examination_subject_id, examination_paper_id, student_id, score, grade, grade_point, remarks, entered_by) "
-                        "SELECT "
-                        "es.examination_subject_id, "
-                        "ep.examination_paper_id, "
-                        "?, "
-                        "?, "
-                        "NULL, "
-                        "NULL, "
-                        "?, "
-                        "?, "
-                        "FROM examination_papers ep "
-                        "INNER JOIN examination_subjects es "
-                        "ON es.examination_subject_id = ep.examination_subject_id "
-                        "WHERE ep.examination_paper_id = ? "
+                        "VALUES (?, ?, ?, ?, NULL, NULL, ?, ?) "
                         "ON DUPLICATE KEY UPDATE "
                         "score = VALUES(score), "
                         "remarks = VALUES(remarks), "
@@ -571,9 +577,6 @@ namespace SchoolCore
 
                 System::Collections::Generic::List<int>^ savedStudentIds =
                     gcnew System::Collections::Generic::List<int>();
-
-                int examinationSubjectId =
-                    this->GetExaminationSubjectId(paperId);
 
                 for each (DataGridViewRow^ row in this->marksGrid->Rows)
                 {
@@ -621,23 +624,25 @@ namespace SchoolCore
                         ? L""
                         : row->Cells["Remarks"]->Value->ToString();
 
-                    upsert->setInt(1, studentId);
+                    upsert->setInt(1, examinationSubjectId);
 
-                    upsert->setDouble(2, score);
+                    upsert->setInt(2, paperId);
+
+                    upsert->setInt(3, studentId);
+
+                    upsert->setDouble(4, score);
 
                     upsert->setString(
-                        3,
+                        5,
                         msclr::interop::marshal_as<std::string>(
                             remarks
                         )
                     );
 
                     upsert->setInt(
-                        4,
+                        6,
                         AuthSession::UserId
                     );
-
-                    upsert->setInt(5, paperId);
 
                     upsert->executeUpdate();
 
@@ -673,6 +678,15 @@ namespace SchoolCore
             }
             catch (sql::SQLException& ex)
             {
+                try
+                {
+                    con->rollback();
+                    con->setAutoCommit(true);
+                }
+                catch (sql::SQLException&)
+                {
+                }
+
                 ShowDatabaseError(ex);
             }
         }
