@@ -942,6 +942,8 @@ namespace SchoolCore
             this->entryDialog->AcceptButton = save;
             this->entryDialog->CancelButton = cancel;
 
+            ThemeManager::ApplyBoldTypographyToForm(this->entryDialog);
+
             if (this->entryDialog->ShowDialog(this) ==
                 System::Windows::Forms::DialogResult::OK)
             {
