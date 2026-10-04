@@ -1184,6 +1184,33 @@ namespace SchoolCore
             }
         }
 
+        Panel^ CreatePaymentFieldBlock(String^ labelText, Control^ input)
+        {
+            Panel^ field =
+                gcnew Panel();
+
+            field->Dock = DockStyle::Fill;
+            field->Padding =
+                System::Windows::Forms::Padding(10, 8, 10, 8);
+
+            Label^ label =
+                CreateFieldLabel(labelText);
+
+            label->Dock = DockStyle::Top;
+            label->Height = 24;
+            label->Margin =
+                System::Windows::Forms::Padding(0);
+
+            input->Dock = DockStyle::Fill;
+            input->Margin =
+                System::Windows::Forms::Padding(0);
+
+            field->Controls->Add(input);
+            field->Controls->Add(label);
+
+            return field;
+        }
+
         void OpenRecordPaymentDialog()
         {
             if (!AuthSession::HasPermission(PermManage))
@@ -1318,78 +1345,50 @@ namespace SchoolCore
             paymentPayerContactBox->Dock = DockStyle::Fill;
             paymentPayerContactBox->MaxLength = 50;
 
-            auto CreateFieldBlock =
-                [](String^ labelText, Control^ input) -> Panel^
-                {
-                    Panel^ field =
-                        gcnew Panel();
-
-                    field->Dock = DockStyle::Fill;
-                    field->Padding =
-                        System::Windows::Forms::Padding(10, 8, 10, 8);
-
-                    Label^ label =
-                        CreateFieldLabel(labelText);
-
-                    label->Dock = DockStyle::Top;
-                    label->Height = 24;
-                    label->Margin =
-                        System::Windows::Forms::Padding(0);
-
-                    input->Dock = DockStyle::Fill;
-                    input->Margin =
-                        System::Windows::Forms::Padding(0);
-
-                    field->Controls->Add(input);
-                    field->Controls->Add(label);
-
-                    return field;
-                };
-
             details->Controls->Add(
-                CreateFieldBlock(
+                CreatePaymentFieldBlock(
                     L"Student",
                     paymentStudentBox),
                 0, 0);
 
             details->Controls->Add(
-                CreateFieldBlock(
+                CreatePaymentFieldBlock(
                     L"Fee Charge",
                     paymentChargeBox),
                 1, 0);
 
             details->Controls->Add(
-                CreateFieldBlock(
+                CreatePaymentFieldBlock(
                     L"Amount (UGX)",
                     paymentAmountBox),
                 0, 1);
 
             details->Controls->Add(
-                CreateFieldBlock(
+                CreatePaymentFieldBlock(
                     L"Payment Date",
                     paymentDatePicker),
                 1, 1);
 
             details->Controls->Add(
-                CreateFieldBlock(
+                CreatePaymentFieldBlock(
                     L"Payment Method",
                     paymentMethodBox),
                 0, 2);
 
             details->Controls->Add(
-                CreateFieldBlock(
+                CreatePaymentFieldBlock(
                     L"Provider",
                     paymentProviderBox),
                 1, 2);
 
             details->Controls->Add(
-                CreateFieldBlock(
+                CreatePaymentFieldBlock(
                     L"Transaction Reference",
                     paymentReferenceBox),
                 0, 3);
 
             details->Controls->Add(
-                CreateFieldBlock(
+                CreatePaymentFieldBlock(
                     L"Payer Contact",
                     paymentPayerContactBox),
                 1, 3);
