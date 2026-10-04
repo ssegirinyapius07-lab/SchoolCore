@@ -275,16 +275,13 @@ namespace SchoolCore
 
                 std::unique_ptr<sql::PreparedStatement> stmt(
                     con->prepareStatement(
-                        "SELECT DISTINCT "
+                        "SELECT "
                         "s.student_id, "
                         "s.registration_number, "
                         "CONCAT_WS(' ', s.first_name, s.middle_name, s.last_name) AS student_name "
                         "FROM students s "
-                        "INNER JOIN fee_charges fc "
-                        "ON fc.student_id = s.student_id "
                         "WHERE s.status = 'Active' "
-                        "AND fc.status NOT IN ('Paid', 'Cancelled') "
-                        "ORDER BY s.last_name, s.first_name"
+                        "ORDER BY s.last_name, s.first_name, s.registration_number"
                     )
                 );
 
@@ -1191,8 +1188,8 @@ namespace SchoolCore
             paymentForm->MaximizeBox = false;
             paymentForm->MinimizeBox = false;
             paymentForm->ShowInTaskbar = false;
-            paymentForm->ClientSize = Drawing::Size(820, 720);
-            paymentForm->MinimumSize = Drawing::Size(780, 680);
+            paymentForm->ClientSize = Drawing::Size(760, 600);
+            paymentForm->MinimumSize = Drawing::Size(720, 560);
             paymentForm->BackColor = ThemeManager::Canvas();
 
             TableLayoutPanel^ root =
@@ -1200,38 +1197,38 @@ namespace SchoolCore
 
             root->Dock = DockStyle::Fill;
             root->Padding =
-                System::Windows::Forms::Padding(28);
+                System::Windows::Forms::Padding(20);
             root->ColumnCount = 2;
             root->RowCount = 12;
             root->ColumnStyles->Add(
-                gcnew ColumnStyle(SizeType::Absolute, 170.0F));
+                gcnew ColumnStyle(SizeType::Absolute, 155.0F));
             root->ColumnStyles->Add(
                 gcnew ColumnStyle(SizeType::Percent, 100.0F));
 
             root->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 48.0F));
+                gcnew RowStyle(SizeType::Absolute, 36.0F));
             root->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 52.0F));
+                gcnew RowStyle(SizeType::Absolute, 42.0F));
             root->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 28.0F));
+                gcnew RowStyle(SizeType::Absolute, 26.0F));
             root->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 52.0F));
+                gcnew RowStyle(SizeType::Absolute, 42.0F));
             root->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 54.0F));
+                gcnew RowStyle(SizeType::Absolute, 50.0F));
             root->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 52.0F));
+                gcnew RowStyle(SizeType::Absolute, 42.0F));
             root->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 52.0F));
+                gcnew RowStyle(SizeType::Absolute, 42.0F));
             root->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 52.0F));
+                gcnew RowStyle(SizeType::Absolute, 42.0F));
             root->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 52.0F));
+                gcnew RowStyle(SizeType::Absolute, 42.0F));
             root->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 52.0F));
+                gcnew RowStyle(SizeType::Absolute, 42.0F));
             root->RowStyles->Add(
-                gcnew RowStyle(SizeType::Percent, 100.0F));
+                gcnew RowStyle(SizeType::Absolute, 64.0F));
             root->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 58.0F));
+                gcnew RowStyle(SizeType::Absolute, 50.0F));
 
             Label^ title =
                 CreateLabel(
