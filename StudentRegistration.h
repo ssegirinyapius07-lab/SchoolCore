@@ -3862,6 +3862,11 @@ void InitializeComponent(void)
                     this->cmbStream->SelectedItem
                     );
 
+            ComboItem^ sessionItem =
+                safe_cast<ComboItem^>(
+                    this->cmbSession->SelectedItem
+                    );
+
 
             if (this->editMode)
             {
@@ -4283,10 +4288,11 @@ void InitializeComponent(void)
                             "term_id, "
                             "class_id, "
                             "stream_id, "
+                            "session_id, "
                             "enrollment_date, "
                             "status"
                             ") "
-                            "VALUES (?, ?, ?, ?, ?, ?, ?)"
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
                         )
                     );
 
