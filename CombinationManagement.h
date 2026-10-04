@@ -1519,7 +1519,7 @@ namespace SchoolCore
             this->mainLayout->RowStyles->Add(
                 gcnew System::Windows::Forms::RowStyle(
                     System::Windows::Forms::SizeType::Absolute,
-                    80.0FF
+                    80.0F
                 )
             );
 
