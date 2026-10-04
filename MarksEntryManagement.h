@@ -519,9 +519,11 @@ namespace SchoolCore
 
             double maxScore = 0.0;
 
+            std::unique_ptr<sql::Connection> con;
+
             try
             {
-                auto con = DbConnection::GetConnection();
+                con = DbConnection::GetConnection();
 
                 std::unique_ptr<sql::PreparedStatement> infoStmt(
                     con->prepareStatement(
