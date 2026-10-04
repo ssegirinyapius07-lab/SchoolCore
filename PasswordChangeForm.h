@@ -24,6 +24,7 @@ namespace SchoolCore
             this->userId = userId;
             this->username = username;
             InitializeComponent();
+            ThemeManager::ApplyToForm(this);
         }
 
         System::ComponentModel::Container^ components;
