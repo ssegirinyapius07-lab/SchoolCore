@@ -1782,10 +1782,10 @@ namespace SchoolCore
                 auto con =
                     DbConnection::GetConnection();
 
-                // Examination subjects come from the curriculum attached to
-                // the examination's academic year. If the year has no
-                // curriculum assigned yet, fall back to the active curriculum
-                // for the examination class's academic level.
+                // Curriculum is resolved from the examination class's academic level.
+                // The same academic year can contain both O-Level (S1-S4)
+                // and A-Level (S5-S6), so the year-level curriculum flag must
+                // not override the class level.
                 std::unique_ptr<sql::PreparedStatement> subjectStmt(
                     con->prepareStatement(
                         "SELECT DISTINCT "
@@ -1799,14 +1799,13 @@ namespace SchoolCore
                         "INNER JOIN classes c "
                         "ON c.class_id = e.class_id "
                         "INNER JOIN curricula cur "
-                        "ON cur.curriculum_id = COALESCE( "
-                        "ay.curriculum_id, "
-                        "(SELECT c2.curriculum_id "
-                        " FROM curricula c2 "
-                        " WHERE c2.academic_level_id = c.academic_level_id "
-                        " AND c2.status = 'Active' "
-                        " ORDER BY c2.effective_from_year DESC, c2.curriculum_id DESC "
-                        " LIMIT 1) "
+                        "ON cur.curriculum_id = ("
+                        "SELECT c2.curriculum_id "
+                        "FROM curricula c2 "
+                        "WHERE c2.academic_level_id = c.academic_level_id "
+                        "AND c2.status = 'Active' "
+                        "ORDER BY c2.effective_from_year DESC, c2.curriculum_id DESC "
+                        "LIMIT 1"
                         ") "
                         "INNER JOIN curriculum_subjects cs "
                         "ON cs.curriculum_id = cur.curriculum_id "
@@ -1886,11 +1885,11 @@ namespace SchoolCore
                 auto con =
                     DbConnection::GetConnection();
 
-                // Prefer curriculum-linked paper rows. Also accept legacy
-                // paper rows whose curriculum_subject_id is still NULL,
-                // provided their subject and academic level match the
-                // examination. This keeps older UNEB paper setup usable
-                // while preserving curriculum filtering for new records.
+                // Curriculum is resolved from the examination class's academic level.
+                // Paper codes are shared across classes within that level
+                // (for example S1-S4 use the UCE paper catalogue and S5-S6
+                // use the UACE paper catalogue). Legacy unlinked paper rows
+                // are still accepted when their subject and academic level match.
                 std::unique_ptr<sql::PreparedStatement> stmt(
                     con->prepareStatement(
                         "SELECT DISTINCT "
@@ -1912,14 +1911,13 @@ namespace SchoolCore
                         "LEFT JOIN curricula linked_cur "
                         "ON linked_cur.curriculum_id = linked_cs.curriculum_id "
                         "LEFT JOIN curricula active_cur "
-                        "ON active_cur.curriculum_id = COALESCE( "
-                        "ay.curriculum_id, "
-                        "(SELECT c2.curriculum_id "
-                        " FROM curricula c2 "
-                        " WHERE c2.academic_level_id = c.academic_level_id "
-                        " AND c2.status = 'Active' "
-                        " ORDER BY c2.effective_from_year DESC, c2.curriculum_id DESC "
-                        " LIMIT 1) "
+                        "ON active_cur.curriculum_id = ("
+                        "SELECT c2.curriculum_id "
+                        "FROM curricula c2 "
+                        "WHERE c2.academic_level_id = c.academic_level_id "
+                        "AND c2.status = 'Active' "
+                        "ORDER BY c2.effective_from_year DESC, c2.curriculum_id DESC "
+                        "LIMIT 1"
                         ") "
                         "WHERE e.examination_id = ? "
                         "AND ("
