@@ -2200,6 +2200,7 @@ namespace SchoolCore
         void OpenExaminationEditor(
             int examinationId)
         {
+            this->editingApprovalId = 0;
             if (examinationId > 0)
             {
                 try
