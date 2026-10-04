@@ -1211,6 +1211,7 @@ namespace SchoolCore
         UnebSubjectPaperManagement(void)
         {
             InitializeComponent();
+            ThemeManager::ApplyToForm(this);
 
             if (LicenseManager::UsageMode != LicenseUsageMode::Designtime)
                 LoadSubjectRecords(
