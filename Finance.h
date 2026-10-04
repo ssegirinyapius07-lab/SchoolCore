@@ -4047,7 +4047,7 @@ namespace SchoolCore
             content->RowStyles->Add(
                 gcnew RowStyle(SizeType::Absolute, 42.0F));
             content->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 135.0F));
+                gcnew RowStyle(SizeType::Absolute, 184.0F));
             content->RowStyles->Add(
                 gcnew RowStyle(SizeType::Absolute, 45.0F));
             content->RowStyles->Add(
