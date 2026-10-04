@@ -244,11 +244,11 @@ namespace SchoolCore
             groupLabel->TextAlign =
                 ContentAlignment::MiddleLeft;
 
-            this->txtSubjectGroup =
+            this->cmbSubjectGroup =
                 gcnew TextBox();
-            this->txtSubjectGroup->Dock =
+            this->cmbSubjectGroup->Dock =
                 DockStyle::Fill;
-            this->txtSubjectGroup->Text =
+            this->cmbSubjectGroup->Text =
                 L"Other";
 
             Label^ requirementLabel =
@@ -305,9 +305,9 @@ namespace SchoolCore
             setup->Controls->Add(
                 subjectLabel, 0, 1);
             setup->Controls->Add(
-                this->txtSubject, 1, 1);
+                this->cmbSubject, 1, 1);
             setup->SetColumnSpan(
-                this->txtSubject, 2);
+                this->cmbSubject, 2);
 
             setup->Controls->Add(
                 codeLabel, 3, 1);
@@ -319,9 +319,9 @@ namespace SchoolCore
             setup->Controls->Add(
                 groupLabel, 6, 1);
             setup->Controls->Add(
-                this->txtSubjectGroup, 7, 1);
+                this->cmbSubjectGroup, 7, 1);
             setup->SetColumnSpan(
-                this->txtSubjectGroup, 3);
+                this->cmbSubjectGroup, 3);
 
             this->mainLayout->Controls->Add(
                 setup,
@@ -684,7 +684,7 @@ namespace SchoolCore
                 this->txtUnebCode->Text->Trim();
 
             String^ group =
-                this->txtSubjectGroup->Text->Trim();
+                this->cmbSubjectGroup->Text->Trim();
 
             if (subject == nullptr)
             {
