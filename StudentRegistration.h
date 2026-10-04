@@ -120,6 +120,7 @@ namespace SchoolCore
         System::Windows::Forms::Label^ lblAcademicLevel;
         System::Windows::Forms::Label^ lblClass;
         System::Windows::Forms::Label^ lblStream;
+        System::Windows::Forms::Label^ lblSession;
         System::Windows::Forms::Label^ lblStreamInfo;
 
         System::Windows::Forms::ComboBox^ cmbAcademicYear;
@@ -127,6 +128,7 @@ namespace SchoolCore
         System::Windows::Forms::ComboBox^ cmbAcademicLevel;
         System::Windows::Forms::ComboBox^ cmbClass;
         System::Windows::Forms::ComboBox^ cmbStream;
+        System::Windows::Forms::ComboBox^ cmbSession;
 
         // Guardian controls
         System::Windows::Forms::Label^ lblGuardianName;
@@ -1262,6 +1264,13 @@ void InitializeComponent(void)
             enrollmentLayout->RowStyles->Add(
                 gcnew RowStyle(
                     System::Windows::Forms::SizeType::Absolute,
+                    40.0F
+                )
+            );
+
+            enrollmentLayout->RowStyles->Add(
+                gcnew RowStyle(
+                    System::Windows::Forms::SizeType::Absolute,
                     34.0F
                 )
             );
@@ -1439,6 +1448,39 @@ void InitializeComponent(void)
                 System::Windows::Forms::Padding(3, 4, 3, 4);
 
 
+            // Session
+
+            this->lblSession =
+                gcnew System::Windows::Forms::Label();
+
+            this->lblSession->Text =
+                L"Session";
+
+            this->lblSession->Dock =
+                System::Windows::Forms::DockStyle::Fill;
+
+            this->lblSession->AutoSize = false;
+            this->lblSession->TextAlign =
+                System::Drawing::ContentAlignment::MiddleLeft;
+
+            this->lblSession->Margin =
+                System::Windows::Forms::Padding(3, 0, 3, 0);
+
+            this->cmbSession =
+                gcnew System::Windows::Forms::ComboBox();
+
+            this->cmbSession->Dock =
+                System::Windows::Forms::DockStyle::Fill;
+
+            this->cmbSession->DropDownStyle =
+                System::Windows::Forms::ComboBoxStyle::DropDownList;
+
+            this->cmbSession->Margin =
+                System::Windows::Forms::Padding(3, 4, 3, 4);
+
+            LoadSessions();
+
+
             // Stream Info
 
             this->lblStreamInfo =
@@ -1521,13 +1563,23 @@ void InitializeComponent(void)
             );
 
             enrollmentLayout->Controls->Add(
-                this->lblStreamInfo,
+                this->lblSession,
                 2, 2
+            );
+
+            enrollmentLayout->Controls->Add(
+                this->cmbSession,
+                3, 2
+            );
+
+            enrollmentLayout->Controls->Add(
+                this->lblStreamInfo,
+                0, 3
             );
 
             enrollmentLayout->SetColumnSpan(
                 this->lblStreamInfo,
-                2
+                4
             );
 
 
@@ -2597,6 +2649,60 @@ void InitializeComponent(void)
 
 
         // =========================================================
+        // LOAD SESSIONS
+        // =========================================================
+
+        void LoadSessions()
+        {
+            this->cmbSession->Items->Clear();
+            this->cmbSession->Items->Add(
+                gcnew ComboItem(0, L"Select Session")
+            );
+
+            try
+            {
+                auto con = DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT session_id, session_name "
+                        "FROM student_sessions "
+                        "WHERE status = 'Active' "
+                        "ORDER BY session_name"
+                    )
+                );
+
+                std::unique_ptr<sql::ResultSet> result(
+                    stmt->executeQuery()
+                );
+
+                while (result->next())
+                {
+                    this->cmbSession->Items->Add(
+                        gcnew ComboItem(
+                            result->getInt("session_id"),
+                            gcnew String(
+                                result->getString("session_name").c_str()
+                            )
+                        )
+                    );
+                }
+
+                this->cmbSession->SelectedIndex = 0;
+            }
+            catch (sql::SQLException& ex)
+            {
+                MessageBox::Show(
+                    gcnew String(ex.what()),
+                    L"Unable to Load Sessions",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+        }
+
+
+        // =========================================================
         // STREAM CHANGED
         // =========================================================
 
@@ -2686,6 +2792,7 @@ void InitializeComponent(void)
                         "e.class_id, "
                         "c.academic_level_id, "
                         "e.stream_id, "
+                        "e.session_id, "
                         "g.guardian_id, "
                         "g.full_name AS guardian_name, "
                         "g.relationship AS guardian_relationship, "
@@ -2921,6 +3028,11 @@ void InitializeComponent(void)
                     ? 0
                     : result->getInt("stream_id");
 
+                int sessionId =
+                    result->isNull("session_id")
+                    ? 0
+                    : result->getInt("session_id");
+
                 // Select academic level first so the class list is filtered.
                 if (academicLevelId > 0)
                 {
@@ -2964,6 +3076,14 @@ void InitializeComponent(void)
                     SelectComboItemById(
                         this->cmbStream,
                         streamId
+                    );
+                }
+
+                if (sessionId > 0)
+                {
+                    SelectComboItemById(
+                        this->cmbSession,
+                        sessionId
                     );
                 }
 
@@ -3028,6 +3148,11 @@ void InitializeComponent(void)
             ComboItem^ streamItem =
                 safe_cast<ComboItem^>(
                     this->cmbStream->SelectedItem
+                );
+
+            ComboItem^ sessionItem =
+                safe_cast<ComboItem^>(
+                    this->cmbSession->SelectedItem
                 );
 
             std::unique_ptr<sql::Connection> con;
@@ -3312,6 +3437,7 @@ void InitializeComponent(void)
                                 "term_id = ?, "
                                 "class_id = ?, "
                                 "stream_id = ?, "
+                                "session_id = ?, "
                                 "enrollment_date = ?, "
                                 "status = 'Active' "
                                 "WHERE enrollment_id = ? "
@@ -3339,20 +3465,25 @@ void InitializeComponent(void)
                         streamItem->Id
                     );
 
-                    enrollmentStmt->setString(
+                    enrollmentStmt->setInt(
                         5,
+                        sessionItem->Id
+                    );
+
+                    enrollmentStmt->setString(
+                        6,
                         msclr::interop::marshal_as<std::string>(
                             this->dtpAdmissionDate->Value.Date.ToString("yyyy-MM-dd")
                         )
                     );
 
                     enrollmentStmt->setInt(
-                        6,
+                        7,
                         this->editingEnrollmentId
                     );
 
                     enrollmentStmt->setInt64(
-                        7,
+                        8,
                         this->editingStudentId
                     );
 
@@ -3364,8 +3495,8 @@ void InitializeComponent(void)
                         enrollmentStmt(
                             con->prepareStatement(
                                 "INSERT INTO enrollments "
-                                "(student_id, academic_year_id, term_id, class_id, stream_id, enrollment_date, status) "
-                                "VALUES (?, ?, ?, ?, ?, ?, 'Active')"
+                                "(student_id, academic_year_id, term_id, class_id, stream_id, session_id, enrollment_date, status) "
+                                "VALUES (?, ?, ?, ?, ?, ?, ?, 'Active')"
                             )
                         );
 
@@ -3394,8 +3525,13 @@ void InitializeComponent(void)
                         streamItem->Id
                     );
 
-                    enrollmentStmt->setString(
+                    enrollmentStmt->setInt(
                         6,
+                        sessionItem->Id
+                    );
+
+                    enrollmentStmt->setString(
+                        7,
                         msclr::interop::marshal_as<std::string>(
                             this->dtpAdmissionDate->Value.Date.ToString("yyyy-MM-dd")
                         )
@@ -3718,6 +3854,20 @@ void InitializeComponent(void)
             if (this->editMode)
             {
                 UpdateStudent();
+                return;
+            }
+
+
+            if (sessionItem == nullptr || sessionItem->Id <= 0)
+            {
+                MessageBox::Show(
+                    L"Select a Session (Day or Boarding).",
+                    L"Student Registration",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+
+                this->cmbSession->Focus();
                 return;
             }
 
@@ -4154,8 +4304,13 @@ void InitializeComponent(void)
                     streamItem->Id
                 );
 
-                enrollmentStmt->setString(
+                enrollmentStmt->setInt(
                     6,
+                    sessionItem->Id
+                );
+
+                enrollmentStmt->setString(
+                    7,
                     msclr::interop::marshal_as<std::string>(
                         admissionDate.ToString("yyyy-MM-dd")
                     )
