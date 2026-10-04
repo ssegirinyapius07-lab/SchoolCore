@@ -107,6 +107,9 @@
     <ClInclude Include="GradingEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="UceFinalResultEngine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="ResultsManagement.h">
       <Filter>Header Files</Filter>
     </ClInclude>
