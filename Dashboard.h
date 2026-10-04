@@ -18,6 +18,7 @@
 #include "UsersRoles.h"
 #include "AcademicEditApprovals.h"
 #include "AcademicSecurity.h"
+#include "LoginForm.h"
 
 namespace SchoolCore {
 
