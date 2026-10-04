@@ -1322,34 +1322,34 @@ namespace SchoolCore
 
                 std::unique_ptr<sql::PreparedStatement> duplicateStmt(
                     con->prepareStatement(
-                        "SELECT examination_id "
+                        "SELECT examination_id, stream_id "
                         "FROM examinations "
                         "WHERE academic_year_id = ? "
                         "AND term_id = ? "
                         "AND class_id = ? "
-                        "AND LOWER(COALESCE(examination_name, '')) = LOWER(?) "
-                        "AND LOWER(COALESCE(examination_type, '')) = LOWER(?) "
-                        "AND examination_id <> ? "
-                        "AND ( "
-                        "    stream_id IS NULL "
-                        "    OR ? = 0 "
-                        "    OR stream_id = ? "
-                        ") "
-                        "LIMIT 1"
+                        "AND TRIM(LOWER(COALESCE(examination_name, ''))) = "
+                        "    TRIM(LOWER(?)) "
+                        "AND TRIM(LOWER(COALESCE(examination_type, ''))) = "
+                        "    TRIM(LOWER(?)) "
+                        "AND examination_id <> ?"
                     )
                 );
 
-                duplicateStmt->setInt(1, yearId);
-                duplicateStmt->setInt(2, termId);
+                duplicateStmt->setInt(
+                    1,
+                    yearId
+                );
+                duplicateStmt->setInt(
+                    2,
+                    termId
+                );
                 duplicateStmt->setInt(
                     3,
                     classId
                 );
                 duplicateStmt->setString(
                     4,
-                    msclr::interop::marshal_as<std::string>(
-                        this->editorName->Text->Trim()
-                    )
+                    name
                 );
                 duplicateStmt->setString(
                     5,
@@ -1361,21 +1361,47 @@ namespace SchoolCore
                     ? this->editingExaminationId
                     : 0
                 );
-                duplicateStmt->setInt(7, streamId);
-                duplicateStmt->setInt(8, streamId);
 
                 std::unique_ptr<sql::ResultSet> duplicateResult(
                     duplicateStmt->executeQuery()
                 );
 
-                if (duplicateResult->next())
+                while (duplicateResult->next())
                 {
+                    int existingStreamId =
+                        duplicateResult->isNull("stream_id")
+                        ? 0
+                        : duplicateResult->getInt("stream_id");
+
+                    bool streamsOverlap =
+                        existingStreamId == 0 ||
+                        streamId == 0 ||
+                        existingStreamId == streamId;
+
+                    if (!streamsOverlap)
+                        continue;
+
+                    String^ existingScope =
+                        existingStreamId == 0
+                        ? L"All Streams"
+                        : L"the selected stream";
+
+                    String^ selectedScope =
+                        streamId == 0
+                        ? L"All Streams"
+                        : L"the selected stream";
+
                     MessageBox::Show(
-                        L"An examination of this type already exists for the selected class and stream scope in this academic period.",
-                        L"Duplicate Examination",
+                        L"An examination with the same academic year, term, class, name and type already exists for " +
+                        existingScope +
+                        L". The selected scope (" +
+                        selectedScope +
+                        L") overlaps it, so it cannot be created.",
+                        L"Overlapping Examination",
                         MessageBoxButtons::OK,
                         MessageBoxIcon::Warning
                     );
+
                     return;
                 }
 
