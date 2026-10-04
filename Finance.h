@@ -3221,7 +3221,7 @@ namespace SchoolCore
                         "INNER JOIN academic_years ay ON ay.academic_year_id = fs.academic_year_id "
                         "INNER JOIN terms t ON t.term_id = fs.term_id "
                         "INNER JOIN classes c ON c.class_id = fs.class_id "
-                        "LEFT JOIN streams st ON st.stream_id = fs.stream_id "
+                        "LEFT JOIN student_sessions ss ON ss.session_id = fs.session_id "
                         "WHERE fs.status = 'Active' "
                         "AND fs.session_id IS NOT NULL "
                         "ORDER BY ay.start_date DESC, t.term_id, c.class_name, fs.fee_name"
@@ -3245,7 +3245,7 @@ namespace SchoolCore
                             gcnew String(result->getString("year_name").c_str()),
                             gcnew String(result->getString("term_name").c_str()),
                             gcnew String(result->getString("class_name").c_str()),
-                            gcnew String(result->getString("stream_name").c_str()),
+                            gcnew String(result->getString("session_name").c_str()),
                             amount,
                             gcnew String(result->getString("due_date").c_str())
                         )
@@ -3281,7 +3281,7 @@ namespace SchoolCore
                         "SELECT fc.fee_charge_id, s.registration_number, "
                         "CONCAT_WS(' ', s.first_name, s.middle_name, s.last_name) AS student_name, "
                         "fs.fee_name, ay.year_name, t.term_name, c.class_name, "
-                        "COALESCE(st.stream_name, 'All Streams') AS stream_name, "
+                        "COALESCE(ss.session_name, 'Unassigned') AS session_name, "
                         "fc.amount, fc.due_date, fc.status, "
                         "COALESCE(SUM(pa.amount), 0) AS paid, "
                         "fc.amount - COALESCE(SUM(pa.amount), 0) AS balance "
@@ -3291,7 +3291,7 @@ namespace SchoolCore
                         "INNER JOIN academic_years ay ON ay.academic_year_id = fs.academic_year_id "
                         "INNER JOIN terms t ON t.term_id = fs.term_id "
                         "INNER JOIN classes c ON c.class_id = fs.class_id "
-                        "LEFT JOIN streams st ON st.stream_id = fs.stream_id "
+                        "LEFT JOIN student_sessions ss ON ss.session_id = fs.session_id "
                         "LEFT JOIN payment_allocations pa ON pa.fee_charge_id = fc.fee_charge_id "
                         "GROUP BY fc.fee_charge_id, s.registration_number, s.first_name, s.middle_name, "
                         "s.last_name, fs.fee_name, ay.year_name, t.term_name, c.class_name, "
@@ -3324,7 +3324,7 @@ namespace SchoolCore
                         gcnew String(result->getString("year_name").c_str()),
                         gcnew String(result->getString("term_name").c_str()),
                         gcnew String(result->getString("class_name").c_str()),
-                        gcnew String(result->getString("stream_name").c_str()),
+                        gcnew String(result->getString("session_name").c_str()),
                         amount.ToString(L"N2", System::Globalization::CultureInfo::InvariantCulture),
                         gcnew String(result->getString("due_date").c_str()),
                         gcnew String(result->getString("status").c_str()),
@@ -3421,43 +3421,21 @@ namespace SchoolCore
                 String^ dueDate =
                     gcnew String(sr->getString("due_date").c_str());
 
-                String^ sqlText;
-
-                if (sr->isNull("session_id"))
-                {
-                    sqlText =
-                        L"INSERT INTO fee_charges "
-                        L"(student_id, fee_structure_id, amount, due_date, status) "
-                        L"SELECT e.student_id, ?, ?, ?, 'Pending' "
-                        L"FROM enrollments e "
-                        L"WHERE e.academic_year_id = ? "
-                        L"AND e.term_id = ? "
-                        L"AND e.class_id = ? "
-                        L"AND e.status = 'Active' "
-                        L"AND NOT EXISTS ("
-                        L"    SELECT 1 FROM fee_charges fc "
-                        L"    WHERE fc.student_id = e.student_id "
-                        L"    AND fc.fee_structure_id = ?"
-                        L")";
-                }
-                else
-                {
-                    sqlText =
-                        L"INSERT INTO fee_charges "
-                        L"(student_id, fee_structure_id, amount, due_date, status) "
-                        L"SELECT e.student_id, ?, ?, ?, 'Pending' "
-                        L"FROM enrollments e "
-                        L"WHERE e.academic_year_id = ? "
-                        L"AND e.term_id = ? "
-                        L"AND e.class_id = ? "
-                        L"AND e.session_id = ? "
-                        L"AND e.status = 'Active' "
-                        L"AND NOT EXISTS ("
-                        L"    SELECT 1 FROM fee_charges fc "
-                        L"    WHERE fc.student_id = e.student_id "
-                        L"    AND fc.fee_structure_id = ?"
-                        L")";
-                }
+                String^ sqlText =
+                    L"INSERT INTO fee_charges "
+                    L"(student_id, fee_structure_id, amount, due_date, status) "
+                    L"SELECT e.student_id, ?, ?, ?, 'Pending' "
+                    L"FROM enrollments e "
+                    L"WHERE e.academic_year_id = ? "
+                    L"AND e.term_id = ? "
+                    L"AND e.class_id = ? "
+                    L"AND e.session_id = ? "
+                    L"AND e.status = 'Active' "
+                    L"AND NOT EXISTS ("
+                    L"    SELECT 1 FROM fee_charges fc "
+                    L"    WHERE fc.student_id = e.student_id "
+                    L"    AND fc.fee_structure_id = ?"
+                    L")";
 
                 std::unique_ptr<sql::PreparedStatement> insertCharges(
                     con->prepareStatement(
@@ -3884,7 +3862,7 @@ namespace SchoolCore
                     L"Define and manage school fee structures by academic year, term, class and session."),
                 gcnew FinanceOperation(
                     L"Student Charges",
-                    L"Generate student charges from fee structures for active enrollments and review balances."),
+                    L"Generate student charges from fee structures for active Class + Session enrollments and review balances."),
                 gcnew FinanceOperation(
                     L"Record Payment",
                     L"Record Mobile Money, bank, or online/electronic payments with the provider and transaction reference."),
