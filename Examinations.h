@@ -122,6 +122,7 @@ namespace SchoolCore
         System::Windows::Forms::ComboBox^ editorPolicy;
         bool editorEditMode = false;
         int editingExaminationId = 0;
+        int editingApprovalId = 0;
 
         // Emergency override request dialog state
         Form^ overrideRequestForm;
@@ -1451,6 +1452,27 @@ namespace SchoolCore
                     return;
                 }
 
+                if (this->editorEditMode &&
+                    this->editingApprovalId > 0)
+                {
+                    if (!AcademicSecurity::HasApprovedOverride(
+                            this->editingApprovalId,
+                            yearId,
+                            termId,
+                            L"UPDATE",
+                            L"examinations",
+                            this->editingExaminationId.ToString()))
+                    {
+                        MessageBox::Show(
+                            L"The approved emergency override is no longer valid for this exact examination. No changes were saved.",
+                            L"Approval Required",
+                            MessageBoxButtons::OK,
+                            MessageBoxIcon::Warning
+                        );
+                        return;
+                    }
+                }
+
                 con->setAutoCommit(false);
 
                 int savedExaminationId =
@@ -1714,6 +1736,7 @@ namespace SchoolCore
 
                 con->commit();
                 con->setAutoCommit(true);
+                this->editingApprovalId = 0;
 
                 MessageBox::Show(
                     this->editorEditMode
@@ -2227,31 +2250,50 @@ namespace SchoolCore
                             existingYearId,
                             existingTermId))
                     {
-                        MessageBox::Show(
-                            L"This examination belongs to an inactive academic year or inactive term. Normal editing is blocked.",
-                            L"Protected Academic Record",
-                            MessageBoxButtons::OK,
-                            MessageBoxIcon::Warning
-                        );
+                        this->editingApprovalId =
+                            AcademicSecurity::GetApprovedOverrideId(
+                                existingYearId,
+                                existingTermId,
+                                L"UPDATE",
+                                L"examinations",
+                                examinationId.ToString()
+                            );
 
-                        if (AcademicSecurity::HasInactiveYearOverridePermission())
+                        if (this->editingApprovalId == 0)
                         {
-                            if (MessageBox::Show(
-                                    L"Would you like to submit an Emergency Override request for this examination?",
-                                    L"Emergency Override",
-                                    MessageBoxButtons::YesNo,
-                                    MessageBoxIcon::Question) ==
-                                System::Windows::Forms::DialogResult::Yes)
+                            MessageBox::Show(
+                                L"This examination belongs to an inactive academic year or inactive term. Normal editing is blocked.",
+                                L"Protected Academic Record",
+                                MessageBoxButtons::OK,
+                                MessageBoxIcon::Warning
+                            );
+
+                            if (AcademicSecurity::HasInactiveYearOverridePermission())
                             {
-                                RequestExaminationEditOverride(
-                                    examinationId,
-                                    existingYearId,
-                                    existingTermId
-                                );
+                                if (MessageBox::Show(
+                                        L"Would you like to submit an Emergency Override request for this examination?",
+                                        L"Emergency Override",
+                                        MessageBoxButtons::YesNo,
+                                        MessageBoxIcon::Question) ==
+                                    System::Windows::Forms::DialogResult::Yes)
+                                {
+                                    RequestExaminationEditOverride(
+                                        examinationId,
+                                        existingYearId,
+                                        existingTermId
+                                    );
+                                }
                             }
+
+                            return;
                         }
 
-                        return;
+                        MessageBox::Show(
+                            L"An approved emergency override was found for this examination. You may now make the authorized correction.",
+                            L"Approved Emergency Override",
+                            MessageBoxButtons::OK,
+                            MessageBoxIcon::Information
+                        );
                     }
                 }
                 catch (sql::SQLException& ex)
