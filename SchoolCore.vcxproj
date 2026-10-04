@@ -196,6 +196,7 @@
       <FileType>CppForm</FileType>
     </ClInclude>
     <ClInclude Include="GradingEngine.h" />
+    <ClInclude Include="UceFinalResultEngine.h" />
     <ClInclude Include="ResultsManagement.h">
       <FileType>CppForm</FileType>
     </ClInclude>
