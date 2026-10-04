@@ -635,6 +635,7 @@ namespace SchoolCore
 						"s.status, "
 						"c.class_name, "
 						"st.stream_name, "
+						"ss.session_name, "
 						"e.enrollment_date, "
 						"g.full_name AS guardian_name, "
 						"g.relationship AS guardian_relationship, "
@@ -654,6 +655,7 @@ namespace SchoolCore
 						") "
 						"LEFT JOIN classes c ON c.class_id = e.class_id "
 						"LEFT JOIN streams st ON st.stream_id = e.stream_id "
+						"LEFT JOIN student_sessions ss ON ss.session_id = e.session_id "
 						"LEFT JOIN student_guardians sg "
 						"ON sg.student_id = s.student_id "
 						"AND sg.is_primary = 1 "
@@ -710,6 +712,11 @@ namespace SchoolCore
 					result->isNull("stream_name")
 						? L"Not assigned"
 						: gcnew String(result->getString("stream_name").c_str());
+
+				String^ sessionName =
+					result->isNull("session_name")
+						? L"Not assigned"
+						: gcnew String(result->getString("session_name").c_str());
 
 				String^ guardianName =
 					result->isNull("guardian_name")
@@ -940,7 +947,7 @@ namespace SchoolCore
 				GroupBox^ enrollmentSection = gcnew GroupBox();
 				enrollmentSection->Text = L"Enrollment Information";
 				enrollmentSection->Dock = DockStyle::Top;
-				enrollmentSection->Height = 170;
+				enrollmentSection->Height = 200;
 				enrollmentSection->Padding =
 					System::Windows::Forms::Padding(14, 18, 14, 10);
 				enrollmentSection->Margin =
@@ -949,13 +956,13 @@ namespace SchoolCore
 				TableLayoutPanel^ enrollmentLayout = gcnew TableLayoutPanel();
 				enrollmentLayout->Dock = DockStyle::Fill;
 				enrollmentLayout->ColumnCount = 2;
-				enrollmentLayout->RowCount = 4;
+				enrollmentLayout->RowCount = 5;
 				enrollmentLayout->ColumnStyles->Add(
 					gcnew ColumnStyle(SizeType::Absolute, 150.0F));
 				enrollmentLayout->ColumnStyles->Add(
 					gcnew ColumnStyle(SizeType::Percent, 100.0F));
 
-				for (int i = 0; i < 4; i++)
+				for (int i = 0; i < 5; i++)
 				{
 					enrollmentLayout->RowStyles->Add(
 						gcnew RowStyle(SizeType::Absolute, 30.0F));
@@ -963,8 +970,9 @@ namespace SchoolCore
 
 				AddProfileField(enrollmentLayout, 0, L"Class", className);
 				AddProfileField(enrollmentLayout, 1, L"Stream", streamName);
-				AddProfileField(enrollmentLayout, 2, L"Enrollment Date", enrollmentDate);
-				AddProfileField(enrollmentLayout, 3, L"Enrollment Status", enrollmentStatus);
+				AddProfileField(enrollmentLayout, 2, L"Session", sessionName);
+				AddProfileField(enrollmentLayout, 3, L"Enrollment Date", enrollmentDate);
+				AddProfileField(enrollmentLayout, 4, L"Enrollment Status", enrollmentStatus);
 
 				enrollmentSection->Controls->Add(enrollmentLayout);
 
