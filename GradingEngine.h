@@ -70,7 +70,7 @@ namespace SchoolCore
                 std::to_string(scoredPaperCount) +
                 "/" +
                 std::to_string(activePaperCount) +
-                " assigned papers have marks."
+                " required papers have marks."
             );
             stmt->setInt(7, activePaperCount);
             stmt->executeUpdate();
@@ -104,6 +104,7 @@ namespace SchoolCore
                 int enrollmentId = 0;
                 int academicLevelId = 0;
                 int curriculumId = 0;
+                int subjectId = 0;
                 int gradingPolicyId = 0;
 
                 {
@@ -113,6 +114,7 @@ namespace SchoolCore
                             "e.academic_year_id, "
                             "e.term_id, "
                             "e.class_id, "
+                            "es.subject_id, "
                             "c.academic_level_id, "
                             "(SELECT cur2.curriculum_id "
                             " FROM curricula cur2 "
@@ -162,6 +164,9 @@ namespace SchoolCore
                     classId =
                         result->getInt("class_id");
 
+                    subjectId =
+                        result->getInt("subject_id");
+
                     academicLevelId =
                         result->getInt("academic_level_id");
 
@@ -176,6 +181,7 @@ namespace SchoolCore
                     academicYearId <= 0 ||
                     termId <= 0 ||
                     classId <= 0 ||
+                    subjectId <= 0 ||
                     academicLevelId <= 0 ||
                     curriculumId <= 0 ||
                     gradingPolicyId <= 0)
@@ -268,12 +274,52 @@ namespace SchoolCore
                     return false;
                 }
 
+                // For the aligned 2025+ Advanced Secondary curriculum, every
+                // active paper in the curriculum master for the subject is required.
+                // This prevents a one-paper Mathematics/Chemistry/Biology/Physics
+                // result from becoming a final subject grade.
+                int requiredPaperCount = activePaperCount;
+
+                if (curriculumId == 2)
+                {
+                    std::unique_ptr<sql::PreparedStatement> stmt(
+                        con->prepareStatement(
+                            "SELECT COUNT(*) AS required_papers "
+                            "FROM subject_papers sp "
+                            "INNER JOIN curriculum_subjects cs "
+                            "ON cs.curriculum_subject_id = sp.curriculum_subject_id "
+                            "WHERE cs.curriculum_id = ? "
+                            "AND cs.subject_id = ? "
+                            "AND cs.status = 'Active' "
+                            "AND sp.status = 'Active'"
+                        )
+                    );
+
+                    stmt->setInt(1, curriculumId);
+                    stmt->setInt(2, subjectId);
+
+                    std::unique_ptr<sql::ResultSet> result(
+                        stmt->executeQuery()
+                    );
+
+                    if (!result->next())
+                        return false;
+
+                    requiredPaperCount =
+                        result->getInt("required_papers");
+
+                    if (requiredPaperCount <= 0)
+                        return false;
+                }
+
                 double percentage =
                     (totalScore / totalMaxScore) * 100.0;
 
-                // Do not produce a final subject grade until every assigned
-                // paper has a mark for this student.
-                if (scoredPaperCount != activePaperCount)
+                // Do not produce a final subject grade until every required
+                // paper has been assigned to the examination and marked for this student.
+                if (
+                    activePaperCount != requiredPaperCount ||
+                    scoredPaperCount != requiredPaperCount)
                 {
                     UpsertPendingResult(
                         con.get(),
@@ -282,7 +328,7 @@ namespace SchoolCore
                         totalScore,
                         totalMaxScore,
                         percentage,
-                        activePaperCount,
+                        requiredPaperCount,
                         scoredPaperCount
                     );
 
