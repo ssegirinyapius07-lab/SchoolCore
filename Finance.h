@@ -303,6 +303,18 @@ namespace SchoolCore
             }
             catch (sql::SQLException& ex)
             {
+                if (transactionStarted && con != nullptr)
+                {
+                    try
+                    {
+                        con->rollback();
+                        con->setAutoCommit(true);
+                    }
+                    catch (Exception^)
+                    {
+                    }
+                }
+
                 MessageBox::Show(
                     gcnew String(ex.what()),
                     L"Unable to Load Students",
@@ -771,10 +783,14 @@ namespace SchoolCore
                 return;
             }
 
+            std::unique_ptr<sql::Connection> conOwner;
+            sql::Connection* con = nullptr;
+            bool transactionStarted = false;
+
             try
             {
-                auto conOwner = DbConnection::GetConnection();
-                sql::Connection* con = conOwner.get();
+                conOwner = DbConnection::GetConnection();
+                con = conOwner.get();
 
                 int methodId = 0;
 
@@ -815,6 +831,7 @@ namespace SchoolCore
                 }
 
                 con->setAutoCommit(false);
+                transactionStarted = true;
 
                 int providerId =
                     GetPaymentProviderId(
@@ -827,6 +844,121 @@ namespace SchoolCore
                 {
                     throw gcnew Exception(
                         L"The payment provider could not be saved."
+                    );
+                }
+
+                std::unique_ptr<sql::PreparedStatement> duplicateReference(
+                    con->prepareStatement(
+                        "SELECT payment_id "
+                        "FROM payments "
+                        "WHERE payment_provider_id = ? "
+                        "AND transaction_reference = ? "
+                        "AND payment_status <> 'Cancelled' "
+                        "LIMIT 1"
+                    )
+                );
+
+                duplicateReference->setInt(
+                    1,
+                    providerId
+                );
+                duplicateReference->setString(
+                    2,
+                    msclr::interop::marshal_as<std::string>(
+                        reference
+                    )
+                );
+
+                std::unique_ptr<sql::ResultSet> duplicateResult(
+                    duplicateReference->executeQuery()
+                );
+
+                if (duplicateResult->next())
+                {
+                    throw gcnew Exception(
+                        L"This transaction reference has already been recorded for the selected provider."
+                    );
+                }
+
+                Decimal liveBalance = Decimal(0);
+
+                {
+                    std::unique_ptr<sql::PreparedStatement> lockCharge(
+                        con->prepareStatement(
+                            "SELECT amount "
+                            "FROM fee_charges "
+                            "WHERE fee_charge_id = ? "
+                            "AND student_id = ? "
+                            "FOR UPDATE"
+                        )
+                    );
+
+                    lockCharge->setInt(1, charge->Id);
+                    lockCharge->setInt(2, student->Id);
+
+                    std::unique_ptr<sql::ResultSet> chargeResult(
+                        lockCharge->executeQuery()
+                    );
+
+                    if (!chargeResult->next())
+                    {
+                        throw gcnew Exception(
+                            L"The selected fee charge is no longer available."
+                        );
+                    }
+
+                    Decimal chargeAmount =
+                        Decimal::Parse(
+                            gcnew String(
+                                chargeResult->getString(
+                                    "amount").c_str()
+                            ),
+                            Globalization::CultureInfo::InvariantCulture
+                        );
+
+                    std::unique_ptr<sql::PreparedStatement> paidStmt(
+                        con->prepareStatement(
+                            "SELECT COALESCE(SUM(amount), 0) AS paid "
+                            "FROM payment_allocations "
+                            "WHERE fee_charge_id = ?"
+                        )
+                    );
+
+                    paidStmt->setInt(1, charge->Id);
+
+                    std::unique_ptr<sql::ResultSet> paidResult(
+                        paidStmt->executeQuery()
+                    );
+
+                    Decimal paidAmount = Decimal(0);
+
+                    if (paidResult->next())
+                    {
+                        paidAmount =
+                            Decimal::Parse(
+                                gcnew String(
+                                    paidResult->getString(
+                                        "paid").c_str()
+                                ),
+                                Globalization::CultureInfo::InvariantCulture
+                            );
+                    }
+
+                    liveBalance =
+                        chargeAmount - paidAmount;
+                }
+
+                if (liveBalance <= Decimal(0))
+                {
+                    throw gcnew Exception(
+                        L"The selected fee charge has already been fully paid."
+                    );
+                }
+
+                if (amount > liveBalance)
+                {
+                    throw gcnew Exception(
+                        L"The payment amount is greater than the current outstanding balance."
                     );
                 }
 
@@ -948,7 +1080,7 @@ namespace SchoolCore
                 insertAllocation->execute();
 
                 Decimal remaining =
-                    charge->Balance - amount;
+                    liveBalance - amount;
 
                 std::unique_ptr<sql::PreparedStatement> updateCharge(
                     con->prepareStatement(
@@ -969,6 +1101,7 @@ namespace SchoolCore
 
                 con->commit();
                 con->setAutoCommit(true);
+                transactionStarted = false;
 
                 MessageBox::Show(
                     paymentForm,
@@ -1004,6 +1137,18 @@ namespace SchoolCore
             }
             catch (Exception^ ex)
             {
+                if (transactionStarted && con != nullptr)
+                {
+                    try
+                    {
+                        con->rollback();
+                        con->setAutoCommit(true);
+                    }
+                    catch (Exception^)
+                    {
+                    }
+                }
+
                 MessageBox::Show(
                     paymentForm,
                     ex->Message,
@@ -1189,12 +1334,6 @@ namespace SchoolCore
             root->Controls->Add(title, 0, 0);
             root->SetColumnSpan(title, 2);
 
-            root->Controls->Add(
-                gcnew Label()
-                {
-                },
-                0, 1);
-
             root->Controls->Add(paymentStudentBox, 1, 1);
             root->Controls->Add(
                 CreateLabel(
@@ -1248,7 +1387,7 @@ namespace SchoolCore
 
             root->Controls->Add(
                 CreateLabel(
-                    L"Reference",
+                    L"Transaction Reference",
                     FinanceTheme::Body,
                     FinanceTheme::TextStrong),
                 0, 8);
