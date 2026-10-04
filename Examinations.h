@@ -1897,6 +1897,246 @@ namespace SchoolCore
         }
 
 
+
+        int RequestExaminationEditOverride(
+            int examinationId,
+            int academicYearId,
+            int termId)
+        {
+            Form^ requestForm =
+                gcnew Form();
+
+            requestForm->Text =
+                L"Request Emergency Override";
+
+            requestForm->StartPosition =
+                FormStartPosition::CenterParent;
+
+            requestForm->FormBorderStyle =
+                FormBorderStyle::FixedDialog;
+
+            requestForm->MaximizeBox = false;
+            requestForm->MinimizeBox = false;
+            requestForm->ShowInTaskbar = false;
+
+            requestForm->ClientSize =
+                Drawing::Size(620, 360);
+
+            Panel^ header =
+                gcnew Panel();
+
+            header->Dock =
+                DockStyle::Top;
+
+            header->Height = 82;
+
+            header->BackColor =
+                Color::FromArgb(30, 41, 59);
+
+            Label^ title =
+                gcnew Label();
+
+            title->Text =
+                L"Emergency Academic Edit Override";
+
+            title->Dock =
+                DockStyle::Top;
+
+            title->Height = 34;
+
+            title->Padding =
+                System::Windows::Forms::Padding(16, 4, 8, 0);
+
+            title->ForeColor =
+                Color::White;
+
+            title->Font =
+                gcnew Drawing::Font(
+                    L"Segoe UI Semibold",
+                    15.0F,
+                    FontStyle::Bold
+                );
+
+            Label^ subtitle =
+                gcnew Label();
+
+            subtitle->Text =
+                L"An approval is required before this historical examination can be edited.";
+
+            subtitle->Dock =
+                DockStyle::Fill;
+
+            subtitle->Padding =
+                System::Windows::Forms::Padding(16, 0, 8, 6);
+
+            subtitle->ForeColor =
+                Color::FromArgb(226, 232, 240);
+
+            header->Controls->Add(subtitle);
+            header->Controls->Add(title);
+
+            Label^ reasonLabel =
+                gcnew Label();
+
+            reasonLabel->Text =
+                L"Reason for the emergency correction:";
+
+            reasonLabel->Location =
+                Drawing::Point(20, 102);
+
+            reasonLabel->Size =
+                Drawing::Size(560, 24);
+
+            TextBox^ reasonBox =
+                gcnew TextBox();
+
+            reasonBox->Multiline = true;
+            reasonBox->ScrollBars =
+                ScrollBars::Vertical;
+
+            reasonBox->Location =
+                Drawing::Point(20, 130);
+
+            reasonBox->Size =
+                Drawing::Size(580, 125);
+
+            reasonBox->Anchor =
+                AnchorStyles::Top |
+                AnchorStyles::Left |
+                AnchorStyles::Right;
+
+            Label^ scopeLabel =
+                gcnew Label();
+
+            scopeLabel->Text =
+                L"Scope: UPDATE examinations / record ID " +
+                examinationId.ToString();
+
+            scopeLabel->Location =
+                Drawing::Point(20, 265);
+
+            scopeLabel->Size =
+                Drawing::Size(580, 24);
+
+            scopeLabel->ForeColor =
+                Color::FromArgb(71, 85, 105);
+
+            Button^ submitButton =
+                gcnew Button();
+
+            submitButton->Text =
+                L"Submit Request";
+
+            submitButton->Size =
+                Drawing::Size(125, 36);
+
+            submitButton->Location =
+                Drawing::Point(340, 305);
+
+            Button^ cancelButton =
+                gcnew Button();
+
+            cancelButton->Text =
+                L"Cancel";
+
+            cancelButton->Size =
+                Drawing::Size(100, 36);
+
+            cancelButton->Location =
+                Drawing::Point(480, 305);
+
+            int createdApprovalId = 0;
+
+            submitButton->Click +=
+                gcnew EventHandler(
+                    [requestForm,
+                     reasonBox,
+                     examinationId,
+                     academicYearId,
+                     termId,
+                     &createdApprovalId]
+                    (Object^, EventArgs^)
+                    {
+                        if (String::IsNullOrWhiteSpace(
+                                reasonBox->Text))
+                        {
+                            MessageBox::Show(
+                                L"Enter a clear reason for the emergency correction.",
+                                L"Reason Required",
+                                MessageBoxButtons::OK,
+                                MessageBoxIcon::Warning
+                            );
+
+                            reasonBox->Focus();
+                            return;
+                        }
+
+                        try
+                        {
+                            createdApprovalId =
+                                AcademicSecurity::CreateInactiveYearEditRequest(
+                                    academicYearId,
+                                    termId,
+                                    L"UPDATE",
+                                    L"examinations",
+                                    examinationId.ToString(),
+                                    reasonBox->Text
+                                );
+
+                            MessageBox::Show(
+                                L"Emergency edit request #" +
+                                createdApprovalId.ToString() +
+                                L" has been submitted for independent approval.",
+                                L"Request Submitted",
+                                MessageBoxButtons::OK,
+                                MessageBoxIcon::Information
+                            );
+
+                            requestForm->DialogResult =
+                                System::Windows::Forms::DialogResult::OK;
+                        }
+                        catch (System::Exception^ ex)
+                        {
+                            MessageBox::Show(
+                                ex->Message,
+                                L"Unable to Submit Request",
+                                MessageBoxButtons::OK,
+                                MessageBoxIcon::Error
+                            );
+                        }
+                    }
+                );
+
+            cancelButton->Click +=
+                gcnew EventHandler(
+                    [requestForm]
+                    (Object^, EventArgs^)
+                    {
+                        requestForm->DialogResult =
+                            System::Windows::Forms::DialogResult::Cancel;
+                    }
+                );
+
+            requestForm->Controls->Add(cancelButton);
+            requestForm->Controls->Add(submitButton);
+            requestForm->Controls->Add(scopeLabel);
+            requestForm->Controls->Add(reasonBox);
+            requestForm->Controls->Add(reasonLabel);
+            requestForm->Controls->Add(header);
+
+            requestForm->AcceptButton =
+                submitButton;
+
+            requestForm->CancelButton =
+                cancelButton;
+
+            requestForm->ShowDialog(this);
+
+            delete requestForm;
+
+            return createdApprovalId;
+        }
+
         void OpenExaminationEditor(
             int examinationId)
         {
@@ -1951,11 +2191,29 @@ namespace SchoolCore
                             existingTermId))
                     {
                         MessageBox::Show(
-                            L"This examination belongs to an inactive academic year or inactive term. Normal editing is blocked. An approved academic-period override is required for an emergency correction.",
+                            L"This examination belongs to an inactive academic year or inactive term. Normal editing is blocked.",
                             L"Protected Academic Record",
                             MessageBoxButtons::OK,
                             MessageBoxIcon::Warning
                         );
+
+                        if (AcademicSecurity::HasInactiveYearOverridePermission())
+                        {
+                            if (MessageBox::Show(
+                                    L"Would you like to submit an Emergency Override request for this examination?",
+                                    L"Emergency Override",
+                                    MessageBoxButtons::YesNo,
+                                    MessageBoxIcon::Question) ==
+                                System::Windows::Forms::DialogResult::Yes)
+                            {
+                                RequestExaminationEditOverride(
+                                    examinationId,
+                                    existingYearId,
+                                    existingTermId
+                                );
+                            }
+                        }
+
                         return;
                     }
                 }
