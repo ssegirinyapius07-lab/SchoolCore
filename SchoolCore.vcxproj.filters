@@ -62,6 +62,12 @@
     <ClInclude Include="DbConnection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="AcademicContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CurriculumSubjectsManagement.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="AcademicYearsTerms.h">
       <Filter>Header Files</Filter>
     </ClInclude>
