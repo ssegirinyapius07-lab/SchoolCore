@@ -72,6 +72,23 @@ namespace SchoolCore
         }
     };
 
+    private ref class FinanceLookupItem sealed
+    {
+    public:
+        int Id;
+        String^ Name;
+
+        FinanceLookupItem(int id, String^ name)
+            : Id(id), Name(name)
+        {
+        }
+
+        virtual String^ ToString() override
+        {
+            return Name;
+        }
+    };
+
     private ref class FinanceFeeStructureItem sealed
     {
     public:
@@ -2510,11 +2527,6 @@ namespace SchoolCore
             paymentHistoryToPicker = nullptr;
             paymentHistorySummaryLabel = nullptr;
             paymentHistoryViewButton = nullptr;
-        }
-
-        FinanceLookupItem^ CreateLookupItem(int id, String^ name)
-        {
-            return gcnew FinanceLookupItem(id, name);
         }
 
         void LoadFeeStructureYears()
