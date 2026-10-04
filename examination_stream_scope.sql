@@ -63,8 +63,10 @@ DEALLOCATE PREPARE stmt;
 -- belonging to its class, while a stream-specific examination gets one row.
 --
 -- The UNIQUE constraint is the final database-level protection:
--- for the same academic year, term, class, examination name and type,
+-- for the same academic year, term, class and examination type,
 -- two examination scopes cannot claim the same stream.
+-- Examination name is deliberately NOT part of uniqueness; it is a
+-- human-entered label and may be reused.
 --
 -- This makes these combinations impossible:
 --   All Streams + South
@@ -92,7 +94,6 @@ CREATE TABLE IF NOT EXISTS examination_stream_scopes (
         academic_year_id,
         term_id,
         class_id,
-        examination_name,
         examination_type,
         stream_id
     ),
@@ -113,6 +114,44 @@ CREATE TABLE IF NOT EXISTS examination_stream_scopes (
         ON UPDATE CASCADE
         ON DELETE RESTRICT
 );
+
+-- Normalize the scope uniqueness rule if this migration was
+-- already run with the earlier examination-name-based constraint.
+SET @has_scope_unique := (
+    SELECT COUNT(*)
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'examination_stream_scopes'
+      AND INDEX_NAME = 'uq_examination_stream_scope'
+);
+
+SET @sql := IF(
+    @has_scope_unique = 1,
+    'ALTER TABLE examination_stream_scopes DROP INDEX uq_examination_stream_scope',
+    'SELECT 1'
+);
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_new_scope_unique := (
+    SELECT COUNT(*)
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'examination_stream_scopes'
+      AND INDEX_NAME = 'uq_examination_stream_scope'
+);
+
+SET @sql := IF(
+    @has_new_scope_unique = 0,
+    'ALTER TABLE examination_stream_scopes ADD UNIQUE KEY uq_examination_stream_scope (academic_year_id, term_id, class_id, examination_type, stream_id)',
+    'SELECT 1'
+);
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
 -- Seed scope rows for examinations that already exist.
 -- INSERT IGNORE keeps the migration safely re-runnable.
