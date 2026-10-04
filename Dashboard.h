@@ -1355,6 +1355,8 @@ namespace SchoolCore {
 			if (mobile)
 			{
 				this->sidebarPanel->Width = 230;
+				this->sidebarPanel->Visible =
+					this->mobileSidebarVisible;
 				this->btnMenu->Visible = true;
 
 				this->lblSchoolName->Location =
@@ -1518,9 +1520,12 @@ namespace SchoolCore {
 					? AuthSession::Username
 					: AuthSession::FullName;
 				this->lblUserRole->Text =
-					String::IsNullOrWhiteSpace(AuthSession::RoleName)
-					? L"User"
-					: AuthSession::RoleName;
+					(String::IsNullOrWhiteSpace(AuthSession::RoleName)
+						? L"User"
+						: AuthSession::RoleName) +
+					(String::IsNullOrWhiteSpace(AuthSession::Username)
+						? L""
+						: L"  •  @" + AuthSession::Username);
 				this->mobileSidebarVisible = false;
 				this->sidebarPanel->Visible = true;
 				this->UpdateHeaderForResponsiveLayout();
