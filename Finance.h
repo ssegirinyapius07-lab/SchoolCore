@@ -131,7 +131,7 @@ namespace SchoolCore
                 L" | UGX " +
                 Amount.ToString(
                     L"N2",
-                    Globalization::CultureInfo::InvariantCulture);
+                    System::Globalization::CultureInfo::InvariantCulture);
         }
     };
 
@@ -168,7 +168,7 @@ namespace SchoolCore
                 L" | Balance UGX " +
                 Balance.ToString(
                     L"N2",
-                    Globalization::CultureInfo::InvariantCulture);
+                    System::Globalization::CultureInfo::InvariantCulture);
         }
     };
 
@@ -488,7 +488,7 @@ namespace SchoolCore
                             gcnew String(
                                 result->getString("balance").c_str()
                             ),
-                            Globalization::CultureInfo::InvariantCulture
+                            System::Globalization::CultureInfo::InvariantCulture
                         );
 
                     paymentChargeBox->Items->Add(
@@ -615,13 +615,13 @@ namespace SchoolCore
                 L"Outstanding: UGX " +
                 charge->Balance.ToString(
                     L"N2",
-                    Globalization::CultureInfo::InvariantCulture
+                    System::Globalization::CultureInfo::InvariantCulture
                 );
 
             paymentAmountBox->Text =
                 charge->Balance.ToString(
                     L"N2",
-                    Globalization::CultureInfo::InvariantCulture
+                    System::Globalization::CultureInfo::InvariantCulture
                 );
         }
 
@@ -839,7 +839,7 @@ namespace SchoolCore
                     Decimal::Parse(
                         paymentAmountBox->Text->Trim(),
                         Globalization::NumberStyles::Number,
-                        Globalization::CultureInfo::InvariantCulture
+                        System::Globalization::CultureInfo::InvariantCulture
                     );
             }
             catch (Exception^)
@@ -1008,7 +1008,7 @@ namespace SchoolCore
                                 chargeResult->getString(
                                     "amount").c_str()
                             ),
-                            Globalization::CultureInfo::InvariantCulture
+                            System::Globalization::CultureInfo::InvariantCulture
                         );
 
                     std::unique_ptr<sql::PreparedStatement> paidStmt(
@@ -1035,7 +1035,7 @@ namespace SchoolCore
                                     paidResult->getString(
                                         "paid").c_str()
                                 ),
-                                Globalization::CultureInfo::InvariantCulture
+                                System::Globalization::CultureInfo::InvariantCulture
                             );
                     }
 
@@ -1206,7 +1206,7 @@ namespace SchoolCore
                     L"\nAmount: UGX " +
                     amount.ToString(
                         L"N2",
-                        Globalization::CultureInfo::InvariantCulture) +
+                        System::Globalization::CultureInfo::InvariantCulture) +
                     L"\nMethod: " + method +
                     L"\nProvider: " + provider +
                     L"\nReference: " + reference,
@@ -1807,7 +1807,7 @@ namespace SchoolCore
                                 result->getString(
                                     "amount").c_str()
                             ),
-                            Globalization::CultureInfo::InvariantCulture
+                            System::Globalization::CultureInfo::InvariantCulture
                         );
 
                     paymentHistoryGrid->Rows->Add(
@@ -1824,7 +1824,7 @@ namespace SchoolCore
                         paymentDate,
                         amount.ToString(
                             L"N2",
-                            Globalization::CultureInfo::InvariantCulture
+                            System::Globalization::CultureInfo::InvariantCulture
                         ),
                         gcnew String(
                             result->getString(
@@ -1849,7 +1849,7 @@ namespace SchoolCore
                     L" payment(s)  |  Total: UGX " +
                     total.ToString(
                         L"N2",
-                        Globalization::CultureInfo::InvariantCulture
+                        System::Globalization::CultureInfo::InvariantCulture
                     );
             }
             catch (sql::SQLException& ex)
@@ -2764,7 +2764,7 @@ namespace SchoolCore
                     Decimal::Parse(
                         feeStructureAmountBox->Text->Trim(),
                         Globalization::NumberStyles::Number,
-                        Globalization::CultureInfo::InvariantCulture
+                        System::Globalization::CultureInfo::InvariantCulture
                     );
             }
             catch (Exception^)
@@ -3025,7 +3025,7 @@ namespace SchoolCore
                     Decimal amount =
                         Decimal::Parse(
                             gcnew String(result->getString("amount").c_str()),
-                            Globalization::CultureInfo::InvariantCulture
+                            System::Globalization::CultureInfo::InvariantCulture
                         );
 
                     feeStructuresGrid->Rows->Add(
@@ -3035,7 +3035,7 @@ namespace SchoolCore
                         gcnew String(result->getString("class_name").c_str()),
                         gcnew String(result->getString("stream_name").c_str()),
                         gcnew String(result->getString("fee_name").c_str()),
-                        amount.ToString(L"N2", Globalization::CultureInfo::InvariantCulture),
+                        amount.ToString(L"N2", System::Globalization::CultureInfo::InvariantCulture),
                         gcnew String(result->getString("due_date").c_str()),
                         gcnew String(result->getString("status").c_str())
                     );
@@ -3075,7 +3075,7 @@ namespace SchoolCore
                     L"Fee Structures",
                     MessageBoxButtons::YesNo,
                     MessageBoxIcon::Question
-                ) != DialogResult::Yes)
+                ) != System::Windows::Forms::DialogResult::Yes)
                 return;
 
             try
@@ -3267,7 +3267,7 @@ namespace SchoolCore
                     Decimal amount =
                         Decimal::Parse(
                             gcnew String(result->getString("amount").c_str()),
-                            Globalization::CultureInfo::InvariantCulture
+                            System::Globalization::CultureInfo::InvariantCulture
                         );
 
                     studentChargesStructureBox->Items->Add(
@@ -3341,11 +3341,11 @@ namespace SchoolCore
                 {
                     Decimal amount = Decimal::Parse(
                         gcnew String(result->getString("amount").c_str()),
-                        Globalization::CultureInfo::InvariantCulture
+                        System::Globalization::CultureInfo::InvariantCulture
                     );
                     Decimal balance = Decimal::Parse(
                         gcnew String(result->getString("balance").c_str()),
-                        Globalization::CultureInfo::InvariantCulture
+                        System::Globalization::CultureInfo::InvariantCulture
                     );
 
                     studentChargesGrid->Rows->Add(
@@ -3357,10 +3357,10 @@ namespace SchoolCore
                         gcnew String(result->getString("term_name").c_str()),
                         gcnew String(result->getString("class_name").c_str()),
                         gcnew String(result->getString("stream_name").c_str()),
-                        amount.ToString(L"N2", Globalization::CultureInfo::InvariantCulture),
+                        amount.ToString(L"N2", System::Globalization::CultureInfo::InvariantCulture),
                         gcnew String(result->getString("due_date").c_str()),
                         gcnew String(result->getString("status").c_str()),
-                        balance.ToString(L"N2", Globalization::CultureInfo::InvariantCulture)
+                        balance.ToString(L"N2", System::Globalization::CultureInfo::InvariantCulture)
                     );
 
                     total += amount;
@@ -3371,7 +3371,7 @@ namespace SchoolCore
                 studentChargesSummaryLabel->Text =
                     count.ToString() +
                     L" charge(s)  |  Total: UGX " +
-                    total.ToString(L"N2", Globalization::CultureInfo::InvariantCulture) +
+                    total.ToString(L"N2", System::Globalization::CultureInfo::InvariantCulture) +
                     L"  |  Outstanding: UGX " +
                     outstanding.ToString(L"N2", Globalization::CultureInfo.InvariantCulture);
             }
@@ -3441,7 +3441,7 @@ namespace SchoolCore
 
                 Decimal amount = Decimal::Parse(
                     gcnew String(sr->getString("amount").c_str()),
-                    Globalization::CultureInfo::InvariantCulture
+                    System::Globalization::CultureInfo::InvariantCulture
                 );
 
                 String^ dueDate =
@@ -3700,7 +3700,7 @@ namespace SchoolCore
             metricValues[index]->Text =
                 L"UGX " + amount.ToString(
                     L"N2",
-                    Globalization::CultureInfo::InvariantCulture);
+                    System::Globalization::CultureInfo::InvariantCulture);
         }
 
         void ShowRestrictedMetrics()
