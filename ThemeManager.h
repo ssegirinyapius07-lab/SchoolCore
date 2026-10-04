@@ -444,7 +444,7 @@ namespace SchoolCore
 
             for each (System::Windows::Forms::Control^ control in controls)
             {
-                if (control == nullptr || IsOptedOut(control))
+                if (control == nullptr)
                 {
                     continue;
                 }
