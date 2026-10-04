@@ -348,6 +348,21 @@ namespace SchoolCore
             link->Cursor = System::Windows::Forms::Cursors::Hand;
         }
 
+        static void StyleContainer(
+            System::Windows::Forms::Control^ control)
+        {
+            if (control == nullptr)
+            {
+                return;
+            }
+
+            if (control->BackColor.IsSystemColor ||
+                control->BackColor.IsEmpty)
+            {
+                control->BackColor = Surface();
+            }
+        }
+
         static void StylePrimaryButton(System::Windows::Forms::Button^ button)
         {
             button->FlatStyle =
@@ -734,6 +749,32 @@ namespace SchoolCore
                 if (linkControl != nullptr)
                 {
                     StyleLinkLabel(linkControl);
+                }
+
+                System::Windows::Forms::Label^ labelControl =
+                    dynamic_cast<System::Windows::Forms::Label^>(control);
+
+                if (labelControl != nullptr &&
+                    (labelControl->ForeColor.IsSystemColor ||
+                     labelControl->ForeColor.IsEmpty))
+                {
+                    labelControl->ForeColor = Ink();
+                }
+
+                System::Windows::Forms::Panel^ panel =
+                    dynamic_cast<System::Windows::Forms::Panel^>(control);
+
+                System::Windows::Forms::TableLayoutPanel^ tableLayout =
+                    dynamic_cast<System::Windows::Forms::TableLayoutPanel^>(control);
+
+                System::Windows::Forms::FlowLayoutPanel^ flowLayout =
+                    dynamic_cast<System::Windows::Forms::FlowLayoutPanel^>(control);
+
+                if (panel != nullptr ||
+                    tableLayout != nullptr ||
+                    flowLayout != nullptr)
+                {
+                    StyleContainer(control);
                 }
 
                 System::Windows::Forms::DataGridView^ grid =
