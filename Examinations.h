@@ -1327,24 +1327,42 @@ namespace SchoolCore
                         "WHERE academic_year_id = ? "
                         "AND term_id = ? "
                         "AND class_id = ? "
-                        "AND COALESCE(stream_id, 0) = ? "
-                        "AND COALESCE(examination_type, '') = ? "
+                        "AND LOWER(COALESCE(examination_name, '')) = LOWER(?) "
+                        "AND LOWER(COALESCE(examination_type, '')) = LOWER(?) "
                         "AND examination_id <> ? "
+                        "AND ( "
+                        "    stream_id IS NULL "
+                        "    OR ? = 0 "
+                        "    OR stream_id = ? "
+                        ") "
                         "LIMIT 1"
                     )
                 );
 
                 duplicateStmt->setInt(1, yearId);
                 duplicateStmt->setInt(2, termId);
-                duplicateStmt->setInt(3, classId);
-                duplicateStmt->setInt(4, streamId);
-                duplicateStmt->setString(5, type);
+                duplicateStmt->setInt(
+                    3,
+                    classId
+                );
+                duplicateStmt->setString(
+                    4,
+                    msclr::interop::marshal_as<std::string>(
+                        this->editorName->Text->Trim()
+                    )
+                );
+                duplicateStmt->setString(
+                    5,
+                    type
+                );
                 duplicateStmt->setInt(
                     6,
                     this->editorEditMode
                     ? this->editingExaminationId
                     : 0
                 );
+                duplicateStmt->setInt(7, streamId);
+                duplicateStmt->setInt(8, streamId);
 
                 std::unique_ptr<sql::ResultSet> duplicateResult(
                     duplicateStmt->executeQuery()
