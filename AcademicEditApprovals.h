@@ -447,13 +447,47 @@ namespace SchoolCore
                 L"SchoolCore | Academic Edit Approvals";
 
             this->StartPosition =
-                FormStartPosition::CenterParent;
+                FormStartPosition::CenterScreen;
+
+            // Keep the approval window comfortably inside a normal laptop
+            // working area. The DataGridView itself provides vertical and
+            // horizontal scrolling when the request list or columns exceed
+            // the available space.
+            Drawing::Rectangle workingArea =
+                Screen::PrimaryScreen->WorkingArea;
+
+            int targetWidth =
+                Math::Min(
+                    1150,
+                    workingArea.Width - 40
+                );
+
+            int targetHeight =
+                Math::Min(
+                    630,
+                    workingArea.Height - 40
+                );
+
+            targetWidth =
+                Math::Max(
+                    900,
+                    targetWidth
+                );
+
+            targetHeight =
+                Math::Max(
+                    500,
+                    targetHeight
+                );
 
             this->ClientSize =
-                Drawing::Size(1320, 720);
+                Drawing::Size(
+                    targetWidth,
+                    targetHeight
+                );
 
             this->MinimumSize =
-                Drawing::Size(1100, 620);
+                Drawing::Size(900, 500);
 
             this->BackColor =
                 Color::FromArgb(248, 250, 252);
@@ -585,6 +619,9 @@ namespace SchoolCore
                 gcnew Panel();
 
             gridPanel->Dock = DockStyle::Fill;
+            // The grid owns the scrollable request list. The footer
+            // remains fixed, so the Close button stays visible even when
+            // many approval requests exist.
             gridPanel->Padding =
                 System::Windows::Forms::Padding(0, 8, 0, 8);
 
