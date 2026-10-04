@@ -1405,6 +1405,13 @@ namespace SchoolCore
                     return;
                 }
 
+                con->setAutoCommit(false);
+
+                int savedExaminationId =
+                    this->editorEditMode
+                    ? this->editingExaminationId
+                    : 0;
+
                 if (this->editorEditMode)
                 {
                     std::unique_ptr<sql::PreparedStatement> stmt(
@@ -1449,13 +1456,6 @@ namespace SchoolCore
                     );
 
                     stmt->executeUpdate();
-
-                    MessageBox::Show(
-                        L"Examination updated successfully.",
-                        L"Examinations",
-                        MessageBoxButtons::OK,
-                        MessageBoxIcon::Information
-                    );
                 }
                 else
                 {
@@ -1501,13 +1501,184 @@ namespace SchoolCore
 
                     stmt->executeUpdate();
 
+                    std::unique_ptr<sql::Statement> idStmt(
+                        con->createStatement()
+                    );
+
+                    std::unique_ptr<sql::ResultSet> idResult(
+                        idStmt->executeQuery(
+                            "SELECT LAST_INSERT_ID() AS examination_id"
+                        )
+                    );
+
+                    if (!idResult->next())
+                    {
+                        con->rollback();
+                        con->setAutoCommit(true);
+                        MessageBox::Show(
+                            L"SchoolCore could not determine the new examination ID.",
+                            L"Examinations",
+                            MessageBoxButtons::OK,
+                            MessageBoxIcon::Error
+                        );
+                        return;
+                    }
+
+                    savedExaminationId =
+                        idResult->getInt(
+                            "examination_id"
+                        );
+                }
+
+                // Rebuild the database-enforced scope rows for this examination.
+                std::unique_ptr<sql::PreparedStatement> deleteScopeStmt(
+                    con->prepareStatement(
+                        "DELETE FROM examination_stream_scopes "
+                        "WHERE examination_id = ?"
+                    )
+                );
+
+                deleteScopeStmt->setInt(
+                    1,
+                    savedExaminationId
+                );
+
+                deleteScopeStmt->executeUpdate();
+
+                int scopeRowsInserted = 0;
+
+                if (streamId == 0)
+                {
+                    std::unique_ptr<sql::PreparedStatement> scopeStmt(
+                        con->prepareStatement(
+                            "INSERT INTO examination_stream_scopes "
+                            "("
+                            "examination_id, "
+                            "academic_year_id, "
+                            "term_id, "
+                            "class_id, "
+                            "examination_name, "
+                            "examination_type, "
+                            "stream_id"
+                            ") "
+                            "SELECT ?, ?, ?, ?, ?, ?, s.stream_id "
+                            "FROM streams s "
+                            "WHERE s.class_id = ? "
+                            "AND s.status = 'Active'"
+                        )
+                    );
+
+                    scopeStmt->setInt(
+                        1,
+                        savedExaminationId
+                    );
+                    scopeStmt->setInt(
+                        2,
+                        yearId
+                    );
+                    scopeStmt->setInt(
+                        3,
+                        termId
+                    );
+                    scopeStmt->setInt(
+                        4,
+                        classId
+                    );
+                    scopeStmt->setString(
+                        5,
+                        this->editorName->Text->Trim()->ToString()->Length > 0
+                        ? name
+                        : name
+                    );
+                    scopeStmt->setString(
+                        6,
+                        type
+                    );
+                    scopeStmt->setInt(
+                        7,
+                        classId
+                    );
+
+                    scopeRowsInserted =
+                        scopeStmt->executeUpdate();
+                }
+                else
+                {
+                    std::unique_ptr<sql::PreparedStatement> scopeStmt(
+                        con->prepareStatement(
+                            "INSERT INTO examination_stream_scopes "
+                            "("
+                            "examination_id, "
+                            "academic_year_id, "
+                            "term_id, "
+                            "class_id, "
+                            "examination_name, "
+                            "examination_type, "
+                            "stream_id"
+                            ") "
+                            "VALUES (?, ?, ?, ?, ?, ?, ?)"
+                        )
+                    );
+
+                    scopeStmt->setInt(
+                        1,
+                        savedExaminationId
+                    );
+                    scopeStmt->setInt(
+                        2,
+                        yearId
+                    );
+                    scopeStmt->setInt(
+                        3,
+                        termId
+                    );
+                    scopeStmt->setInt(
+                        4,
+                        classId
+                    );
+                    scopeStmt->setString(
+                        5,
+                        name
+                    );
+                    scopeStmt->setString(
+                        6,
+                        type
+                    );
+                    scopeStmt->setInt(
+                        7,
+                        streamId
+                    );
+
+                    scopeRowsInserted =
+                        scopeStmt->executeUpdate();
+                }
+
+                if (scopeRowsInserted <= 0)
+                {
+                    con->rollback();
+                    con->setAutoCommit(true);
+
                     MessageBox::Show(
-                        L"Examination created successfully.",
+                        L"The selected class has no active stream available for this examination scope.",
                         L"Examinations",
                         MessageBoxButtons::OK,
-                        MessageBoxIcon::Information
+                        MessageBoxIcon::Warning
                     );
+
+                    return;
                 }
+
+                con->commit();
+                con->setAutoCommit(true);
+
+                MessageBox::Show(
+                    this->editorEditMode
+                    ? L"Examination updated successfully."
+                    : L"Examination created successfully.",
+                    L"Examinations",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Information
+                );
 
                 if (this->editorForm != nullptr)
                 {
