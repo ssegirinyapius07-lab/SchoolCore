@@ -192,6 +192,9 @@
     <ClInclude Include="Examinations.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="MarksEntryManagement.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Dashboard.resx">
