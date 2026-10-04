@@ -56,6 +56,92 @@ namespace SchoolCore
             );
         }
 
+        // Role names are kept in Button::Tag, but only when the form
+        // has not already used the Tag for its own data.
+        static void RememberRole(
+            System::Windows::Forms::Button^ button,
+            System::String^ role)
+        {
+            if (button->Tag == nullptr ||
+                dynamic_cast<System::String^>(button->Tag) != nullptr)
+            {
+                System::String^ existing =
+                    dynamic_cast<System::String^>(button->Tag);
+
+                if (existing == nullptr ||
+                    existing->StartsWith(L"Theme"))
+                {
+                    button->Tag = role;
+                }
+            }
+        }
+
+        static void ApplyButtonState(System::Windows::Forms::Button^ button)
+        {
+            System::String^ role =
+                dynamic_cast<System::String^>(button->Tag);
+
+            if (role == nullptr || !role->StartsWith(L"Theme"))
+            {
+                return;
+            }
+
+            if (!button->Enabled)
+            {
+                button->BackColor = System::Drawing::Color::FromArgb(241, 245, 249);
+                button->ForeColor = System::Drawing::Color::FromArgb(148, 163, 184);
+                button->FlatAppearance->BorderSize = 1;
+                button->FlatAppearance->BorderColor =
+                    System::Drawing::Color::FromArgb(226, 232, 240);
+                return;
+            }
+
+            if (role->Equals(L"ThemePrimary"))
+            {
+                button->BackColor = System::Drawing::Color::FromArgb(29, 78, 216);
+                button->ForeColor = System::Drawing::Color::White;
+                button->FlatAppearance->BorderSize = 0;
+            }
+            else if (role->Equals(L"ThemeDanger"))
+            {
+                button->BackColor = System::Drawing::Color::FromArgb(185, 28, 28);
+                button->ForeColor = System::Drawing::Color::White;
+                button->FlatAppearance->BorderSize = 0;
+            }
+            else
+            {
+                button->BackColor = System::Drawing::Color::FromArgb(226, 232, 240);
+                button->ForeColor = System::Drawing::Color::FromArgb(15, 23, 42);
+                button->FlatAppearance->BorderSize = 1;
+                button->FlatAppearance->BorderColor =
+                    System::Drawing::Color::FromArgb(148, 163, 184);
+            }
+        }
+
+        static void ButtonEnabledChanged(
+            System::Object^ sender,
+            System::EventArgs^ e)
+        {
+            System::Windows::Forms::Button^ button =
+                dynamic_cast<System::Windows::Forms::Button^>(sender);
+
+            if (button != nullptr)
+            {
+                ApplyButtonState(button);
+            }
+        }
+
+        static void WatchButton(System::Windows::Forms::Button^ button)
+        {
+            System::EventHandler^ handler =
+                gcnew System::EventHandler(
+                    &ThemeManager::ButtonEnabledChanged
+                );
+
+            button->EnabledChanged -= handler;
+            button->EnabledChanged += handler;
+        }
+
     public:
         // -----------------------------------------------------
         // Palette
@@ -99,6 +185,21 @@ namespace SchoolCore
         static System::Drawing::Color HeaderFill()
         {
             return System::Drawing::Color::FromArgb(241, 245, 249);
+        }
+
+        static System::Drawing::Color BorderStrong()
+        {
+            return System::Drawing::Color::FromArgb(148, 163, 184);
+        }
+
+        static System::Drawing::Color DisabledFill()
+        {
+            return System::Drawing::Color::FromArgb(241, 245, 249);
+        }
+
+        static System::Drawing::Color DisabledText()
+        {
+            return System::Drawing::Color::FromArgb(148, 163, 184);
         }
 
         static System::Drawing::Color Selection()
@@ -185,12 +286,13 @@ namespace SchoolCore
             button->FlatStyle =
                 System::Windows::Forms::FlatStyle::Flat;
 
-            button->BackColor = Accent();
-            button->ForeColor = System::Drawing::Color::White;
-            button->FlatAppearance->BorderSize = 0;
             button->FlatAppearance->MouseOverBackColor = AccentHover();
             button->FlatAppearance->MouseDownBackColor = AccentHover();
             button->Cursor = System::Windows::Forms::Cursors::Hand;
+
+            RememberRole(button, L"ThemePrimary");
+            WatchButton(button);
+            ApplyButtonState(button);
         }
 
         static void StyleDangerButton(System::Windows::Forms::Button^ button)
@@ -198,12 +300,13 @@ namespace SchoolCore
             button->FlatStyle =
                 System::Windows::Forms::FlatStyle::Flat;
 
-            button->BackColor = Danger();
-            button->ForeColor = System::Drawing::Color::White;
-            button->FlatAppearance->BorderSize = 0;
             button->FlatAppearance->MouseOverBackColor = Darken(Danger());
             button->FlatAppearance->MouseDownBackColor = Darken(Danger());
             button->Cursor = System::Windows::Forms::Cursors::Hand;
+
+            RememberRole(button, L"ThemeDanger");
+            WatchButton(button);
+            ApplyButtonState(button);
         }
 
         static void StyleSecondaryButton(System::Windows::Forms::Button^ button)
@@ -211,13 +314,13 @@ namespace SchoolCore
             button->FlatStyle =
                 System::Windows::Forms::FlatStyle::Flat;
 
-            button->BackColor = Surface();
-            button->ForeColor = Ink();
-            button->FlatAppearance->BorderSize = 1;
-            button->FlatAppearance->BorderColor = Border();
-            button->FlatAppearance->MouseOverBackColor = HeaderFill();
-            button->FlatAppearance->MouseDownBackColor = Divider();
+            button->FlatAppearance->MouseOverBackColor = Border();
+            button->FlatAppearance->MouseDownBackColor = BorderStrong();
             button->Cursor = System::Windows::Forms::Cursors::Hand;
+
+            RememberRole(button, L"ThemeSecondary");
+            WatchButton(button);
+            ApplyButtonState(button);
         }
 
         static void StyleGrid(System::Windows::Forms::DataGridView^ grid)
@@ -251,6 +354,16 @@ namespace SchoolCore
             grid->DefaultCellStyle->ForeColor = Ink();
             grid->DefaultCellStyle->SelectionBackColor = Selection();
             grid->DefaultCellStyle->SelectionForeColor = Ink();
+
+            grid->ColumnHeadersHeightSizeMode =
+                System::Windows::Forms::DataGridViewColumnHeadersHeightSizeMode::DisableResizing;
+            grid->ColumnHeadersHeight = 40;
+            grid->RowTemplate->Height = 34;
+
+            grid->ColumnHeadersDefaultCellStyle->Padding =
+                System::Windows::Forms::Padding(8, 0, 8, 0);
+            grid->DefaultCellStyle->Padding =
+                System::Windows::Forms::Padding(8, 0, 8, 0);
 
             grid->AlternatingRowsDefaultCellStyle->BackColor = Canvas();
             grid->AlternatingRowsDefaultCellStyle->ForeColor = Ink();
