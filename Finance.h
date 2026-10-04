@@ -72,6 +72,52 @@ namespace SchoolCore
         }
     };
 
+    private ref class FinanceFeeStructureItem sealed
+    {
+    public:
+        int Id;
+        String^ FeeName;
+        String^ AcademicYear;
+        String^ Term;
+        String^ ClassName;
+        String^ StreamName;
+        Decimal Amount;
+        String^ DueDate;
+
+        FinanceFeeStructureItem(
+            int id,
+            String^ feeName,
+            String^ academicYear,
+            String^ term,
+            String^ className,
+            String^ streamName,
+            Decimal amount,
+            String^ dueDate)
+            : Id(id),
+              FeeName(feeName),
+              AcademicYear(academicYear),
+              Term(term),
+              ClassName(className),
+              StreamName(streamName),
+              Amount(amount),
+              DueDate(dueDate)
+        {
+        }
+
+        virtual String^ ToString() override
+        {
+            return FeeName +
+                L" | " + AcademicYear +
+                L" | " + Term +
+                L" | " + ClassName +
+                L" | " + StreamName +
+                L" | UGX " +
+                Amount.ToString(
+                    L"N2",
+                    Globalization::CultureInfo::InvariantCulture);
+        }
+    };
+
     private ref class FinanceChargeItem sealed
     {
     public:
@@ -138,6 +184,25 @@ namespace SchoolCore
         Label^ paymentBalanceLabel;
         Label^ paymentStudentInfoLabel;
         Button^ paymentSaveButton;
+
+        Form^ feeStructuresForm;
+        DataGridView^ feeStructuresGrid;
+        Label^ feeStructuresSummaryLabel;
+
+        Form^ feeStructureEditorForm;
+        ComboBox^ feeStructureYearBox;
+        ComboBox^ feeStructureTermBox;
+        ComboBox^ feeStructureClassBox;
+        ComboBox^ feeStructureStreamBox;
+        TextBox^ feeStructureNameBox;
+        TextBox^ feeStructureAmountBox;
+        DateTimePicker^ feeStructureDueDatePicker;
+        TextBox^ feeStructureDescriptionBox;
+
+        Form^ studentChargesForm;
+        DataGridView^ studentChargesGrid;
+        ComboBox^ studentChargesStructureBox;
+        Label^ studentChargesSummaryLabel;
 
         Form^ paymentHistoryForm;
         DataGridView^ paymentHistoryGrid;
@@ -2447,6 +2512,1128 @@ namespace SchoolCore
             paymentHistoryViewButton = nullptr;
         }
 
+        FinanceLookupItem^ CreateLookupItem(int id, String^ name)
+        {
+            return gcnew FinanceLookupItem(id, name);
+        }
+
+        void LoadFeeStructureYears()
+        {
+            feeStructureYearBox->Items->Clear();
+
+            try
+            {
+                auto con = DbConnection::GetConnection();
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT academic_year_id, year_name "
+                        "FROM academic_years "
+                        "ORDER BY start_date DESC, academic_year_id DESC"
+                    )
+                );
+                std::unique_ptr<sql::ResultSet> result(stmt->executeQuery());
+
+                while (result->next())
+                {
+                    feeStructureYearBox->Items->Add(
+                        gcnew FinanceLookupItem(
+                            result->getInt("academic_year_id"),
+                            gcnew String(result->getString("year_name").c_str())
+                        )
+                    );
+                }
+
+                if (feeStructureYearBox->Items->Count > 0)
+                    feeStructureYearBox->SelectedIndex = 0;
+            }
+            catch (sql::SQLException& ex)
+            {
+                MessageBox::Show(
+                    feeStructureEditorForm,
+                    gcnew String(ex.what()),
+                    L"Unable to Load Academic Years",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+        }
+
+        void FeeStructureYearChanged(Object^ sender, EventArgs^ e)
+        {
+            FinanceLookupItem^ year =
+                dynamic_cast<FinanceLookupItem^>(
+                    feeStructureYearBox->SelectedItem
+                );
+
+            feeStructureTermBox->Items->Clear();
+
+            if (year == nullptr || year->Id <= 0)
+                return;
+
+            try
+            {
+                auto con = DbConnection::GetConnection();
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT term_id, term_name "
+                        "FROM terms "
+                        "WHERE academic_year_id = ? "
+                        "ORDER BY term_id"
+                    )
+                );
+                stmt->setInt(1, year->Id);
+
+                std::unique_ptr<sql::ResultSet> result(stmt->executeQuery());
+
+                while (result->next())
+                {
+                    feeStructureTermBox->Items->Add(
+                        gcnew FinanceLookupItem(
+                            result->getInt("term_id"),
+                            gcnew String(result->getString("term_name").c_str())
+                        )
+                    );
+                }
+
+                if (feeStructureTermBox->Items->Count > 0)
+                    feeStructureTermBox->SelectedIndex = 0;
+            }
+            catch (sql::SQLException& ex)
+            {
+                MessageBox::Show(
+                    feeStructureEditorForm,
+                    gcnew String(ex.what()),
+                    L"Unable to Load Terms",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+        }
+
+        void LoadFeeStructureClasses()
+        {
+            feeStructureClassBox->Items->Clear();
+
+            try
+            {
+                auto con = DbConnection::GetConnection();
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT class_id, class_name "
+                        "FROM classes "
+                        "ORDER BY class_name"
+                    )
+                );
+                std::unique_ptr<sql::ResultSet> result(stmt->executeQuery());
+
+                while (result->next())
+                {
+                    feeStructureClassBox->Items->Add(
+                        gcnew FinanceLookupItem(
+                            result->getInt("class_id"),
+                            gcnew String(result->getString("class_name").c_str())
+                        )
+                    );
+                }
+
+                if (feeStructureClassBox->Items->Count > 0)
+                    feeStructureClassBox->SelectedIndex = 0;
+            }
+            catch (sql::SQLException& ex)
+            {
+                MessageBox::Show(
+                    feeStructureEditorForm,
+                    gcnew String(ex.what()),
+                    L"Unable to Load Classes",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+        }
+
+        void FeeStructureClassChanged(Object^ sender, EventArgs^ e)
+        {
+            feeStructureStreamBox->Items->Clear();
+            feeStructureStreamBox->Items->Add(
+                gcnew FinanceLookupItem(0, L"All Streams")
+            );
+
+            FinanceLookupItem^ classItem =
+                dynamic_cast<FinanceLookupItem^>(
+                    feeStructureClassBox->SelectedItem
+                );
+
+            if (classItem == nullptr || classItem->Id <= 0)
+            {
+                feeStructureStreamBox->SelectedIndex = 0;
+                return;
+            }
+
+            try
+            {
+                auto con = DbConnection::GetConnection();
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT stream_id, stream_name "
+                        "FROM streams "
+                        "WHERE class_id = ? "
+                        "ORDER BY stream_name"
+                    )
+                );
+                stmt->setInt(1, classItem->Id);
+
+                std::unique_ptr<sql::ResultSet> result(stmt->executeQuery());
+
+                while (result->next())
+                {
+                    feeStructureStreamBox->Items->Add(
+                        gcnew FinanceLookupItem(
+                            result->getInt("stream_id"),
+                            gcnew String(result->getString("stream_name").c_str())
+                        )
+                    );
+                }
+
+                feeStructureStreamBox->SelectedIndex = 0;
+            }
+            catch (sql::SQLException& ex)
+            {
+                MessageBox::Show(
+                    feeStructureEditorForm,
+                    gcnew String(ex.what()),
+                    L"Unable to Load Streams",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+        }
+
+        void SaveFeeStructure(Object^ sender, EventArgs^ e)
+        {
+            FinanceLookupItem^ year =
+                dynamic_cast<FinanceLookupItem^>(feeStructureYearBox->SelectedItem);
+            FinanceLookupItem^ term =
+                dynamic_cast<FinanceLookupItem^>(feeStructureTermBox->SelectedItem);
+            FinanceLookupItem^ classItem =
+                dynamic_cast<FinanceLookupItem^>(feeStructureClassBox->SelectedItem);
+            FinanceLookupItem^ streamItem =
+                dynamic_cast<FinanceLookupItem^>(feeStructureStreamBox->SelectedItem);
+
+            String^ feeName = feeStructureNameBox->Text->Trim();
+            Decimal amount;
+
+            if (year == nullptr || term == nullptr || classItem == nullptr)
+            {
+                MessageBox::Show(
+                    feeStructureEditorForm,
+                    L"Select the academic year, term and class.",
+                    L"Fee Structure",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+                return;
+            }
+
+            if (String::IsNullOrWhiteSpace(feeName))
+            {
+                MessageBox::Show(
+                    feeStructureEditorForm,
+                    L"Enter the fee name.",
+                    L"Fee Structure",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+                return;
+            }
+
+            try
+            {
+                amount =
+                    Decimal::Parse(
+                        feeStructureAmountBox->Text->Trim(),
+                        Globalization::NumberStyles::Number,
+                        Globalization::CultureInfo::InvariantCulture
+                    );
+            }
+            catch (Exception^)
+            {
+                MessageBox::Show(
+                    feeStructureEditorForm,
+                    L"Enter a valid fee amount.",
+                    L"Fee Structure",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+                return;
+            }
+
+            if (amount <= Decimal(0))
+            {
+                MessageBox::Show(
+                    feeStructureEditorForm,
+                    L"Fee amount must be greater than zero.",
+                    L"Fee Structure",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+                return;
+            }
+
+            try
+            {
+                auto con = DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "INSERT INTO fee_structures "
+                        "(academic_year_id, term_id, class_id, stream_id, "
+                        "fee_name, amount, due_date, description, status) "
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Active')"
+                    )
+                );
+
+                stmt->setInt(1, year->Id);
+                stmt->setInt(2, term->Id);
+                stmt->setInt(3, classItem->Id);
+
+                if (streamItem != nullptr && streamItem->Id > 0)
+                    stmt->setInt(4, streamItem->Id);
+                else
+                    stmt->setNull(4, sql::DataType::INTEGER);
+
+                stmt->setString(
+                    5,
+                    msclr::interop::marshal_as<std::string>(feeName)
+                );
+                stmt->setDouble(6, Convert::ToDouble(amount));
+                stmt->setString(
+                    7,
+                    msclr::interop::marshal_as<std::string>(
+                        feeStructureDueDatePicker->Value.ToString(L"yyyy-MM-dd")
+                    )
+                );
+                stmt->setString(
+                    8,
+                    msclr::interop::marshal_as<std::string>(
+                        feeStructureDescriptionBox->Text->Trim()
+                    )
+                );
+
+                stmt->execute();
+
+                feeStructureEditorForm->DialogResult =
+                    System::Windows::Forms::DialogResult::OK;
+            }
+            catch (sql::SQLException& ex)
+            {
+                MessageBox::Show(
+                    feeStructureEditorForm,
+                    gcnew String(ex.what()),
+                    L"Unable to Save Fee Structure",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+        }
+
+        void ShowAddFeeStructureDialog()
+        {
+            feeStructureEditorForm = gcnew Form();
+            feeStructureEditorForm->Text = L"SchoolCore - Add Fee Structure";
+            feeStructureEditorForm->StartPosition = FormStartPosition::CenterParent;
+            feeStructureEditorForm->FormBorderStyle =
+                System::Windows::Forms::FormBorderStyle::FixedDialog;
+            feeStructureEditorForm->MaximizeBox = false;
+            feeStructureEditorForm->MinimizeBox = false;
+            feeStructureEditorForm->ShowInTaskbar = false;
+            feeStructureEditorForm->ClientSize = Drawing::Size(640, 470);
+            feeStructureEditorForm->BackColor = ThemeManager::Canvas();
+
+            TableLayoutPanel^ root = gcnew TableLayoutPanel();
+            root->Dock = DockStyle::Fill;
+            root->Padding = System::Windows::Forms::Padding(20);
+            root->ColumnCount = 2;
+            root->RowCount = 8;
+            root->ColumnStyles->Add(gcnew ColumnStyle(SizeType::Absolute, 150.0F));
+            root->ColumnStyles->Add(gcnew ColumnStyle(SizeType::Percent, 100.0F));
+
+            for (int i = 0; i < 8; ++i)
+                root->RowStyles->Add(gcnew RowStyle(SizeType::Absolute, i == 6 ? 70.0F : 42.0F));
+
+            feeStructureYearBox = gcnew ComboBox();
+            feeStructureTermBox = gcnew ComboBox();
+            feeStructureClassBox = gcnew ComboBox();
+            feeStructureStreamBox = gcnew ComboBox();
+
+            feeStructureYearBox->Dock = DockStyle::Fill;
+            feeStructureTermBox->Dock = DockStyle::Fill;
+            feeStructureClassBox->Dock = DockStyle::Fill;
+            feeStructureStreamBox->Dock = DockStyle::Fill;
+
+            feeStructureNameBox = gcnew TextBox();
+            feeStructureAmountBox = gcnew TextBox();
+            feeStructureDescriptionBox = gcnew TextBox();
+
+            feeStructureNameBox->Dock = DockStyle::Fill;
+            feeStructureAmountBox->Dock = DockStyle::Fill;
+            feeStructureDescriptionBox->Dock = DockStyle::Fill;
+            feeStructureDescriptionBox->Multiline = true;
+
+            feeStructureDueDatePicker = gcnew DateTimePicker();
+            feeStructureDueDatePicker->Dock = DockStyle::Fill;
+            feeStructureDueDatePicker->Format = DateTimePickerFormat::Short;
+            feeStructureDueDatePicker->Value = DateTime::Today.AddDays(30);
+
+            array<String^>^ labels = gcnew array<String^>
+            {
+                L"Academic Year",
+                L"Term",
+                L"Class",
+                L"Stream",
+                L"Fee Name",
+                L"Amount (UGX)",
+                L"Due Date",
+                L"Description"
+            };
+
+            array<Control^>^ inputs = gcnew array<Control^>
+            {
+                feeStructureYearBox,
+                feeStructureTermBox,
+                feeStructureClassBox,
+                feeStructureStreamBox,
+                feeStructureNameBox,
+                feeStructureAmountBox,
+                feeStructureDueDatePicker,
+                feeStructureDescriptionBox
+            };
+
+            for (int i = 0; i < labels->Length; ++i)
+            {
+                root->Controls->Add(CreateFieldLabel(labels[i]), 0, i);
+                root->Controls->Add(inputs[i], 1, i);
+            }
+
+            FlowLayoutPanel^ footer = gcnew FlowLayoutPanel();
+            footer->Dock = DockStyle::Bottom;
+            footer->Height = 46;
+            footer->FlowDirection = FlowDirection::RightToLeft;
+            footer->WrapContents = false;
+
+            Button^ cancel = gcnew Button();
+            cancel->Text = L"Cancel";
+            cancel->Width = 100;
+            cancel->DialogResult =
+                System::Windows::Forms::DialogResult::Cancel;
+
+            Button^ save = gcnew Button();
+            save->Text = L"Save Structure";
+            save->Width = 130;
+            save->Click += gcnew EventHandler(
+                this,
+                &Finance::SaveFeeStructure
+            );
+
+            footer->Controls->Add(cancel);
+            footer->Controls->Add(save);
+
+            feeStructureYearBox->SelectedIndexChanged +=
+                gcnew EventHandler(
+                    this,
+                    &Finance::FeeStructureYearChanged
+                );
+
+            feeStructureClassBox->SelectedIndexChanged +=
+                gcnew EventHandler(
+                    this,
+                    &Finance::FeeStructureClassChanged
+                );
+
+            feeStructureEditorForm->Controls->Add(root);
+            feeStructureEditorForm->Controls->Add(footer);
+
+            feeStructureEditorForm->AcceptButton = save;
+            feeStructureEditorForm->CancelButton = cancel;
+
+            ThemeManager::ApplyToForm(feeStructureEditorForm);
+
+            LoadFeeStructureYears();
+            LoadFeeStructureClasses();
+
+            feeStructureEditorForm->ShowDialog(this);
+
+            delete feeStructureEditorForm;
+            feeStructureEditorForm = nullptr;
+        }
+
+        void LoadFeeStructures()
+        {
+            if (feeStructuresGrid == nullptr)
+                return;
+
+            feeStructuresGrid->Rows->Clear();
+
+            try
+            {
+                auto con = DbConnection::GetConnection();
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT fs.fee_structure_id, ay.year_name, t.term_name, "
+                        "c.class_name, COALESCE(st.stream_name, 'All Streams') AS stream_name, "
+                        "fs.fee_name, fs.amount, fs.due_date, fs.status "
+                        "FROM fee_structures fs "
+                        "INNER JOIN academic_years ay ON ay.academic_year_id = fs.academic_year_id "
+                        "INNER JOIN terms t ON t.term_id = fs.term_id "
+                        "INNER JOIN classes c ON c.class_id = fs.class_id "
+                        "LEFT JOIN streams st ON st.stream_id = fs.stream_id "
+                        "ORDER BY ay.start_date DESC, t.term_id, c.class_name, fs.fee_name"
+                    )
+                );
+
+                std::unique_ptr<sql::ResultSet> result(stmt->executeQuery());
+                int count = 0;
+
+                while (result->next())
+                {
+                    Decimal amount =
+                        Decimal::Parse(
+                            gcnew String(result->getString("amount").c_str()),
+                            Globalization::CultureInfo::InvariantCulture
+                        );
+
+                    feeStructuresGrid->Rows->Add(
+                        result->getInt("fee_structure_id"),
+                        gcnew String(result->getString("year_name").c_str()),
+                        gcnew String(result->getString("term_name").c_str()),
+                        gcnew String(result->getString("class_name").c_str()),
+                        gcnew String(result->getString("stream_name").c_str()),
+                        gcnew String(result->getString("fee_name").c_str()),
+                        amount.ToString(L"N2", Globalization::CultureInfo::InvariantCulture),
+                        gcnew String(result->getString("due_date").c_str()),
+                        gcnew String(result->getString("status").c_str())
+                    );
+                    ++count;
+                }
+
+                feeStructuresSummaryLabel->Text =
+                    count.ToString() + L" fee structure(s)";
+            }
+            catch (sql::SQLException& ex)
+            {
+                feeStructuresSummaryLabel->Text = L"Unable to load fee structures.";
+                MessageBox::Show(
+                    feeStructuresForm,
+                    gcnew String(ex.what()),
+                    L"Fee Structures",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+        }
+
+        void DeactivateFeeStructure(Object^ sender, EventArgs^ e)
+        {
+            if (feeStructuresGrid == nullptr ||
+                feeStructuresGrid->SelectedRows->Count == 0)
+                return;
+
+            int structureId =
+                Convert::ToInt32(
+                    feeStructuresGrid->SelectedRows[0]->Cells[0]->Value
+                );
+
+            if (MessageBox::Show(
+                    feeStructuresForm,
+                    L"Deactivate the selected fee structure?",
+                    L"Fee Structures",
+                    MessageBoxButtons::YesNo,
+                    MessageBoxIcon::Question
+                ) != DialogResult::Yes)
+                return;
+
+            try
+            {
+                auto con = DbConnection::GetConnection();
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "UPDATE fee_structures "
+                        "SET status = 'Inactive' "
+                        "WHERE fee_structure_id = ?"
+                    )
+                );
+                stmt->setInt(1, structureId);
+                stmt->execute();
+
+                LoadFeeStructures();
+            }
+            catch (sql::SQLException& ex)
+            {
+                MessageBox::Show(
+                    feeStructuresForm,
+                    gcnew String(ex.what()),
+                    L"Unable to Deactivate Fee Structure",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+        }
+
+        void AddFeeStructureClick(Object^ sender, EventArgs^ e)
+        {
+            ShowAddFeeStructureDialog();
+            LoadFeeStructures();
+        }
+
+        void OpenFeeStructuresDialog()
+        {
+            feeStructuresForm = gcnew Form();
+            feeStructuresForm->Text = L"SchoolCore - Fee Structures";
+            feeStructuresForm->StartPosition = FormStartPosition::CenterParent;
+            feeStructuresForm->ClientSize = Drawing::Size(1000, 620);
+            feeStructuresForm->MinimumSize = Drawing::Size(900, 560);
+            feeStructuresForm->BackColor = ThemeManager::Canvas();
+            feeStructuresForm->ShowInTaskbar = false;
+
+            TableLayoutPanel^ root = gcnew TableLayoutPanel();
+            root->Dock = DockStyle::Fill;
+            root->Padding = System::Windows::Forms::Padding(20);
+            root->ColumnCount = 1;
+            root->RowCount = 4;
+            root->RowStyles->Add(gcnew RowStyle(SizeType::Absolute, 46.0F));
+            root->RowStyles->Add(gcnew RowStyle(SizeType::Absolute, 48.0F));
+            root->RowStyles->Add(gcnew RowStyle(SizeType::Percent, 100.0F));
+            root->RowStyles->Add(gcnew RowStyle(SizeType::Absolute, 54.0F));
+
+            Label^ title = CreateLabel(
+                L"Fee Structures",
+                FinanceTheme::Dialog,
+                FinanceTheme::TextStrong
+            );
+            title->Dock = DockStyle::Fill;
+            title->TextAlign = ContentAlignment::MiddleLeft;
+
+            FlowLayoutPanel^ toolbar = gcnew FlowLayoutPanel();
+            toolbar->Dock = DockStyle::Fill;
+            toolbar->WrapContents = false;
+            toolbar->FlowDirection = FlowDirection::LeftToRight;
+
+            Button^ add = gcnew Button();
+            add->Text = L"Add Fee Structure";
+            add->Width = 145;
+            add->Click += gcnew EventHandler(
+                this,
+                &Finance::AddFeeStructureClick
+            );
+
+            Button^ deactivate = gcnew Button();
+            deactivate->Text = L"Deactivate";
+            deactivate->Width = 105;
+            deactivate->Click += gcnew EventHandler(
+                this,
+                &Finance::DeactivateFeeStructure
+            );
+
+            toolbar->Controls->Add(add);
+            toolbar->Controls->Add(deactivate);
+
+            feeStructuresSummaryLabel =
+                CreateLabel(
+                    L"0 fee structure(s)",
+                    FinanceTheme::Small,
+                    FinanceTheme::TextMuted
+                );
+            feeStructuresSummaryLabel->Dock = DockStyle::Fill;
+
+            feeStructuresGrid = gcnew DataGridView();
+            feeStructuresGrid->Dock = DockStyle::Fill;
+            feeStructuresGrid->ReadOnly = true;
+            feeStructuresGrid->AllowUserToAddRows = false;
+            feeStructuresGrid->AllowUserToDeleteRows = false;
+            feeStructuresGrid->MultiSelect = false;
+            feeStructuresGrid->SelectionMode = DataGridViewSelectionMode::FullRowSelect;
+            feeStructuresGrid->AutoGenerateColumns = false;
+            feeStructuresGrid->RowHeadersVisible = false;
+
+            array<String^>^ headers = gcnew array<String^>
+            {
+                L"ID", L"Academic Year", L"Term", L"Class", L"Stream",
+                L"Fee", L"Amount (UGX)", L"Due Date", L"Status"
+            };
+
+            array<int>^ widths = gcnew array<int>
+            {
+                55, 105, 90, 90, 100, 160, 115, 100, 85
+            };
+
+            for (int i = 0; i < headers->Length; ++i)
+            {
+                DataGridViewTextBoxColumn^ col =
+                    gcnew DataGridViewTextBoxColumn();
+                col->HeaderText = headers[i];
+                col->Name = L"Col" + i.ToString();
+                col->Width = widths[i];
+                feeStructuresGrid->Columns->Add(col);
+            }
+
+            Button^ close = gcnew Button();
+            close->Text = L"Close";
+            close->Width = 100;
+            close->DialogResult =
+                System::Windows::Forms::DialogResult::Cancel;
+
+            root->Controls->Add(title, 0, 0);
+            root->Controls->Add(toolbar, 0, 1);
+            root->Controls->Add(feeStructuresGrid, 0, 2);
+            root->Controls->Add(feeStructuresSummaryLabel, 0, 3);
+
+            feeStructuresForm->Controls->Add(root);
+            feeStructuresForm->Controls->Add(close);
+
+            close->Anchor = AnchorStyles::Top | AnchorStyles::Right;
+            close->Location = Drawing::Point(870, 12);
+
+            feeStructuresForm->CancelButton = close;
+
+            ThemeManager::ApplyToForm(feeStructuresForm);
+            LoadFeeStructures();
+
+            feeStructuresForm->ShowDialog(this);
+
+            delete feeStructuresForm;
+            feeStructuresForm = nullptr;
+            feeStructuresGrid = nullptr;
+            feeStructuresSummaryLabel = nullptr;
+        }
+
+        void LoadStudentChargeStructures()
+        {
+            studentChargesStructureBox->Items->Clear();
+            studentChargesStructureBox->Items->Add(
+                gcnew FinanceFeeStructureItem(
+                    0, L"Select fee structure", L"", L"", L"", L"",
+                    Decimal(0), L""
+                )
+            );
+
+            try
+            {
+                auto con = DbConnection::GetConnection();
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT fs.fee_structure_id, fs.fee_name, ay.year_name, "
+                        "t.term_name, c.class_name, COALESCE(st.stream_name, 'All Streams') AS stream_name, "
+                        "fs.amount, fs.due_date "
+                        "FROM fee_structures fs "
+                        "INNER JOIN academic_years ay ON ay.academic_year_id = fs.academic_year_id "
+                        "INNER JOIN terms t ON t.term_id = fs.term_id "
+                        "INNER JOIN classes c ON c.class_id = fs.class_id "
+                        "LEFT JOIN streams st ON st.stream_id = fs.stream_id "
+                        "WHERE fs.status = 'Active' "
+                        "ORDER BY ay.start_date DESC, t.term_id, c.class_name, fs.fee_name"
+                    )
+                );
+
+                std::unique_ptr<sql::ResultSet> result(stmt->executeQuery());
+
+                while (result->next())
+                {
+                    Decimal amount =
+                        Decimal::Parse(
+                            gcnew String(result->getString("amount").c_str()),
+                            Globalization::CultureInfo::InvariantCulture
+                        );
+
+                    studentChargesStructureBox->Items->Add(
+                        gcnew FinanceFeeStructureItem(
+                            result->getInt("fee_structure_id"),
+                            gcnew String(result->getString("fee_name").c_str()),
+                            gcnew String(result->getString("year_name").c_str()),
+                            gcnew String(result->getString("term_name").c_str()),
+                            gcnew String(result->getString("class_name").c_str()),
+                            gcnew String(result->getString("stream_name").c_str()),
+                            amount,
+                            gcnew String(result->getString("due_date").c_str())
+                        )
+                    );
+                }
+
+                studentChargesStructureBox->SelectedIndex = 0;
+            }
+            catch (sql::SQLException& ex)
+            {
+                MessageBox::Show(
+                    studentChargesForm,
+                    gcnew String(ex.what()),
+                    L"Unable to Load Fee Structures",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+        }
+
+        void LoadStudentCharges()
+        {
+            if (studentChargesGrid == nullptr)
+                return;
+
+            studentChargesGrid->Rows->Clear();
+
+            try
+            {
+                auto con = DbConnection::GetConnection();
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT fc.fee_charge_id, s.registration_number, "
+                        "CONCAT_WS(' ', s.first_name, s.middle_name, s.last_name) AS student_name, "
+                        "fs.fee_name, ay.year_name, t.term_name, c.class_name, "
+                        "COALESCE(st.stream_name, 'All Streams') AS stream_name, "
+                        "fc.amount, fc.due_date, fc.status, "
+                        "COALESCE(SUM(pa.amount), 0) AS paid, "
+                        "fc.amount - COALESCE(SUM(pa.amount), 0) AS balance "
+                        "FROM fee_charges fc "
+                        "INNER JOIN students s ON s.student_id = fc.student_id "
+                        "INNER JOIN fee_structures fs ON fs.fee_structure_id = fc.fee_structure_id "
+                        "INNER JOIN academic_years ay ON ay.academic_year_id = fs.academic_year_id "
+                        "INNER JOIN terms t ON t.term_id = fs.term_id "
+                        "INNER JOIN classes c ON c.class_id = fs.class_id "
+                        "LEFT JOIN streams st ON st.stream_id = fs.stream_id "
+                        "LEFT JOIN payment_allocations pa ON pa.fee_charge_id = fc.fee_charge_id "
+                        "GROUP BY fc.fee_charge_id, s.registration_number, s.first_name, s.middle_name, "
+                        "s.last_name, fs.fee_name, ay.year_name, t.term_name, c.class_name, "
+                        "st.stream_name, fc.amount, fc.due_date, fc.status "
+                        "ORDER BY fc.fee_charge_id DESC"
+                    )
+                );
+
+                std::unique_ptr<sql::ResultSet> result(stmt->executeQuery());
+                Decimal total = Decimal(0);
+                Decimal outstanding = Decimal(0);
+                int count = 0;
+
+                while (result->next())
+                {
+                    Decimal amount = Decimal::Parse(
+                        gcnew String(result->getString("amount").c_str()),
+                        Globalization::CultureInfo::InvariantCulture
+                    );
+                    Decimal balance = Decimal::Parse(
+                        gcnew String(result->getString("balance").c_str()),
+                        Globalization::CultureInfo::InvariantCulture
+                    );
+
+                    studentChargesGrid->Rows->Add(
+                        result->getInt("fee_charge_id"),
+                        gcnew String(result->getString("registration_number").c_str()),
+                        gcnew String(result->getString("student_name").c_str()),
+                        gcnew String(result->getString("fee_name").c_str()),
+                        gcnew String(result->getString("year_name").c_str()),
+                        gcnew String(result->getString("term_name").c_str()),
+                        gcnew String(result->getString("class_name").c_str()),
+                        gcnew String(result->getString("stream_name").c_str()),
+                        amount.ToString(L"N2", Globalization::CultureInfo::InvariantCulture),
+                        gcnew String(result->getString("due_date").c_str()),
+                        gcnew String(result->getString("status").c_str()),
+                        balance.ToString(L"N2", Globalization::CultureInfo::InvariantCulture)
+                    );
+
+                    total += amount;
+                    outstanding += balance;
+                    ++count;
+                }
+
+                studentChargesSummaryLabel->Text =
+                    count.ToString() +
+                    L" charge(s)  |  Total: UGX " +
+                    total.ToString(L"N2", Globalization::CultureInfo::InvariantCulture) +
+                    L"  |  Outstanding: UGX " +
+                    outstanding.ToString(L"N2", Globalization::CultureInfo.InvariantCulture);
+            }
+            catch (sql::SQLException& ex)
+            {
+                studentChargesSummaryLabel->Text =
+                    L"Unable to load student charges.";
+                MessageBox::Show(
+                    studentChargesForm,
+                    gcnew String(ex.what()),
+                    L"Student Charges",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+        }
+
+        void GenerateStudentCharges(Object^ sender, EventArgs^ e)
+        {
+            FinanceFeeStructureItem^ structure =
+                dynamic_cast<FinanceFeeStructureItem^>(
+                    studentChargesStructureBox->SelectedItem
+                );
+
+            if (structure == nullptr || structure->Id <= 0)
+            {
+                MessageBox::Show(
+                    studentChargesForm,
+                    L"First create and select a fee structure.",
+                    L"Student Charges",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+                return;
+            }
+
+            try
+            {
+                auto con = DbConnection::GetConnection();
+                con->setAutoCommit(false);
+
+                std::unique_ptr<sql::PreparedStatement> getStructure(
+                    con->prepareStatement(
+                        "SELECT academic_year_id, term_id, class_id, stream_id, amount, due_date "
+                        "FROM fee_structures "
+                        "WHERE fee_structure_id = ? AND status = 'Active' "
+                        "FOR UPDATE"
+                    )
+                );
+                getStructure->setInt(1, structure->Id);
+
+                std::unique_ptr<sql::ResultSet> sr(getStructure->executeQuery());
+
+                if (!sr->next())
+                    throw gcnew Exception(L"The selected fee structure is not active or no longer exists.");
+
+                int academicYearId = sr->getInt("academic_year_id");
+                int termId = sr->getInt("term_id");
+                int classId = sr->getInt("class_id");
+                int streamId = sr->getInt("stream_id");
+
+                Decimal amount = Decimal::Parse(
+                    gcnew String(sr->getString("amount").c_str()),
+                    Globalization::CultureInfo::InvariantCulture
+                );
+
+                String^ dueDate =
+                    gcnew String(sr->getString("due_date").c_str());
+
+                String^ sqlText;
+
+                if (sr->isNull("stream_id"))
+                {
+                    sqlText =
+                        L"INSERT INTO fee_charges "
+                        L"(student_id, fee_structure_id, amount, due_date, status) "
+                        L"SELECT e.student_id, ?, ?, ?, 'Pending' "
+                        L"FROM enrollments e "
+                        L"WHERE e.academic_year_id = ? "
+                        L"AND e.term_id = ? "
+                        L"AND e.class_id = ? "
+                        L"AND e.status = 'Active' "
+                        L"AND NOT EXISTS ("
+                        L"    SELECT 1 FROM fee_charges fc "
+                        L"    WHERE fc.student_id = e.student_id "
+                        L"    AND fc.fee_structure_id = ?"
+                        L")";
+                }
+                else
+                {
+                    sqlText =
+                        L"INSERT INTO fee_charges "
+                        L"(student_id, fee_structure_id, amount, due_date, status) "
+                        L"SELECT e.student_id, ?, ?, ?, 'Pending' "
+                        L"FROM enrollments e "
+                        L"WHERE e.academic_year_id = ? "
+                        L"AND e.term_id = ? "
+                        L"AND e.class_id = ? "
+                        L"AND e.stream_id = ? "
+                        L"AND e.status = 'Active' "
+                        L"AND NOT EXISTS ("
+                        L"    SELECT 1 FROM fee_charges fc "
+                        L"    WHERE fc.student_id = e.student_id "
+                        L"    AND fc.fee_structure_id = ?"
+                        L")";
+                }
+
+                std::unique_ptr<sql::PreparedStatement> insertCharges(
+                    con->prepareStatement(
+                        msclr::interop::marshal_as<std::string>(sqlText)
+                    )
+                );
+
+                int p = 1;
+                insertCharges->setInt(p++, structure->Id);
+                insertCharges->setDouble(p++, Convert::ToDouble(amount));
+                insertCharges->setString(
+                    p++,
+                    msclr::interop::marshal_as<std::string>(dueDate)
+                );
+                insertCharges->setInt(p++, academicYearId);
+                insertCharges->setInt(p++, termId);
+                insertCharges->setInt(p++, classId);
+
+                if (!sr->isNull("stream_id"))
+                    insertCharges->setInt(p++, streamId);
+
+                insertCharges->setInt(p++, structure->Id);
+
+                int created = insertCharges->executeUpdate();
+
+                con->commit();
+                con->setAutoCommit(true);
+
+                LoadStudentCharges();
+
+                MessageBox::Show(
+                    studentChargesForm,
+                    created.ToString() +
+                    L" student charge(s) generated from the selected fee structure.",
+                    L"Student Charges",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Information
+                );
+            }
+            catch (sql::SQLException& ex)
+            {
+                MessageBox::Show(
+                    studentChargesForm,
+                    gcnew String(ex.what()),
+                    L"Unable to Generate Student Charges",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+            catch (Exception^ ex)
+            {
+                MessageBox::Show(
+                    studentChargesForm,
+                    ex->Message,
+                    L"Unable to Generate Student Charges",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+        }
+
+        void OpenStudentChargesDialog()
+        {
+            studentChargesForm = gcnew Form();
+            studentChargesForm->Text = L"SchoolCore - Student Charges";
+            studentChargesForm->StartPosition = FormStartPosition::CenterParent;
+            studentChargesForm->ClientSize = Drawing::Size(1200, 650);
+            studentChargesForm->MinimumSize = Drawing::Size(1000, 560);
+            studentChargesForm->BackColor = ThemeManager::Canvas();
+            studentChargesForm->ShowInTaskbar = false;
+
+            TableLayoutPanel^ root = gcnew TableLayoutPanel();
+            root->Dock = DockStyle::Fill;
+            root->Padding = System::Windows::Forms::Padding(20);
+            root->ColumnCount = 1;
+            root->RowCount = 4;
+            root->RowStyles->Add(gcnew RowStyle(SizeType::Absolute, 46.0F));
+            root->RowStyles->Add(gcnew RowStyle(SizeType::Absolute, 54.0F));
+            root->RowStyles->Add(gcnew RowStyle(SizeType::Percent, 100.0F));
+            root->RowStyles->Add(gcnew RowStyle(SizeType::Absolute, 42.0F));
+
+            Label^ title = CreateLabel(
+                L"Student Charges",
+                FinanceTheme::Dialog,
+                FinanceTheme::TextStrong
+            );
+            title->Dock = DockStyle::Fill;
+            title->TextAlign = ContentAlignment::MiddleLeft;
+
+            TableLayoutPanel^ toolbar = gcnew TableLayoutPanel();
+            toolbar->Dock = DockStyle::Fill;
+            toolbar->ColumnCount = 3;
+            toolbar->ColumnStyles->Add(gcnew ColumnStyle(SizeType::Absolute, 130.0F));
+            toolbar->ColumnStyles->Add(gcnew ColumnStyle(SizeType::Percent, 100.0F));
+            toolbar->ColumnStyles->Add(gcnew ColumnStyle(SizeType::Absolute, 145.0F));
+
+            toolbar->Controls->Add(
+                CreateFieldLabel(L"Fee Structure"),
+                0, 0
+            );
+
+            studentChargesStructureBox = gcnew ComboBox();
+            studentChargesStructureBox->Dock = DockStyle::Fill;
+            studentChargesStructureBox->DropDownStyle =
+                ComboBoxStyle::DropDownList;
+
+            toolbar->Controls->Add(
+                studentChargesStructureBox,
+                1, 0
+            );
+
+            Button^ generate = gcnew Button();
+            generate->Text = L"Generate Charges";
+            generate->Dock = DockStyle::Fill;
+            generate->Click += gcnew EventHandler(
+                this,
+                &Finance::GenerateStudentCharges
+            );
+
+            toolbar->Controls->Add(generate, 2, 0);
+
+            studentChargesGrid = gcnew DataGridView();
+            studentChargesGrid->Dock = DockStyle::Fill;
+            studentChargesGrid->ReadOnly = true;
+            studentChargesGrid->AllowUserToAddRows = false;
+            studentChargesGrid->AllowUserToDeleteRows = false;
+            studentChargesGrid->MultiSelect = false;
+            studentChargesGrid->SelectionMode =
+                DataGridViewSelectionMode::FullRowSelect;
+            studentChargesGrid->AutoGenerateColumns = false;
+            studentChargesGrid->RowHeadersVisible = false;
+
+            array<String^>^ headers = gcnew array<String^>
+            {
+                L"ID", L"Registration", L"Student", L"Fee",
+                L"Year", L"Term", L"Class", L"Stream",
+                L"Amount (UGX)", L"Due Date", L"Status", L"Balance (UGX)"
+            };
+
+            array<int>^ widths = gcnew array<int>
+            {
+                50, 110, 170, 150, 90, 80, 85, 95, 110, 95, 95, 120
+            };
+
+            for (int i = 0; i < headers->Length; ++i)
+            {
+                DataGridViewTextBoxColumn^ col =
+                    gcnew DataGridViewTextBoxColumn();
+                col->HeaderText = headers[i];
+                col->Name = L"Col" + i.ToString();
+                col->Width = widths[i];
+                studentChargesGrid->Columns->Add(col);
+            }
+
+            studentChargesSummaryLabel =
+                CreateLabel(
+                    L"0 charge(s)",
+                    FinanceTheme::Small,
+                    FinanceTheme::TextMuted
+                );
+            studentChargesSummaryLabel->Dock = DockStyle::Fill;
+
+            root->Controls->Add(title, 0, 0);
+            root->Controls->Add(toolbar, 0, 1);
+            root->Controls->Add(studentChargesGrid, 0, 2);
+            root->Controls->Add(studentChargesSummaryLabel, 0, 3);
+
+            studentChargesForm->Controls->Add(root);
+
+            ThemeManager::ApplyToForm(studentChargesForm);
+
+            LoadStudentChargeStructures();
+            LoadStudentCharges();
+
+            studentChargesForm->ShowDialog(this);
+
+            delete studentChargesForm;
+            studentChargesForm = nullptr;
+            studentChargesGrid = nullptr;
+            studentChargesStructureBox = nullptr;
+            studentChargesSummaryLabel = nullptr;
+        }
+
         void SetMetric(int index, Decimal amount)
         {
             if (index < 0 || index >= MetricCount)
@@ -2489,6 +3676,18 @@ namespace SchoolCore
                     L"SchoolCore - Access denied",
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Warning);
+                return;
+            }
+
+            if (operation->Title->Equals(L"Fee Structures"))
+            {
+                OpenFeeStructuresDialog();
+                return;
+            }
+
+            if (operation->Title->Equals(L"Student Charges"))
+            {
+                OpenStudentChargesDialog();
                 return;
             }
 
@@ -2654,7 +3853,7 @@ namespace SchoolCore
                     L"Define and manage school fee structures by academic year, term, class and stream."),
                 gcnew FinanceOperation(
                     L"Student Charges",
-                    L"Review student fee charges, due dates, payment status and outstanding balances."),
+                    L"Generate student charges from fee structures for active enrollments and review balances."),
                 gcnew FinanceOperation(
                     L"Record Payment",
                     L"Record Mobile Money, bank, or online/electronic payments with the provider and transaction reference."),
