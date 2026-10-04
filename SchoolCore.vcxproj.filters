@@ -107,5 +107,8 @@
     <ClInclude Include="GradingEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ResultsManagement.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
