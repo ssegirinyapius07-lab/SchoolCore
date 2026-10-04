@@ -54,6 +54,12 @@ namespace SchoolCore
 					&StudentManagement::btnEditStudent_Click
 				);
 
+			this->btnPromoteStudent->Click +=
+				gcnew System::EventHandler(
+					this,
+					&StudentManagement::btnPromoteStudent_Click
+				);
+
 			this->studentsGrid->CurrentCellDirtyStateChanged +=
 				gcnew System::EventHandler(
 					this,
