@@ -1745,7 +1745,7 @@ namespace SchoolCore
 
 			this->buttonPanel->Padding =
 				System::Windows::Forms::Padding(
-					0, 8, 0, 4
+					0, 4, 0, 4
 				);
 
 
@@ -1757,7 +1757,7 @@ namespace SchoolCore
 				regularFont;
 
 			this->btnViewProfile->Size =
-				System::Drawing::Size(110, 40);
+				System::Drawing::Size(120, 40);
 
 			this->btnViewProfile->Margin =
 				System::Windows::Forms::Padding(
@@ -1773,7 +1773,7 @@ namespace SchoolCore
 				regularFont;
 
 			this->btnEditStudent->Size =
-				System::Drawing::Size(105, 40);
+				System::Drawing::Size(120, 40);
 
 			this->btnEditStudent->Margin =
 				System::Windows::Forms::Padding(
@@ -1789,7 +1789,7 @@ namespace SchoolCore
 				regularFont;
 
 			this->btnPromoteStudent->Size =
-				System::Drawing::Size(125, 40);
+				System::Drawing::Size(130, 40);
 
 			this->btnPromoteStudent->Margin =
 				System::Windows::Forms::Padding(
@@ -1805,7 +1805,7 @@ namespace SchoolCore
 				regularFont;
 
 			this->btnBulkPromote->Size =
-				System::Drawing::Size(130, 40);
+				System::Drawing::Size(145, 40);
 
 			this->btnBulkPromote->Margin =
 				System::Windows::Forms::Padding(
@@ -1826,7 +1826,7 @@ namespace SchoolCore
 				regularFont;
 
 			this->btnSelectAll->Size =
-				System::Drawing::Size(100, 40);
+				System::Drawing::Size(110, 40);
 
 			this->btnSelectAll->Margin =
 				System::Windows::Forms::Padding(
@@ -1849,7 +1849,7 @@ namespace SchoolCore
 				regularFont;
 
 			this->btnBack->Size =
-				System::Drawing::Size(135, 40);
+				System::Drawing::Size(150, 40);
 
 			this->btnBack->Margin =
 				System::Windows::Forms::Padding(
