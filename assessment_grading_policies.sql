@@ -1,0 +1,439 @@
+-- SchoolCore: curriculum-aware assessment and grading policies.
+-- Current policy architecture:
+--   * UCE_CBC_PROVISIONAL: school-configurable A-E scale for the new UCE/CBC level.
+--   * UACE_ALIGNED_PROVISIONAL: paper-balanced internal subject result using A-E and
+--     5..1 performance weights. This is a SchoolCore implementation of the
+--     current aligned A-Level philosophy; the official end-of-cycle result is
+--     construct-based and subject-specific.
+--   * UACE_LEGACY_20_POINT: historical A=6 ... F=0 policy for legacy cohorts.
+--   * SCHOOL_CUSTOM_PERCENTAGE: reusable school-defined percentage bands.
+--
+-- The national aligned Advanced Secondary framework uses A-E final grades and
+-- 5..1 grade weights at construct level. It does not use the historical 20-point
+-- A=6...F=0 method for the aligned curriculum.
+
+CREATE TABLE IF NOT EXISTS grading_policies (
+    policy_id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    curriculum_id INT(10) UNSIGNED DEFAULT NULL,
+    academic_level_id INT(10) UNSIGNED NOT NULL,
+    policy_code VARCHAR(80) NOT NULL,
+    policy_name VARCHAR(150) NOT NULL,
+    policy_type VARCHAR(40) NOT NULL DEFAULT 'School',
+    calculation_method VARCHAR(60) NOT NULL DEFAULT 'PERCENTAGE',
+    effective_from_year INT(11) DEFAULT NULL,
+    effective_to_year INT(11) DEFAULT NULL,
+    description VARCHAR(500) DEFAULT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'Active',
+    PRIMARY KEY (policy_id),
+    UNIQUE KEY uq_grading_policy_code (policy_code),
+    KEY idx_grading_policy_curriculum (curriculum_id),
+    KEY idx_grading_policy_level (academic_level_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS grading_policy_bands (
+    policy_band_id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    policy_id INT(10) UNSIGNED NOT NULL,
+    band_order INT(10) UNSIGNED NOT NULL,
+    min_value DECIMAL(8,3) NOT NULL,
+    max_value DECIMAL(8,3) NOT NULL,
+    grade VARCHAR(20) NOT NULL,
+    grade_weight DECIMAL(6,2) DEFAULT NULL,
+    grade_point DECIMAL(6,2) DEFAULT NULL,
+    remarks VARCHAR(255) DEFAULT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'Active',
+    PRIMARY KEY (policy_band_id),
+    UNIQUE KEY uq_grading_policy_band (policy_id, band_order),
+    KEY idx_grading_policy_band_range (policy_id, min_value, max_value),
+    CONSTRAINT fk_grading_policy_band_policy
+        FOREIGN KEY (policy_id)
+        REFERENCES grading_policies (policy_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- An examination may explicitly choose a grading policy. When NULL, SchoolCore
+-- resolves the current policy from the class academic level/curriculum.
+SET @has_grading_policy_id := (
+    SELECT COUNT(*)
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'examinations'
+      AND COLUMN_NAME = 'grading_policy_id'
+);
+
+SET @sql := IF(
+    @has_grading_policy_id = 0,
+    'ALTER TABLE examinations ADD COLUMN grading_policy_id INT(10) UNSIGNED NULL AFTER examination_type',
+    'SELECT 1'
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Stores the new curriculum's 5..1 performance weight without pretending that
+-- it is the historical 6..0 UACE grade-point system.
+SET @has_grade_weight := (
+    SELECT COUNT(*)
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'student_subject_results'
+      AND COLUMN_NAME = 'grade_weight'
+);
+
+SET @sql := IF(
+    @has_grade_weight = 0,
+    'ALTER TABLE student_subject_results ADD COLUMN grade_weight DECIMAL(6,2) NULL AFTER grade_point',
+    'SELECT 1'
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Preserve a legacy curriculum record so old cohorts can be represented
+-- without confusing them with the current aligned A-Level curriculum.
+INSERT INTO curricula
+    (curriculum_code, curriculum_name, academic_level_id,
+     effective_from_year, effective_to_year, description, status)
+SELECT
+    'UACE_LEGACY',
+    'Legacy UACE Curriculum',
+    al.academic_level_id,
+    NULL,
+    2025,
+    'Historical UACE curriculum for cohorts assessed under the former A-Level structure.',
+    'Legacy'
+FROM academic_levels al
+WHERE al.level_code = 'A_LEVEL'
+  AND NOT EXISTS (
+      SELECT 1 FROM curricula c
+      WHERE c.curriculum_code = 'UACE_LEGACY'
+  );
+
+-- Default policies.
+INSERT INTO grading_policies
+    (curriculum_id, academic_level_id, policy_code, policy_name,
+     policy_type, calculation_method, effective_from_year, description, status)
+SELECT
+    c.curriculum_id,
+    al.academic_level_id,
+    'UCE_CBC_PROVISIONAL',
+    'UCE/CBC Provisional A-E',
+    'NationalAlignedProvisional',
+    'PERCENTAGE_AE',
+    2026,
+    'Provisional SchoolCore percentage implementation for the new UCE/CBC level. Configure or replace as official UNEB detail is refined.',
+    'Active'
+FROM curricula c
+INNER JOIN academic_levels al
+    ON al.level_code = 'O_LEVEL'
+WHERE c.curriculum_code = 'UCE_CBC'
+  AND NOT EXISTS (
+      SELECT 1 FROM grading_policies gp
+      WHERE gp.policy_code = 'UCE_CBC_PROVISIONAL'
+  );
+
+INSERT INTO grading_policies
+    (curriculum_id, academic_level_id, policy_code, policy_name,
+     policy_type, calculation_method, effective_from_year, description, status)
+SELECT
+    c.curriculum_id,
+    al.academic_level_id,
+    'UACE_ALIGNED_PROVISIONAL',
+    'UACE Aligned 2025+ A-E',
+    'NationalAlignedProvisional',
+    'PAPER_AVERAGE_AE',
+    2025,
+    'SchoolCore implementation for aligned Advanced Secondary subject results. Final national certification is construct-based; this school engine combines all assigned papers using actual maximum scores and reports A-E with 5..1 performance weights.',
+    'Active'
+FROM curricula c
+INNER JOIN academic_levels al
+    ON al.level_code = 'A_LEVEL'
+WHERE c.curriculum_code = 'UACE_ALIGNED'
+  AND NOT EXISTS (
+      SELECT 1 FROM grading_policies gp
+      WHERE gp.policy_code = 'UACE_ALIGNED_PROVISIONAL'
+  );
+
+INSERT INTO grading_policies
+    (curriculum_id, academic_level_id, policy_code, policy_name,
+     policy_type, calculation_method, effective_to_year, description, status)
+SELECT
+    c.curriculum_id,
+    al.academic_level_id,
+    'UACE_LEGACY_20_POINT',
+    'Legacy UACE A=6 to F=0',
+    'LegacyNational',
+    'PERCENTAGE_LEGACY_20',
+    2025,
+    'Historical UACE percentage-to-grade and A=6...F=0 point scale. Not used by the aligned 2025+ curriculum.',
+    'Active'
+FROM curricula c
+INNER JOIN academic_levels al
+    ON al.level_code = 'A_LEVEL'
+WHERE c.curriculum_code = 'UACE_LEGACY'
+  AND NOT EXISTS (
+      SELECT 1 FROM grading_policies gp
+      WHERE gp.policy_code = 'UACE_LEGACY_20_POINT'
+  );
+
+INSERT INTO grading_policies
+    (curriculum_id, academic_level_id, policy_code, policy_name,
+     policy_type, calculation_method, description, status)
+SELECT
+    NULL,
+    al.academic_level_id,
+    'SCHOOL_CUSTOM_PERCENTAGE',
+    'School Custom Percentage',
+    'SchoolCustom',
+    'PERCENTAGE_CUSTOM',
+    'Reusable school-defined percentage grading policy. Schools may create their own bands without changing application code.',
+    'Active'
+FROM academic_levels al
+WHERE al.level_code = 'O_LEVEL'
+  AND NOT EXISTS (
+      SELECT 1 FROM grading_policies gp
+      WHERE gp.policy_code = 'SCHOOL_CUSTOM_PERCENTAGE'
+  );
+
+-- UCE provisional A-E.
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 1, 80.00, 100.00, 'A', 5.00, 4.00, 'Exceptional'
+FROM grading_policies gp
+WHERE gp.policy_code = 'UCE_CBC_PROVISIONAL'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 1);
+
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 2, 70.00, 79.99, 'B', 4.00, 3.00, 'Outstanding'
+FROM grading_policies gp
+WHERE gp.policy_code = 'UCE_CBC_PROVISIONAL'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 2);
+
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 3, 60.00, 69.99, 'C', 3.00, 2.00, 'Satisfactory'
+FROM grading_policies gp
+WHERE gp.policy_code = 'UCE_CBC_PROVISIONAL'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 3);
+
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 4, 50.00, 59.99, 'D', 2.00, 1.00, 'Basic'
+FROM grading_policies gp
+WHERE gp.policy_code = 'UCE_CBC_PROVISIONAL'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 4);
+
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 5, 0.00, 49.99, 'E', 1.00, 0.00, 'Elementary'
+FROM grading_policies gp
+WHERE gp.policy_code = 'UCE_CBC_PROVISIONAL'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 5);
+
+-- Aligned Advanced Secondary provisional paper-combined A-E.
+-- The grade weight 5..1 corresponds to the NCDC framework's construct weights.
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 1, 80.00, 100.00, 'A', 5.00, NULL, 'Exceptional'
+FROM grading_policies gp
+WHERE gp.policy_code = 'UACE_ALIGNED_PROVISIONAL'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 1);
+
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 2, 70.00, 79.99, 'B', 4.00, NULL, 'Outstanding'
+FROM grading_policies gp
+WHERE gp.policy_code = 'UACE_ALIGNED_PROVISIONAL'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 2);
+
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 3, 60.00, 69.99, 'C', 3.00, NULL, 'Satisfactory'
+FROM grading_policies gp
+WHERE gp.policy_code = 'UACE_ALIGNED_PROVISIONAL'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 3);
+
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 4, 50.00, 59.99, 'D', 2.00, NULL, 'Basic'
+FROM grading_policies gp
+WHERE gp.policy_code = 'UACE_ALIGNED_PROVISIONAL'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 4);
+
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 5, 0.00, 49.99, 'E', 1.00, NULL, 'Elementary'
+FROM grading_policies gp
+WHERE gp.policy_code = 'UACE_ALIGNED_PROVISIONAL'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 5);
+
+-- Legacy A=6 ... F=0.
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 1, 80.00, 100.00, 'A', 5.00, 6.00, 'Excellent'
+FROM grading_policies gp
+WHERE gp.policy_code = 'UACE_LEGACY_20_POINT'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 1);
+
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 2, 70.00, 79.99, 'B', 4.00, 5.00, 'Very Good'
+FROM grading_policies gp
+WHERE gp.policy_code = 'UACE_LEGACY_20_POINT'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 2);
+
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 3, 60.00, 69.99, 'C', 3.00, 4.00, 'Good'
+FROM grading_policies gp
+WHERE gp.policy_code = 'UACE_LEGACY_20_POINT'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 3);
+
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 4, 50.00, 59.99, 'D', 2.00, 3.00, 'Satisfactory'
+FROM grading_policies gp
+WHERE gp.policy_code = 'UACE_LEGACY_20_POINT'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 4);
+
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 5, 40.00, 49.99, 'E', 1.00, 2.00, 'Pass'
+FROM grading_policies gp
+WHERE gp.policy_code = 'UACE_LEGACY_20_POINT'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 5);
+
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 6, 30.00, 39.99, 'O', 0.00, 1.00, 'Ordinary'
+FROM grading_policies gp
+WHERE gp.policy_code = 'UACE_LEGACY_20_POINT'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 6);
+
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 7, 0.00, 29.99, 'F', 0.00, 0.00, 'Fail'
+FROM grading_policies gp
+WHERE gp.policy_code = 'UACE_LEGACY_20_POINT'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 7);
+
+-- Seed current aligned A-Level paper catalogue for subjects already present in SchoolCore.
+-- The 2026 aligned framework uses two end-of-cycle papers for these subjects.
+-- Paper codes are taken from 2026 UNEB sample papers/materials.
+SET @uace_curriculum_id := (
+    SELECT curriculum_id FROM curricula
+    WHERE curriculum_code = 'UACE_ALIGNED'
+    LIMIT 1
+);
+
+-- Curriculum subject mappings.
+INSERT INTO curriculum_subjects
+    (curriculum_id, subject_id, uneb_subject_code, subject_group, requirement_type, status)
+SELECT @uace_curriculum_id, s.subject_id, x.uneb_code, x.subject_group, 'Optional', 'Active'
+FROM subjects s
+INNER JOIN (
+    SELECT 1 subject_id, 'P425' uneb_code, 'Sciences' subject_group
+    UNION ALL SELECT 2, 'P510', 'Sciences'
+    UNION ALL SELECT 4, 'P530', 'Sciences'
+    UNION ALL SELECT 8, 'P525', 'Sciences'
+    UNION ALL SELECT 3, 'P220', 'Arts'
+    UNION ALL SELECT 6, 'P250', 'Arts'
+    UNION ALL SELECT 10, 'P210', 'Arts'
+    UNION ALL SELECT 7, 'P310', 'Arts'
+    UNION ALL SELECT 9, 'S850', 'General'
+    UNION ALL SELECT 14, 'P230', 'General'
+) x ON x.subject_id = s.subject_id
+WHERE @uace_curriculum_id IS NOT NULL
+  AND NOT EXISTS (
+      SELECT 1 FROM curriculum_subjects cs
+      WHERE cs.curriculum_id = @uace_curriculum_id
+        AND cs.subject_id = s.subject_id
+  );
+
+-- Helper inserts for the known two-paper aligned subjects.
+INSERT INTO subject_papers
+    (curriculum_subject_id, subject_id, academic_level_id, paper_code, paper_number, paper_name, paper_type, status)
+SELECT cs.curriculum_subject_id, cs.subject_id, 2, p.paper_code, p.paper_number, p.paper_name, p.paper_type, 'Active'
+FROM curriculum_subjects cs
+INNER JOIN (
+    SELECT 1 subject_id, 'P425/1' paper_code, '1' paper_number, 'Principal Mathematics Paper 1' paper_name, 'Theory' paper_type
+    UNION ALL SELECT 1, 'P425/2', '2', 'Principal Mathematics Paper 2', 'Theory'
+    UNION ALL SELECT 2, 'P510/1', '1', 'Physics Paper 1', 'Theory'
+    UNION ALL SELECT 2, 'P510/2', '2', 'Physics Paper 2', 'Practical'
+    UNION ALL SELECT 4, 'P530/1', '1', 'Biology Paper 1', 'Theory'
+    UNION ALL SELECT 4, 'P530/2', '2', 'Biology Paper 2', 'Practical'
+    UNION ALL SELECT 8, 'P525/1', '1', 'Chemistry Paper 1', 'Theory'
+    UNION ALL SELECT 8, 'P525/2', '2', 'Chemistry Paper 2', 'Practical'
+    UNION ALL SELECT 3, 'P220/1', '1', 'Economics Paper 1', 'Theory'
+    UNION ALL SELECT 3, 'P220/2', '2', 'Economics Paper 2', 'Theory'
+    UNION ALL SELECT 6, 'P250/1', '1', 'Geography Paper 1', 'Theory'
+    UNION ALL SELECT 6, 'P250/2', '2', 'Geography Paper 2', 'Theory'
+    UNION ALL SELECT 10, 'P210/1', '1', 'History Paper 1', 'Theory'
+    UNION ALL SELECT 10, 'P210/2', '2', 'History Paper 2', 'Theory'
+    UNION ALL SELECT 7, 'P310/1', '1', 'Literature in English Paper 1', 'Theory'
+    UNION ALL SELECT 7, 'P310/2', '2', 'Literature in English Paper 2', 'Theory'
+) p ON p.subject_id = cs.subject_id
+WHERE cs.curriculum_id = @uace_curriculum_id
+  AND cs.status = 'Active'
+  AND NOT EXISTS (
+      SELECT 1 FROM subject_papers sp
+      WHERE sp.curriculum_subject_id = cs.curriculum_subject_id
+        AND sp.paper_code = p.paper_code
+  );
+
+-- Clean up the known bad legacy seed rows created before the curriculum repair.
+DELETE sp
+FROM subject_papers sp
+WHERE sp.paper_code = '245'
+  AND sp.subject_id = 1
+  AND sp.academic_level_id = 2;
+
+-- Current aligned A-Level results must not inherit historical 6-point values.
+UPDATE student_subject_results ssr
+INNER JOIN examination_subjects es
+    ON es.examination_subject_id = ssr.examination_subject_id
+INNER JOIN examinations e
+    ON e.examination_id = es.examination_id
+INNER JOIN classes c
+    ON c.class_id = e.class_id
+INNER JOIN curricula cur
+    ON cur.curriculum_code = 'UACE_ALIGNED'
+SET ssr.grade_point = NULL
+WHERE c.academic_level_id = cur.academic_level_id
+  AND ssr.status = 'Calculated';
+
+-- Existing provisional rows that are incomplete for their assigned examination
+-- remain visible as Pending rather than being treated as a complete result.
+UPDATE student_subject_results ssr
+INNER JOIN examination_subjects es
+    ON es.examination_subject_id = ssr.examination_subject_id
+SET
+    ssr.status = 'Pending',
+    ssr.grade = NULL,
+    ssr.grade_point = NULL,
+    ssr.grade_weight = NULL,
+    ssr.remarks = CONCAT(
+        'Pending: ',
+        (
+            SELECT COUNT(*)
+            FROM examination_papers ep
+            WHERE ep.examination_subject_id = ssr.examination_subject_id
+              AND ep.status = 'Active'
+        ),
+        ' assigned paper(s); recalculate after all required paper marks are entered.'
+    )
+WHERE ssr.examination_subject_id IN (
+    SELECT DISTINCT ssr2.examination_subject_id
+    FROM student_subject_results ssr2
+    LEFT JOIN marks m
+        ON m.examination_subject_id = ssr2.examination_subject_id
+        AND m.student_id = (
+            SELECT e2.student_id
+            FROM enrollments e2
+            WHERE e2.enrollment_id = ssr2.enrollment_id
+            LIMIT 1
+        )
+);
+
+-- End of migration.
