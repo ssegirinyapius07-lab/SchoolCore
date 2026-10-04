@@ -128,8 +128,8 @@ ALTER TABLE grading_scales
     ON DELETE RESTRICT;
 
 ALTER TABLE grading_scales
-    ADD UNIQUE KEY uq_grading_scale_level_name
-    (academic_level_id, scale_name);
+    ADD UNIQUE KEY uq_grading_scale_level_name_grade
+    (academic_level_id, scale_name, grade);
 
 
 -- Prevent the same subject from being attached twice to one examination.
