@@ -2189,6 +2189,7 @@ namespace SchoolCore
             this->overrideRequestForm->CancelButton =
                 cancelButton;
 
+            ThemeManager::ApplyBoldTypographyToForm(this->overrideRequestForm);
             this->overrideRequestForm->ShowDialog(this);
 
             int createdApprovalId =
@@ -2832,6 +2833,8 @@ namespace SchoolCore
             this->editorForm->Controls->Add(
                 header
             );
+
+            ThemeManager::ApplyBoldTypographyToForm(this->editorForm);
 
             this->editorForm->ShowDialog(
                 this
@@ -4096,6 +4099,8 @@ namespace SchoolCore
             this->subjectsDialog->Controls->Add(
                 layout
             );
+
+            ThemeManager::ApplyBoldTypographyToForm(this->subjectsDialog);
 
             this->subjectsDialog->ShowDialog(
                 this
