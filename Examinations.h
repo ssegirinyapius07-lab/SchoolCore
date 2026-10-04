@@ -114,6 +114,7 @@ namespace SchoolCore
         System::Windows::Forms::ComboBox^ editorYear;
         System::Windows::Forms::ComboBox^ editorTerm;
         System::Windows::Forms::ComboBox^ editorClass;
+        System::Windows::Forms::ComboBox^ editorStream;
         System::Windows::Forms::DateTimePicker^ editorStart;
         System::Windows::Forms::DateTimePicker^ editorEnd;
         System::Windows::Forms::ComboBox^ editorStatus;
@@ -415,6 +416,7 @@ namespace SchoolCore
                     "a.year_name, "
                     "t.term_name, "
                     "c.class_name, "
+                    "COALESCE(st.stream_name, 'All Streams') AS stream_name, "
                     "e.start_date, "
                     "e.end_date, "
                     "e.status "
@@ -425,6 +427,8 @@ namespace SchoolCore
                     "ON t.term_id = e.term_id "
                     "INNER JOIN classes c "
                     "ON c.class_id = e.class_id "
+                    "LEFT JOIN streams st "
+                    "ON st.stream_id = e.stream_id "
                     "WHERE 1 = 1 ";
 
                 if (yearId > 0)
@@ -527,6 +531,11 @@ namespace SchoolCore
                         gcnew String(
                             result->getString(
                                 "class_name"
+                            ).c_str()
+                        ),
+                        gcnew String(
+                            result->getString(
+                                "stream_name"
                             ).c_str()
                         ),
                         result->isNull("start_date")
@@ -828,6 +837,91 @@ namespace SchoolCore
         }
 
 
+        void LoadEditorStreams(
+            int selectedStreamId)
+        {
+            this->editorStream->Items->Clear();
+
+            this->editorStream->Items->Add(
+                gcnew FilterItem(
+                    0,
+                    L"All Streams"
+                )
+            );
+
+            int classId =
+                GetSelectedId(
+                    this->editorClass
+                );
+
+            if (classId <= 0)
+            {
+                this->editorStream->SelectedIndex = 0;
+                this->editorStream->Enabled = false;
+                return;
+            }
+
+            try
+            {
+                auto con =
+                    DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT stream_id, stream_name "
+                        "FROM streams "
+                        "WHERE class_id = ? "
+                        "AND status = 'Active' "
+                        "ORDER BY stream_name ASC"
+                    )
+                );
+
+                stmt->setInt(1, classId);
+
+                std::unique_ptr<sql::ResultSet> result(
+                    stmt->executeQuery()
+                );
+
+                int selectedIndex = 0;
+                int index = 0;
+
+                while (result->next())
+                {
+                    index++;
+
+                    int streamId =
+                        result->getInt(
+                            "stream_id"
+                        );
+
+                    this->editorStream->Items->Add(
+                        gcnew FilterItem(
+                            streamId,
+                            gcnew String(
+                                result->getString(
+                                    "stream_name"
+                                ).c_str()
+                            )
+                        )
+                    );
+
+                    if (streamId == selectedStreamId)
+                        selectedIndex = index;
+                }
+
+                this->editorStream->SelectedIndex =
+                    selectedIndex;
+
+                this->editorStream->Enabled =
+                    this->editorStream->Items->Count > 0;
+            }
+            catch (sql::SQLException& ex)
+            {
+                ShowDatabaseError(ex);
+            }
+        }
+
+
         void LoadEditorForEdit()
         {
             if (!this->editorEditMode ||
@@ -849,6 +943,7 @@ namespace SchoolCore
                         "academic_year_id, "
                         "term_id, "
                         "class_id, "
+                        "stream_id, "
                         "grading_policy_id, "
                         "start_date, "
                         "end_date, "
@@ -912,6 +1007,11 @@ namespace SchoolCore
                         "class_id"
                     );
 
+                int streamId =
+                    result->isNull("stream_id")
+                    ? 0
+                    : result->getInt("stream_id");
+
                 int policyId =
                     result->isNull("grading_policy_id")
                     ? 0
@@ -921,6 +1021,7 @@ namespace SchoolCore
                 LoadEditorYears(yearId);
                 LoadEditorTerms(termId);
                 LoadEditorClasses(classId);
+                LoadEditorStreams(streamId);
                 LoadEditorPolicies(policyId);
 
                 if (!result->isNull("start_date"))
@@ -1070,9 +1171,11 @@ namespace SchoolCore
             Object^ sender,
             EventArgs^ e)
         {
-            if (this->editorPolicy == nullptr)
+            if (this->editorPolicy == nullptr ||
+                this->editorStream == nullptr)
                 return;
 
+            LoadEditorStreams(0);
             LoadEditorPolicies(0);
         }
 
@@ -1498,6 +1601,9 @@ namespace SchoolCore
             this->editorClass =
                 gcnew ComboBox();
 
+            this->editorStream =
+                gcnew ComboBox();
+
             this->editorStart =
                 gcnew DateTimePicker();
 
@@ -1544,6 +1650,9 @@ namespace SchoolCore
             this->editorClass->DropDownStyle =
                 ComboBoxStyle::DropDownList;
 
+            this->editorStream->DropDownStyle =
+                ComboBoxStyle::DropDownList;
+
 
             this->editorStart->Format =
                 DateTimePickerFormat::Custom;
@@ -1585,6 +1694,7 @@ namespace SchoolCore
             ApplyEditorStyle(this->editorYear);
             ApplyEditorStyle(this->editorTerm);
             ApplyEditorStyle(this->editorClass);
+            ApplyEditorStyle(this->editorStream);
             ApplyEditorStyle(this->editorStart);
             ApplyEditorStyle(this->editorEnd);
             ApplyEditorStyle(this->editorStatus);
@@ -1660,13 +1770,13 @@ namespace SchoolCore
 
             AddFormLabel(
                 formLayout,
-                L"Start Date",
+                L"Stream",
                 2,
                 2
             );
 
             formLayout->Controls->Add(
-                this->editorStart,
+                this->editorStream,
                 3,
                 2
             );
@@ -1674,40 +1784,54 @@ namespace SchoolCore
 
             AddFormLabel(
                 formLayout,
-                L"End Date",
+                L"Start Date",
                 0,
+                3
+            );
+
+            formLayout->Controls->Add(
+                this->editorStart,
+                1,
+                3
+            );
+
+            AddFormLabel(
+                formLayout,
+                L"End Date",
+                2,
                 3
             );
 
             formLayout->Controls->Add(
                 this->editorEnd,
-                1,
-                3
-            );
-
-            AddFormLabel(
-                formLayout,
-                L"Status",
-                2,
-                3
-            );
-
-            formLayout->Controls->Add(
-                this->editorStatus,
                 3,
                 3
             );
 
+
             AddFormLabel(
                 formLayout,
-                L"Grading Policy",
+                L"Status",
                 0,
                 4
             );
 
             formLayout->Controls->Add(
-                this->editorPolicy,
+                this->editorStatus,
                 1,
+                4
+            );
+
+            AddFormLabel(
+                formLayout,
+                L"Grading Policy",
+                2,
+                4
+            );
+
+            formLayout->Controls->Add(
+                this->editorPolicy,
+                3,
                 4
             );
 
@@ -1801,6 +1925,7 @@ namespace SchoolCore
                 0
             );
 
+            this->LoadEditorStreams(0);
             this->LoadEditorPolicies(0);
 
             if (this->editorEditMode)
@@ -3808,6 +3933,23 @@ void InitializeComponent(void)
             this->examinationsGrid->Columns->Add(year);
             this->examinationsGrid->Columns->Add(term);
             this->examinationsGrid->Columns->Add(classColumn);
+
+            DataGridViewTextBoxColumn^ streamColumn =
+                gcnew DataGridViewTextBoxColumn();
+
+            streamColumn->Name =
+                L"Stream";
+
+            streamColumn->HeaderText =
+                L"Stream";
+
+            streamColumn->Width =
+                105;
+
+            this->examinationsGrid->Columns->Add(
+                streamColumn
+            );
+
             this->examinationsGrid->Columns->Add(start);
             this->examinationsGrid->Columns->Add(end);
             this->examinationsGrid->Columns->Add(status);
