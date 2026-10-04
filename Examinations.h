@@ -1886,9 +1886,11 @@ namespace SchoolCore
                 auto con =
                     DbConnection::GetConnection();
 
-                // UNEB papers belong to the curriculum-specific subject
-                // record, so load papers through curriculum_subjects rather
-                // than matching by subject_id alone.
+                // Prefer curriculum-linked paper rows. Also accept legacy
+                // paper rows whose curriculum_subject_id is still NULL,
+                // provided their subject and academic level match the
+                // examination. This keeps older UNEB paper setup usable
+                // while preserving curriculum filtering for new records.
                 std::unique_ptr<sql::PreparedStatement> stmt(
                     con->prepareStatement(
                         "SELECT DISTINCT "
@@ -1900,8 +1902,17 @@ namespace SchoolCore
                         "ON ay.academic_year_id = e.academic_year_id "
                         "INNER JOIN classes c "
                         "ON c.class_id = e.class_id "
-                        "INNER JOIN curricula cur "
-                        "ON cur.curriculum_id = COALESCE( "
+                        "INNER JOIN subject_papers sp "
+                        "ON sp.subject_id = ? "
+                        "AND sp.academic_level_id = c.academic_level_id "
+                        "AND sp.status = 'Active' "
+                        "LEFT JOIN curriculum_subjects linked_cs "
+                        "ON linked_cs.curriculum_subject_id = sp.curriculum_subject_id "
+                        "AND linked_cs.status = 'Active' "
+                        "LEFT JOIN curricula linked_cur "
+                        "ON linked_cur.curriculum_id = linked_cs.curriculum_id "
+                        "LEFT JOIN curricula active_cur "
+                        "ON active_cur.curriculum_id = COALESCE( "
                         "ay.curriculum_id, "
                         "(SELECT c2.curriculum_id "
                         " FROM curricula c2 "
@@ -1910,14 +1921,11 @@ namespace SchoolCore
                         " ORDER BY c2.effective_from_year DESC, c2.curriculum_id DESC "
                         " LIMIT 1) "
                         ") "
-                        "INNER JOIN curriculum_subjects cs "
-                        "ON cs.curriculum_id = cur.curriculum_id "
-                        "AND cs.subject_id = ? "
-                        "AND cs.status = 'Active' "
-                        "INNER JOIN subject_papers sp "
-                        "ON sp.curriculum_subject_id = cs.curriculum_subject_id "
-                        "AND sp.status = 'Active' "
                         "WHERE e.examination_id = ? "
+                        "AND ("
+                        "sp.curriculum_subject_id IS NULL "
+                        "OR linked_cur.curriculum_id = active_cur.curriculum_id"
+                        ") "
                         "ORDER BY sp.paper_code ASC"
                     )
                 );
@@ -1983,7 +1991,7 @@ namespace SchoolCore
                     this->paperCombo->SelectedIndex = 0;
 
                     MessageBox::Show(
-                        L"No active UNEB papers are configured for this subject in the curriculum used by this examination. Open Subjects → UNEB Subject & Papers and add the official paper code first.",
+                        L"No active UNEB papers are configured for this subject at this academic level. Open Subjects → UNEB Subject & Papers and verify that the official paper code is active.",
                         L"Examination Papers",
                         MessageBoxButtons::OK,
                         MessageBoxIcon::Information
