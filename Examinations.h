@@ -243,7 +243,13 @@ namespace SchoolCore
             }
             catch (std::exception& ex)
             {
-                ShowDatabaseError(ex);
+                MessageBox::Show(
+                    gcnew String(ex.what()),
+                    L"Academic Year",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+
                 this->cmbAcademicYear->SelectedIndex = 0;
             }
         }
