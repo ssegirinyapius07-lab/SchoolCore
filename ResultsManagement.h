@@ -94,8 +94,20 @@ namespace SchoolCore
                         "ssr.percentage, "
                         "COALESCE(ssr.grade, '') AS grade, "
                         "ssr.grade_point, "
+                        "ssr.grade_weight, "
                         "COALESCE(ssr.remarks, '') AS remarks, "
-                        "ssr.paper_count "
+                        "ssr.paper_count, "
+                        "(SELECT COUNT(*) "
+                        " FROM examination_papers ep2 "
+                        " WHERE ep2.examination_subject_id = ssr.examination_subject_id "
+                        " AND ep2.status = 'Active') AS required_papers, "
+                        "(SELECT COUNT(*) "
+                        " FROM marks m2 "
+                        " INNER JOIN examination_papers ep3 "
+                        " ON ep3.examination_paper_id = m2.examination_paper_id "
+                        " WHERE ep3.examination_subject_id = ssr.examination_subject_id "
+                        " AND ep3.status = 'Active' "
+                        " AND m2.student_id = e.student_id) AS completed_papers "
                         "FROM student_subject_results ssr "
                         "INNER JOIN enrollments e "
                         "ON e.enrollment_id = ssr.enrollment_id "
@@ -195,24 +207,50 @@ namespace SchoolCore
                           ).ToString("0.##");
 
                     this->resultsGrid->Rows[row]
+                        ->Cells["GradeWeight"]->Value =
+                        result->isNull("grade_weight")
+                        ? L""
+                        : result->getDouble(
+                              "grade_weight"
+                          ).ToString("0.##");
+
+                    this->resultsGrid->Rows[row]
                         ->Cells["Remarks"]->Value =
                         GetString(
                             result.get(),
                             "remarks"
                         );
 
+                    int completedPapers =
+                        result->getInt("completed_papers");
+
+                    int requiredPapers =
+                        result->getInt("required_papers");
+
                     this->resultsGrid->Rows[row]
                         ->Cells["Papers"]->Value =
-                        result->getInt(
-                            "paper_count"
-                        );
+                        completedPapers.ToString() +
+                        L"/" +
+                        requiredPapers.ToString();
+
+                    this->resultsGrid->Rows[row]
+                        ->Cells["Status"]->Value =
+                        (
+                            completedPapers < requiredPapers ||
+                            String::IsNullOrWhiteSpace(
+                                GetString(result.get(), "grade")
+                            )
+                        )
+                        ? L"Pending"
+                        : L"Calculated";
 
                     count++;
                 }
 
                 this->lblSummary->Text =
-                    L"Completed subject results: " +
-                    count.ToString();
+                    L"Subject results: " +
+                    count.ToString() +
+                    L" | Papers show completed/required";
             }
             catch (sql::SQLException& ex)
             {
@@ -306,6 +344,13 @@ namespace SchoolCore
             );
 
             AddTextColumn(
+                L"GradeWeight",
+                L"Weight",
+                80,
+                true
+            );
+
+            AddTextColumn(
                 L"Remarks",
                 L"Remarks",
                 180,
@@ -315,7 +360,14 @@ namespace SchoolCore
             AddTextColumn(
                 L"Papers",
                 L"Papers",
-                70,
+                85,
+                true
+            );
+
+            AddTextColumn(
+                L"Status",
+                L"Status",
+                95,
                 true
             );
         }
