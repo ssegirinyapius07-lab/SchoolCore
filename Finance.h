@@ -3373,7 +3373,7 @@ namespace SchoolCore
                     L" charge(s)  |  Total: UGX " +
                     total.ToString(L"N2", System::Globalization::CultureInfo::InvariantCulture) +
                     L"  |  Outstanding: UGX " +
-                    outstanding.ToString(L"N2", Globalization::CultureInfo.InvariantCulture);
+                    outstanding.ToString(L"N2", System::Globalization::CultureInfo::InvariantCulture);
             }
             catch (sql::SQLException& ex)
             {
