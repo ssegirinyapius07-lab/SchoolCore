@@ -888,7 +888,6 @@ namespace SchoolCore
 
             form->BackColor = Canvas();
             form->ForeColor = Ink();
-            form->DoubleBuffered = true;
 
             // Typography is global, including hand-styled forms/dialogs.
             // Colours and layout are still allowed to remain custom.
