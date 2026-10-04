@@ -592,6 +592,7 @@ namespace SchoolCore
             if (editSubjectMode)
                 LoadSubjectEditorForEdit(recordId);
 
+            ThemeManager::ApplyBoldTypographyToForm(editorForm);
             editorForm->ShowDialog(this);
         }
 
@@ -763,6 +764,7 @@ namespace SchoolCore
             btnPaperSearch->Click += gcnew EventHandler(this, &UnebSubjectPaperManagement::PaperSearchClicked);
             txtPaperSearch->KeyDown += gcnew KeyEventHandler(this, &UnebSubjectPaperManagement::PaperSearchKeyDown);
             LoadPapers(L"");
+            ThemeManager::ApplyBoldTypographyToForm(papersForm);
             papersForm->ShowDialog(this);
         }
 
@@ -914,6 +916,7 @@ namespace SchoolCore
             if (editPaperMode)
                 LoadPaperEditorForEdit(paperId);
 
+            ThemeManager::ApplyBoldTypographyToForm(paperEditorForm);
             paperEditorForm->ShowDialog(this);
         }
 
