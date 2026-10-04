@@ -4038,7 +4038,14 @@ namespace SchoolCore
             metricValues = gcnew array<Label^>(MetricCount);
 
             TableLayoutPanel^ content = gcnew TableLayoutPanel();
-            content->Dock = DockStyle::Fill;
+            Panel^ scrollHost = gcnew Panel();
+            scrollHost->Dock = DockStyle::Fill;
+            scrollHost->AutoScroll = true;
+            scrollHost->BackColor = Color::White;
+
+            content->Dock = DockStyle::None;
+            content->Anchor = AnchorStyles::Top | AnchorStyles::Left | AnchorStyles::Right;
+            content->Location = Drawing::Point(0, 0);
             content->Padding = System::Windows::Forms::Padding(28);
             content->ColumnCount = 1;
             content->ColumnStyles->Add(
@@ -4053,7 +4060,7 @@ namespace SchoolCore
             content->RowStyles->Add(
                 gcnew RowStyle(SizeType::Absolute, 190.0F));
             content->RowStyles->Add(
-                gcnew RowStyle(SizeType::Percent, 100.0F));
+                gcnew RowStyle(SizeType::Absolute, 52.0F));
 
             Label^ overview =
                 CreateLabel(
@@ -4177,7 +4184,13 @@ namespace SchoolCore
             content->Controls->Add(actions, 0, 3);
             content->Controls->Add(note, 0, 4);
 
-            this->Controls->Add(content);
+            scrollHost->Controls->Add(content);
+
+            // The fixed content height gives AutoScroll a real range on smaller screens.
+            content->Height = 569;
+            content->Width = this->ClientSize.Width;
+
+            this->Controls->Add(scrollHost);
             this->Controls->Add(
                 CreateHeader(
                     L"Fees & Finance",
