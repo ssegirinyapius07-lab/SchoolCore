@@ -1187,7 +1187,7 @@ namespace SchoolCore
             paymentForm->Text = L"SchoolCore - Record Payment";
             paymentForm->StartPosition = FormStartPosition::CenterParent;
             paymentForm->FormBorderStyle =
-                System::Windows::Forms::FormBorderStyle::FixedDialog;
+                System::Windows::Forms::System::Windows::Forms::FormBorderStyle::FixedDialog;
             paymentForm->MaximizeBox = false;
             paymentForm->MinimizeBox = false;
             paymentForm->ShowInTaskbar = false;
@@ -1326,7 +1326,7 @@ namespace SchoolCore
             cancel->Text = L"Cancel";
             cancel->Width = 110;
             cancel->DialogResult =
-                System::Windows::Forms::DialogResult::Cancel;
+                System::Windows::Forms::System::Windows::Forms::DialogResult::Cancel;
 
             paymentSaveButton = gcnew Button();
             paymentSaveButton->Text = L"Record Payment";
@@ -1713,6 +1713,36 @@ namespace SchoolCore
             LoadPaymentHistory();
         }
 
+        void PaymentHistorySearchKeyDown(
+            Object^ sender,
+            KeyEventArgs^ e)
+        {
+            if (e == nullptr)
+                return;
+
+            if (e->KeyCode == Keys::Enter)
+            {
+                LoadPaymentHistory();
+                e->SuppressKeyPress = true;
+                e->Handled = true;
+            }
+        }
+
+        void PaymentHistoryViewClick(
+            Object^ sender,
+            EventArgs^ e)
+        {
+            ShowSelectedPaymentDetails();
+        }
+
+        void PaymentHistoryGridDoubleClick(
+            Object^ sender,
+            DataGridViewCellEventArgs^ e)
+        {
+            if (e != nullptr && e->RowIndex >= 0)
+                ShowSelectedPaymentDetails();
+        }
+
         void ShowSelectedPaymentDetails()
         {
             if (paymentHistoryGrid == nullptr ||
@@ -1775,7 +1805,7 @@ namespace SchoolCore
             details->StartPosition =
                 FormStartPosition::CenterParent;
             details->FormBorderStyle =
-                FormBorderStyle::FixedDialog;
+                System::Windows::Forms::FormBorderStyle::FixedDialog;
             details->MaximizeBox = false;
             details->MinimizeBox = false;
             details->ShowInTaskbar = false;
@@ -1893,7 +1923,7 @@ namespace SchoolCore
             close->Text = L"Close";
             close->Width = 110;
             close->DialogResult =
-                DialogResult::Cancel;
+                System::Windows::Forms::DialogResult::Cancel;
 
             FlowLayoutPanel^ footer =
                 gcnew FlowLayoutPanel();
@@ -1945,7 +1975,7 @@ namespace SchoolCore
             paymentHistoryForm->StartPosition =
                 FormStartPosition::CenterParent;
             paymentHistoryForm->FormBorderStyle =
-                FormBorderStyle::Sizable;
+                System::Windows::Forms::FormBorderStyle::Sizable;
             paymentHistoryForm->MinimizeBox = false;
             paymentHistoryForm->MaximizeBox = true;
             paymentHistoryForm->ShowInTaskbar = false;
@@ -2230,7 +2260,7 @@ namespace SchoolCore
             close->Text = L"Close";
             close->Width = 100;
             close->DialogResult =
-                DialogResult::Cancel;
+                System::Windows::Forms::DialogResult::Cancel;
 
             paymentHistoryViewButton =
                 gcnew Button();
@@ -2275,17 +2305,8 @@ namespace SchoolCore
 
             paymentHistorySearchBox->KeyDown +=
                 gcnew KeyEventHandler(
-                    [this](
-                        Object^ sender,
-                        KeyEventArgs^ e)
-                    {
-                        if (e->KeyCode ==
-                            Keys::Enter)
-                        {
-                            LoadPaymentHistory();
-                            e->SuppressKeyPress = true;
-                        }
-                    }
+                    this,
+                    &Finance::PaymentHistorySearchKeyDown
                 );
 
             paymentHistoryMethodBox->SelectedIndexChanged +=
@@ -2314,23 +2335,14 @@ namespace SchoolCore
 
             paymentHistoryViewButton->Click +=
                 gcnew EventHandler(
-                    [this](
-                        Object^ sender,
-                        EventArgs^ e)
-                    {
-                        ShowSelectedPaymentDetails();
-                    }
+                    this,
+                    &Finance::PaymentHistoryViewClick
                 );
 
             paymentHistoryGrid->CellDoubleClick +=
                 gcnew DataGridViewCellEventHandler(
-                    [this](
-                        Object^ sender,
-                        DataGridViewCellEventArgs^ e)
-                    {
-                        if (e->RowIndex >= 0)
-                            ShowSelectedPaymentDetails();
-                    }
+                    this,
+                    &Finance::PaymentHistoryGridDoubleClick
                 );
 
             paymentHistoryForm->Controls->Add(root);
@@ -2437,7 +2449,7 @@ namespace SchoolCore
                 close->Dock = DockStyle::Right;
                 close->Width = 110;
                 close->DialogResult =
-                    System::Windows::Forms::DialogResult::Cancel;
+                    System::Windows::Forms::System::Windows::Forms::DialogResult::Cancel;
 
                 footer->Controls->Add(close);
                 view->CancelButton = close;
