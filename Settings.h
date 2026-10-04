@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ThemeManager.h"
+
 namespace SchoolCore
 {
     using namespace System;
@@ -12,6 +14,7 @@ namespace SchoolCore
         Settings()
         {
             InitializeComponent();
+            ThemeManager::ApplyToForm(this);
         }
 
     private:
