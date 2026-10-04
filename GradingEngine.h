@@ -101,6 +101,7 @@ namespace SchoolCore
                 int academicYearId = 0;
                 int termId = 0;
                 int classId = 0;
+                int streamId = 0;
                 int enrollmentId = 0;
                 int academicLevelId = 0;
                 int curriculumId = 0;
@@ -114,6 +115,7 @@ namespace SchoolCore
                             "e.academic_year_id, "
                             "e.term_id, "
                             "e.class_id, "
+                            "e.stream_id, "
                             "es.subject_id, "
                             "c.academic_level_id, "
                             "(SELECT cur2.curriculum_id "
@@ -164,6 +166,11 @@ namespace SchoolCore
                     classId =
                         result->getInt("class_id");
 
+                    streamId =
+                        result->isNull("stream_id")
+                        ? 0
+                        : result->getInt("stream_id");
+
                     subjectId =
                         result->getInt("subject_id");
 
@@ -198,6 +205,7 @@ namespace SchoolCore
                             "AND academic_year_id = ? "
                             "AND term_id = ? "
                             "AND class_id = ? "
+                            "AND (? = 0 OR stream_id = ?) "
                             "AND status = 'Active' "
                             "ORDER BY enrollment_id DESC "
                             "LIMIT 1"
@@ -208,6 +216,8 @@ namespace SchoolCore
                     stmt->setInt(2, academicYearId);
                     stmt->setInt(3, termId);
                     stmt->setInt(4, classId);
+                    stmt->setInt(5, streamId);
+                    stmt->setInt(6, streamId);
 
                     std::unique_ptr<sql::ResultSet> result(
                         stmt->executeQuery()
