@@ -1414,11 +1414,11 @@ namespace SchoolCore {
 
 				this->lblSubtitle->Visible = true;
 				this->lblSubtitle->Location =
-					System::Drawing::Point(25, 58);
+					System::Drawing::Point(25, 60);
 				this->lblSubtitle->Size =
 					System::Drawing::Size(
 						compact ? 420 : 600,
-						34);
+						42);
 
 				this->lblUserName->Location =
 					System::Drawing::Point(
@@ -1591,7 +1591,7 @@ namespace SchoolCore {
 			this->lblSubtitle->ForeColor = System::Drawing::Color::Gainsboro;
 			this->lblSubtitle->Location = System::Drawing::Point(25, 58);
 			this->lblSubtitle->Name = L"lblSubtitle";
-			this->lblSubtitle->Size = System::Drawing::Size(600, 34);
+			this->lblSubtitle->Size = System::Drawing::Size(600, 42);
 			this->lblSubtitle->TabIndex = 0;
 			this->lblSubtitle->Text = L"Secondary School Management System";
 			this->lblSubtitle->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
@@ -1682,7 +1682,7 @@ namespace SchoolCore {
 			this->headerPanel->Dock = System::Windows::Forms::DockStyle::Top;
 			this->headerPanel->Location = System::Drawing::Point(0, 0);
 			this->headerPanel->Name = L"headerPanel";
-			this->headerPanel->Size = System::Drawing::Size(1309, 112);
+			this->headerPanel->Size = System::Drawing::Size(1309, 130);
 			this->headerPanel->TabIndex = 0;
 			// 
 			// sidebarPanel
@@ -1708,7 +1708,7 @@ namespace SchoolCore {
 			this->sidebarPanel->Controls->Add(this->btnSettings);
 			this->sidebarPanel->Dock = System::Windows::Forms::DockStyle::Left;
 			this->sidebarPanel->AutoScroll = true;
-			this->sidebarPanel->Location = System::Drawing::Point(0, 112);
+			this->sidebarPanel->Location = System::Drawing::Point(0, 130);
 			this->sidebarPanel->Name = L"sidebarPanel";
 			this->sidebarPanel->Size = System::Drawing::Size(280, 700);
 			this->sidebarPanel->TabIndex = 1;
@@ -2000,7 +2000,7 @@ namespace SchoolCore {
 			this->contentPanel->BackColor = System::Drawing::Color::White;
 			this->contentPanel->AutoScroll = true;
 			this->contentPanel->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->contentPanel->Location = System::Drawing::Point(280, 112);
+			this->contentPanel->Location = System::Drawing::Point(280, 130);
 			this->contentPanel->Name = L"contentPanel";
 			this->contentPanel->Size = System::Drawing::Size(1029, 700);
 			this->contentPanel->TabIndex = 2;
@@ -2010,6 +2010,7 @@ namespace SchoolCore {
 			this->AutoScaleDimensions = System::Drawing::SizeF(9, 20);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(1309, 800);
+			this->MinimumSize = System::Drawing::Size(760, 600);
 			this->Controls->Add(this->contentPanel);
 			this->Controls->Add(this->sidebarPanel);
 			this->Controls->Add(this->headerPanel);
