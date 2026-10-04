@@ -56,105 +56,10 @@ PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
+-- Remove any earlier trigger versions.
 DROP TRIGGER IF EXISTS trg_examinations_validate_stream_insert;
-
-DELIMITER $$
-
-CREATE TRIGGER trg_examinations_validate_stream_insert
-BEFORE INSERT ON examinations
-FOR EACH ROW
-BEGIN
-    DECLARE streamClassId INT UNSIGNED DEFAULT NULL;
-    DECLARE duplicateExaminationId INT UNSIGNED DEFAULT NULL;
-
-    IF NEW.stream_id IS NOT NULL THEN
-        SELECT s.class_id
-        INTO streamClassId
-        FROM streams s
-        WHERE s.stream_id = NEW.stream_id
-          AND s.status = 'Active'
-        LIMIT 1;
-
-        IF streamClassId IS NULL THEN
-            SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'The selected examination stream does not exist or is inactive.';
-        ELSEIF streamClassId <> NEW.class_id THEN
-            SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'The examination stream must belong to the selected class.';
-        END IF;
-    END IF;
-
-    SELECT e.examination_id
-    INTO duplicateExaminationId
-    FROM examinations e
-    WHERE e.academic_year_id = NEW.academic_year_id
-      AND e.term_id = NEW.term_id
-      AND e.class_id = NEW.class_id
-      AND LOWER(COALESCE(e.examination_name, '')) = LOWER(COALESCE(NEW.examination_name, ''))
-      AND LOWER(COALESCE(e.examination_type, '')) = LOWER(COALESCE(NEW.examination_type, ''))
-      AND (
-          e.stream_id IS NULL
-          OR NEW.stream_id IS NULL
-          OR e.stream_id = NEW.stream_id
-      )
-    LIMIT 1;
-
-    IF duplicateExaminationId IS NOT NULL THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'An overlapping examination already exists for this class, examination name/type and stream scope.';
-    END IF;
-END$
-
-DELIMITER ;
-
 DROP TRIGGER IF EXISTS trg_examinations_validate_stream_update;
 
-DELIMITER $$
+-- Stream/class and overlapping-scope validation is enforced by the application
+-- in Examinations.h. The foreign key above ensures stream_id references a real stream.
 
-CREATE TRIGGER trg_examinations_validate_stream_update
-BEFORE UPDATE ON examinations
-FOR EACH ROW
-BEGIN
-    DECLARE streamClassId INT UNSIGNED DEFAULT NULL;
-    DECLARE duplicateExaminationId INT UNSIGNED DEFAULT NULL;
-
-    IF NEW.stream_id IS NOT NULL THEN
-        SELECT s.class_id
-        INTO streamClassId
-        FROM streams s
-        WHERE s.stream_id = NEW.stream_id
-          AND s.status = 'Active'
-        LIMIT 1;
-
-        IF streamClassId IS NULL THEN
-            SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'The selected examination stream does not exist or is inactive.';
-        ELSEIF streamClassId <> NEW.class_id THEN
-            SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'The examination stream must belong to the selected class.';
-        END IF;
-    END IF;
-
-    SELECT e.examination_id
-    INTO duplicateExaminationId
-    FROM examinations e
-    WHERE e.academic_year_id = NEW.academic_year_id
-      AND e.term_id = NEW.term_id
-      AND e.class_id = NEW.class_id
-      AND LOWER(COALESCE(e.examination_name, '')) = LOWER(COALESCE(NEW.examination_name, ''))
-      AND LOWER(COALESCE(e.examination_type, '')) = LOWER(COALESCE(NEW.examination_type, ''))
-      AND e.examination_id <> NEW.examination_id
-      AND (
-          e.stream_id IS NULL
-          OR NEW.stream_id IS NULL
-          OR e.stream_id = NEW.stream_id
-      )
-    LIMIT 1;
-
-    IF duplicateExaminationId IS NOT NULL THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'An overlapping examination already exists for this class, examination name/type and stream scope.';
-    END IF;
-END$
-
-DELIMITER ;
