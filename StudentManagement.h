@@ -1033,7 +1033,7 @@ namespace SchoolCore
 				profileForm->Controls->Add(footerPanel);
 				profileForm->Controls->Add(profileHeader);
 
-				ThemeManager::ApplyBoldTypographyToForm(profileForm);
+				ThemeManager::ApplyToForm(profileForm);
 				profileForm->ShowDialog(this);
 			}
 			catch (sql::SQLException& ex)
