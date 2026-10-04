@@ -451,12 +451,35 @@ WHERE cs.curriculum_id = @uace_curriculum_id
         AND sp.paper_code = p.paper_code
   );
 
--- Clean up the known bad legacy seed rows created before the curriculum repair.
-DELETE sp
-FROM subject_papers sp
-WHERE sp.paper_code = '245'
-  AND sp.subject_id = 1
-  AND sp.academic_level_id = 2;
+-- Repair the two original malformed A-Level Mathematics paper rows in place.
+-- Updating them preserves any existing examination_papers foreign keys.
+UPDATE subject_papers sp
+INNER JOIN curriculum_subjects cs
+    ON cs.curriculum_subject_id = sp.curriculum_subject_id
+SET
+    sp.paper_code = 'P425/1',
+    sp.paper_number = '1',
+    sp.paper_name = 'Principal Mathematics Paper 1',
+    sp.paper_type = 'Theory',
+    sp.status = 'Active'
+WHERE sp.subject_id = 1
+  AND sp.academic_level_id = 2
+  AND cs.curriculum_id = @uace_curriculum_id
+  AND sp.paper_code = 'P425';
+
+UPDATE subject_papers sp
+INNER JOIN curriculum_subjects cs
+    ON cs.curriculum_subject_id = sp.curriculum_subject_id
+SET
+    sp.paper_code = 'P425/2',
+    sp.paper_number = '2',
+    sp.paper_name = 'Principal Mathematics Paper 2',
+    sp.paper_type = 'Theory',
+    sp.status = 'Active'
+WHERE sp.subject_id = 1
+  AND sp.academic_level_id = 2
+  AND cs.curriculum_id = @uace_curriculum_id
+  AND sp.paper_code = '245';
 
 -- Current aligned A-Level results must not inherit historical 6-point values.
 UPDATE student_subject_results ssr
