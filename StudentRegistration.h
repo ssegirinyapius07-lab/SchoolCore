@@ -3155,6 +3155,18 @@ void InitializeComponent(void)
                     this->cmbSession->SelectedItem
                 );
 
+            if (sessionItem == nullptr || sessionItem->Id <= 0)
+            {
+                MessageBox::Show(
+                    L"Select a Session (Day or Boarding).",
+                    L"Edit Student",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+                this->cmbSession->Focus();
+                return;
+            }
+
             std::unique_ptr<sql::Connection> con;
 
             try
@@ -4317,7 +4329,7 @@ void InitializeComponent(void)
                 );
 
                 enrollmentStmt->setString(
-                    7,
+                    8,
                     "Active"
                 );
 
