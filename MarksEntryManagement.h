@@ -347,7 +347,7 @@ namespace SchoolCore
                     this->lblSubtitle->Text =
                         L"Enter marks for " +
                         subjectName +
-                        L" • " +
+                        L" - " +
                         paperCode +
                         (
                             String::IsNullOrWhiteSpace(paperName)
