@@ -459,6 +459,58 @@ namespace SchoolCore
                         );
                 }
 
+                System::Windows::Forms::DataGridView^ grid =
+                    dynamic_cast<System::Windows::Forms::DataGridView^>(
+                        control);
+
+                if (grid != nullptr)
+                {
+                    if (grid->ColumnHeadersDefaultCellStyle->Font != nullptr)
+                    {
+                        grid->ColumnHeadersDefaultCellStyle->Font =
+                            gcnew System::Drawing::Font(
+                                L"Segoe UI",
+                                grid->ColumnHeadersDefaultCellStyle->Font->SizeInPoints,
+                                System::Drawing::FontStyle::Bold
+                            );
+                    }
+
+                    if (grid->DefaultCellStyle->Font != nullptr)
+                    {
+                        grid->DefaultCellStyle->Font =
+                            gcnew System::Drawing::Font(
+                                L"Segoe UI",
+                                grid->DefaultCellStyle->Font->SizeInPoints,
+                                System::Drawing::FontStyle::Bold
+                            );
+                    }
+
+                    if (grid->AlternatingRowsDefaultCellStyle->Font != nullptr)
+                    {
+                        grid->AlternatingRowsDefaultCellStyle->Font =
+                            gcnew System::Drawing::Font(
+                                L"Segoe UI",
+                                grid->AlternatingRowsDefaultCellStyle->Font->SizeInPoints,
+                                System::Drawing::FontStyle::Bold
+                            );
+                    }
+
+                    for each (
+                        System::Windows::Forms::DataGridViewColumn^ column
+                        in grid->Columns)
+                    {
+                        if (column->DefaultCellStyle->Font != nullptr)
+                        {
+                            column->DefaultCellStyle->Font =
+                                gcnew System::Drawing::Font(
+                                    L"Segoe UI",
+                                    column->DefaultCellStyle->Font->SizeInPoints,
+                                    System::Drawing::FontStyle::Bold
+                                );
+                        }
+                    }
+                }
+
                 if (control->HasChildren)
                 {
                     ApplyBoldTypography(control->Controls);
