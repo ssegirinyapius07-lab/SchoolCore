@@ -303,18 +303,6 @@ namespace SchoolCore
             }
             catch (sql::SQLException& ex)
             {
-                if (transactionStarted && con != nullptr)
-                {
-                    try
-                    {
-                        con->rollback();
-                        con->setAutoCommit(true);
-                    }
-                    catch (Exception^)
-                    {
-                    }
-                }
-
                 MessageBox::Show(
                     gcnew String(ex.what()),
                     L"Unable to Load Students",
@@ -607,7 +595,7 @@ namespace SchoolCore
             );
 
             String^ code =
-                GetPaymentMethodCode() +
+                GetSelectedPaymentMethodCode() +
                 L"_" +
                 providerName->Trim()->ToUpperInvariant();
 
@@ -1127,6 +1115,18 @@ namespace SchoolCore
             }
             catch (sql::SQLException& ex)
             {
+                if (transactionStarted && con != nullptr)
+                {
+                    try
+                    {
+                        con->rollback();
+                        con->setAutoCommit(true);
+                    }
+                    catch (Exception^)
+                    {
+                    }
+                }
+
                 MessageBox::Show(
                     paymentForm,
                     gcnew String(ex.what()),
