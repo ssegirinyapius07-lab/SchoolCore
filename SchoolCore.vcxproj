@@ -196,6 +196,9 @@
       <FileType>CppForm</FileType>
     </ClInclude>
     <ClInclude Include="GradingEngine.h" />
+    <ClInclude Include="ResultsManagement.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Dashboard.resx">
