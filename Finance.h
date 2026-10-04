@@ -139,6 +139,16 @@ namespace SchoolCore
         Label^ paymentStudentInfoLabel;
         Button^ paymentSaveButton;
 
+        Form^ paymentHistoryForm;
+        DataGridView^ paymentHistoryGrid;
+        TextBox^ paymentHistorySearchBox;
+        ComboBox^ paymentHistoryMethodBox;
+        ComboBox^ paymentHistoryStatusBox;
+        DateTimePicker^ paymentHistoryFromPicker;
+        DateTimePicker^ paymentHistoryToPicker;
+        Label^ paymentHistorySummaryLabel;
+        Button^ paymentHistoryViewButton;
+
         static Label^ CreateLabel(String^ text, Drawing::Font^ font, Color color)
         {
             Label^ label = gcnew Label();
@@ -1457,6 +1467,895 @@ namespace SchoolCore
             paymentForm = nullptr;
         }
 
+        void LoadPaymentHistory()
+        {
+            if (paymentHistoryGrid == nullptr)
+                return;
+
+            paymentHistoryGrid->Rows->Clear();
+
+            String^ search =
+                paymentHistorySearchBox == nullptr
+                ? L""
+                : paymentHistorySearchBox->Text->Trim();
+
+            String^ method =
+                paymentHistoryMethodBox == nullptr ||
+                paymentHistoryMethodBox->SelectedIndex <= 0
+                ? L""
+                : paymentHistoryMethodBox->Text->Trim();
+
+            String^ status =
+                paymentHistoryStatusBox == nullptr ||
+                paymentHistoryStatusBox->SelectedIndex <= 0
+                ? L""
+                : paymentHistoryStatusBox->Text->Trim();
+
+            DateTime fromDate =
+                paymentHistoryFromPicker->Value.Date;
+
+            DateTime toDate =
+                paymentHistoryToPicker->Value.Date;
+
+            if (toDate < fromDate)
+            {
+                paymentHistorySummaryLabel->Text =
+                    L"Select a valid date range.";
+                return;
+            }
+
+            try
+            {
+                auto con =
+                    DbConnection::GetConnection();
+
+                String^ sqlText =
+                    L"SELECT "
+                    L"p.payment_id, "
+                    L"p.receipt_number, "
+                    L"p.payment_date, "
+                    L"p.amount, "
+                    L"COALESCE(pm.method_name, p.payment_method, '-') AS method_name, "
+                    L"COALESCE(pp.provider_name, '-') AS provider_name, "
+                    L"COALESCE(p.transaction_reference, '-') AS transaction_reference, "
+                    L"CONCAT_WS(' ', s.first_name, s.middle_name, s.last_name) AS student_name, "
+                    L"s.registration_number, "
+                    L"COALESCE(p.payer_contact, '-') AS payer_contact, "
+                    L"COALESCE(p.payment_status, 'Confirmed') AS payment_status, "
+                    L"COALESCE(u.full_name, u.username, '-') AS received_by, "
+                    L"COALESCE(GROUP_CONCAT(DISTINCT fs.fee_name ORDER BY fs.fee_name SEPARATOR ', '), '-') AS fee_items "
+                    L"FROM payments p "
+                    L"INNER JOIN students s ON s.student_id = p.student_id "
+                    L"LEFT JOIN payment_methods pm ON pm.payment_method_id = p.payment_method_id "
+                    L"LEFT JOIN payment_providers pp ON pp.payment_provider_id = p.payment_provider_id "
+                    L"LEFT JOIN users u ON u.user_id = p.received_by "
+                    L"LEFT JOIN payment_allocations pa ON pa.payment_id = p.payment_id "
+                    L"LEFT JOIN fee_charges fc ON fc.fee_charge_id = pa.fee_charge_id "
+                    L"LEFT JOIN fee_structures fs ON fs.fee_structure_id = fc.fee_structure_id "
+                    L"WHERE p.payment_date BETWEEN ? AND ? ";
+
+                if (!String::IsNullOrWhiteSpace(search))
+                {
+                    sqlText +=
+                        L"AND ("
+                        L"LOWER(s.registration_number) LIKE LOWER(?) "
+                        L"OR LOWER(CONCAT_WS(' ', s.first_name, s.middle_name, s.last_name)) LIKE LOWER(?) "
+                        L"OR LOWER(p.receipt_number) LIKE LOWER(?) "
+                        L"OR LOWER(COALESCE(p.transaction_reference, '')) LIKE LOWER(?) "
+                        L"OR LOWER(COALESCE(pp.provider_name, '')) LIKE LOWER(?)"
+                        L") ";
+                }
+
+                if (!String::IsNullOrWhiteSpace(method))
+                    sqlText +=
+                        L"AND COALESCE(pm.method_name, p.payment_method) = ? ";
+
+                if (!String::IsNullOrWhiteSpace(status))
+                    sqlText +=
+                        L"AND COALESCE(p.payment_status, 'Confirmed') = ? ";
+
+                sqlText +=
+                    L"GROUP BY "
+                    L"p.payment_id, p.receipt_number, p.payment_date, p.amount, "
+                    L"pm.method_name, p.payment_method, pp.provider_name, "
+                    L"p.transaction_reference, s.student_id, s.registration_number, "
+                    L"s.first_name, s.middle_name, s.last_name, p.payer_contact, "
+                    L"p.payment_status, u.full_name, u.username "
+                    L"ORDER BY p.payment_date DESC, p.payment_id DESC";
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        msclr::interop::marshal_as<std::string>(
+                            sqlText
+                        )
+                    )
+                );
+
+                int parameter = 1;
+
+                stmt->setString(
+                    parameter++,
+                    msclr::interop::marshal_as<std::string>(
+                        fromDate.ToString(L"yyyy-MM-dd")
+                    )
+                );
+
+                stmt->setString(
+                    parameter++,
+                    msclr::interop::marshal_as<std::string>(
+                        toDate.ToString(L"yyyy-MM-dd")
+                    )
+                );
+
+                if (!String::IsNullOrWhiteSpace(search))
+                {
+                    String^ likeValue =
+                        L"%" + search + L"%";
+
+                    for (int i = 0; i < 5; ++i)
+                    {
+                        stmt->setString(
+                            parameter++,
+                            msclr::interop::marshal_as<std::string>(
+                                likeValue
+                            )
+                        );
+                    }
+                }
+
+                if (!String::IsNullOrWhiteSpace(method))
+                {
+                    stmt->setString(
+                        parameter++,
+                        msclr::interop::marshal_as<std::string>(
+                            method
+                        )
+                    );
+                }
+
+                if (!String::IsNullOrWhiteSpace(status))
+                {
+                    stmt->setString(
+                        parameter++,
+                        msclr::interop::marshal_as<std::string>(
+                            status
+                        )
+                    );
+                }
+
+                std::unique_ptr<sql::ResultSet> result(
+                    stmt->executeQuery()
+                );
+
+                Decimal total =
+                    Decimal(0);
+
+                int count = 0;
+
+                while (result->next())
+                {
+                    String^ paymentDate =
+                        gcnew String(
+                            result->getString(
+                                "payment_date").c_str()
+                        );
+
+                    Decimal amount =
+                        Decimal::Parse(
+                            gcnew String(
+                                result->getString(
+                                    "amount").c_str()
+                            ),
+                            Globalization::CultureInfo::InvariantCulture
+                        );
+
+                    paymentHistoryGrid->Rows->Add(
+                        result->getInt("payment_id"),
+                        gcnew String(
+                            result->getString(
+                                "receipt_number").c_str()),
+                        gcnew String(
+                            result->getString(
+                                "registration_number").c_str()),
+                        gcnew String(
+                            result->getString(
+                                "student_name").c_str()),
+                        paymentDate,
+                        amount.ToString(
+                            L"N2",
+                            Globalization::CultureInfo::InvariantCulture
+                        ),
+                        gcnew String(
+                            result->getString(
+                                "method_name").c_str()),
+                        gcnew String(
+                            result->getString(
+                                "provider_name").c_str()),
+                        gcnew String(
+                            result->getString(
+                                "transaction_reference").c_str()),
+                        gcnew String(
+                            result->getString(
+                                "payment_status").c_str())
+                    );
+
+                    total += amount;
+                    ++count;
+                }
+
+                paymentHistorySummaryLabel->Text =
+                    count.ToString() +
+                    L" payment(s)  |  Total: UGX " +
+                    total.ToString(
+                        L"N2",
+                        Globalization::CultureInfo::InvariantCulture
+                    );
+            }
+            catch (sql::SQLException& ex)
+            {
+                paymentHistorySummaryLabel->Text =
+                    L"Unable to load payment history.";
+
+                MessageBox::Show(
+                    paymentHistoryForm,
+                    gcnew String(ex.what()),
+                    L"Payment History",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+        }
+
+        void PaymentHistoryFilterChanged(
+            Object^ sender,
+            EventArgs^ e)
+        {
+            LoadPaymentHistory();
+        }
+
+        void ShowSelectedPaymentDetails()
+        {
+            if (paymentHistoryGrid == nullptr ||
+                paymentHistoryGrid->SelectedRows->Count == 0)
+            {
+                MessageBox::Show(
+                    paymentHistoryForm,
+                    L"Select a payment first.",
+                    L"Payment History",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Information
+                );
+                return;
+            }
+
+            DataGridViewRow^ row =
+                paymentHistoryGrid->SelectedRows[0];
+
+            String^ receipt =
+                Convert::ToString(
+                    row->Cells[L"Receipt"]->Value);
+
+            String^ student =
+                Convert::ToString(
+                    row->Cells[L"Student"]->Value);
+
+            String^ registration =
+                Convert::ToString(
+                    row->Cells[L"Registration"]->Value);
+
+            String^ amount =
+                Convert::ToString(
+                    row->Cells[L"Amount"]->Value);
+
+            String^ date =
+                Convert::ToString(
+                    row->Cells[L"PaymentDate"]->Value);
+
+            String^ method =
+                Convert::ToString(
+                    row->Cells[L"Method"]->Value);
+
+            String^ provider =
+                Convert::ToString(
+                    row->Cells[L"Provider"]->Value);
+
+            String^ reference =
+                Convert::ToString(
+                    row->Cells[L"Reference"]->Value);
+
+            String^ status =
+                Convert::ToString(
+                    row->Cells[L"Status"]->Value);
+
+            Form^ details =
+                gcnew Form();
+
+            details->Text =
+                L"SchoolCore - Payment Details";
+            details->StartPosition =
+                FormStartPosition::CenterParent;
+            details->FormBorderStyle =
+                FormBorderStyle::FixedDialog;
+            details->MaximizeBox = false;
+            details->MinimizeBox = false;
+            details->ShowInTaskbar = false;
+            details->ClientSize =
+                Drawing::Size(600, 470);
+            details->BackColor =
+                ThemeManager::Canvas();
+
+            TableLayoutPanel^ layout =
+                gcnew TableLayoutPanel();
+
+            layout->Dock = DockStyle::Fill;
+            layout->Padding =
+                System::Windows::Forms::Padding(28);
+            layout->ColumnCount = 2;
+            layout->RowCount = 10;
+
+            layout->ColumnStyles->Add(
+                gcnew ColumnStyle(
+                    SizeType::Absolute,
+                    150.0F));
+            layout->ColumnStyles->Add(
+                gcnew ColumnStyle(
+                    SizeType::Percent,
+                    100.0F));
+
+            for (int i = 0; i < 9; ++i)
+            {
+                layout->RowStyles->Add(
+                    gcnew RowStyle(
+                        SizeType::Absolute,
+                        36.0F));
+            }
+
+            layout->RowStyles->Add(
+                gcnew RowStyle(
+                    SizeType::Percent,
+                    100.0F));
+
+            Label^ title =
+                CreateLabel(
+                    L"Payment Details",
+                    FinanceTheme::Dialog,
+                    FinanceTheme::TextStrong);
+
+            title->Dock = DockStyle::Fill;
+            layout->Controls->Add(
+                title,
+                0,
+                0);
+            layout->SetColumnSpan(
+                title,
+                2);
+
+            array<String^>^ labels =
+                gcnew array<String^>
+                {
+                    L"Receipt",
+                    L"Registration",
+                    L"Student",
+                    L"Payment Date",
+                    L"Amount",
+                    L"Method",
+                    L"Provider",
+                    L"Reference",
+                    L"Status"
+                };
+
+            array<String^>^ values =
+                gcnew array<String^>
+                {
+                    receipt,
+                    registration,
+                    student,
+                    date,
+                    L"UGX " + amount,
+                    method,
+                    provider,
+                    reference,
+                    status
+                };
+
+            for (int i = 0; i < labels->Length; ++i)
+            {
+                Label^ caption =
+                    CreateLabel(
+                        labels[i],
+                        FinanceTheme::Body,
+                        FinanceTheme::TextMuted);
+
+                caption->Dock = DockStyle::Fill;
+
+                Label^ value =
+                    CreateLabel(
+                        values[i],
+                        FinanceTheme::Body,
+                        FinanceTheme::TextStrong);
+
+                value->Dock = DockStyle::Fill;
+                value->AutoEllipsis = true;
+
+                layout->Controls->Add(
+                    caption,
+                    0,
+                    i + 1);
+                layout->Controls->Add(
+                    value,
+                    1,
+                    i + 1);
+            }
+
+            Button^ close =
+                gcnew Button();
+
+            close->Text = L"Close";
+            close->Width = 110;
+            close->DialogResult =
+                DialogResult::Cancel;
+
+            FlowLayoutPanel^ footer =
+                gcnew FlowLayoutPanel();
+
+            footer->Dock = DockStyle::Fill;
+            footer->FlowDirection =
+                FlowDirection::RightToLeft;
+            footer->WrapContents = false;
+            footer->Controls->Add(close);
+
+            layout->Controls->Add(
+                footer,
+                0,
+                9);
+            layout->SetColumnSpan(
+                footer,
+                2);
+
+            details->Controls->Add(layout);
+            details->CancelButton = close;
+
+            ThemeManager::ApplyToForm(details);
+
+            details->ShowDialog(
+                paymentHistoryForm);
+
+            delete details;
+        }
+
+        void OpenPaymentHistoryDialog()
+        {
+            if (!AuthSession::HasPermission(PermView))
+            {
+                MessageBox::Show(
+                    this,
+                    L"You do not have permission to view payment history.",
+                    L"SchoolCore - Access denied",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+                return;
+            }
+
+            paymentHistoryForm =
+                gcnew Form();
+
+            paymentHistoryForm->Text =
+                L"SchoolCore - Payment History";
+            paymentHistoryForm->StartPosition =
+                FormStartPosition::CenterParent;
+            paymentHistoryForm->FormBorderStyle =
+                FormBorderStyle::Sizable;
+            paymentHistoryForm->MinimizeBox = false;
+            paymentHistoryForm->MaximizeBox = true;
+            paymentHistoryForm->ShowInTaskbar = false;
+            paymentHistoryForm->ClientSize =
+                Drawing::Size(1120, 680);
+            paymentHistoryForm->MinimumSize =
+                Drawing::Size(980, 580);
+            paymentHistoryForm->BackColor =
+                ThemeManager::Canvas();
+
+            TableLayoutPanel^ root =
+                gcnew TableLayoutPanel();
+
+            root->Dock = DockStyle::Fill;
+            root->Padding =
+                System::Windows::Forms::Padding(24);
+            root->ColumnCount = 1;
+            root->RowCount = 4;
+
+            root->RowStyles->Add(
+                gcnew RowStyle(
+                    SizeType::Absolute,
+                    46.0F));
+
+            root->RowStyles->Add(
+                gcnew RowStyle(
+                    SizeType::Absolute,
+                    78.0F));
+
+            root->RowStyles->Add(
+                gcnew RowStyle(
+                    SizeType::Percent,
+                    100.0F));
+
+            root->RowStyles->Add(
+                gcnew RowStyle(
+                    SizeType::Absolute,
+                    50.0F));
+
+            Label^ title =
+                CreateLabel(
+                    L"Payment History",
+                    FinanceTheme::Dialog,
+                    FinanceTheme::TextStrong);
+
+            title->Dock = DockStyle::Fill;
+
+            FlowLayoutPanel^ filters =
+                gcnew FlowLayoutPanel();
+
+            filters->Dock = DockStyle::Fill;
+            filters->WrapContents = false;
+            filters->AutoScroll = true;
+            filters->Padding =
+                System::Windows::Forms::Padding(0, 8, 0, 4);
+
+            Label^ searchLabel =
+                CreateLabel(
+                    L"Search",
+                    FinanceTheme::Small,
+                    FinanceTheme::TextStrong);
+
+            searchLabel->Width = 48;
+            searchLabel->TextAlign =
+                ContentAlignment::MiddleLeft;
+
+            paymentHistorySearchBox =
+                gcnew TextBox();
+
+            paymentHistorySearchBox->Width = 185;
+
+            Label^ methodLabel =
+                CreateLabel(
+                    L"Method",
+                    FinanceTheme::Small,
+                    FinanceTheme::TextStrong);
+
+            methodLabel->Width = 52;
+            methodLabel->TextAlign =
+                ContentAlignment::MiddleLeft;
+
+            paymentHistoryMethodBox =
+                gcnew ComboBox();
+
+            paymentHistoryMethodBox->Width = 160;
+            paymentHistoryMethodBox->DropDownStyle =
+                ComboBoxStyle::DropDownList;
+            paymentHistoryMethodBox->Items->Add(
+                L"All Methods");
+            paymentHistoryMethodBox->Items->Add(
+                L"Mobile Money");
+            paymentHistoryMethodBox->Items->Add(
+                L"Bank");
+            paymentHistoryMethodBox->Items->Add(
+                L"Online/Electronic Payment");
+            paymentHistoryMethodBox->SelectedIndex = 0;
+
+            Label^ statusLabel =
+                CreateLabel(
+                    L"Status",
+                    FinanceTheme::Small,
+                    FinanceTheme::TextStrong);
+
+            statusLabel->Width = 44;
+            statusLabel->TextAlign =
+                ContentAlignment::MiddleLeft;
+
+            paymentHistoryStatusBox =
+                gcnew ComboBox();
+
+            paymentHistoryStatusBox->Width = 120;
+            paymentHistoryStatusBox->DropDownStyle =
+                ComboBoxStyle::DropDownList;
+            paymentHistoryStatusBox->Items->Add(
+                L"All Statuses");
+            paymentHistoryStatusBox->Items->Add(
+                L"Confirmed");
+            paymentHistoryStatusBox->Items->Add(
+                L"Pending");
+            paymentHistoryStatusBox->Items->Add(
+                L"Reversed");
+            paymentHistoryStatusBox->Items->Add(
+                L"Cancelled");
+            paymentHistoryStatusBox->SelectedIndex = 0;
+
+            Label^ fromLabel =
+                CreateLabel(
+                    L"From",
+                    FinanceTheme::Small,
+                    FinanceTheme::TextStrong);
+
+            fromLabel->Width = 35;
+            fromLabel->TextAlign =
+                ContentAlignment::MiddleLeft;
+
+            paymentHistoryFromPicker =
+                gcnew DateTimePicker();
+
+            paymentHistoryFromPicker->Width = 105;
+            paymentHistoryFromPicker->Format =
+                DateTimePickerFormat::Short;
+            paymentHistoryFromPicker->Value =
+                DateTime::Today.AddMonths(-1);
+
+            Label^ toLabel =
+                CreateLabel(
+                    L"To",
+                    FinanceTheme::Small,
+                    FinanceTheme::TextStrong);
+
+            toLabel->Width = 24;
+            toLabel->TextAlign =
+                ContentAlignment::MiddleLeft;
+
+            paymentHistoryToPicker =
+                gcnew DateTimePicker();
+
+            paymentHistoryToPicker->Width = 105;
+            paymentHistoryToPicker->Format =
+                DateTimePickerFormat::Short;
+            paymentHistoryToPicker->Value =
+                DateTime::Today;
+
+            Button^ searchButton =
+                gcnew Button();
+
+            searchButton->Text = L"Refresh";
+            searchButton->Width = 90;
+            searchButton->Height = 30;
+
+            filters->Controls->Add(searchLabel);
+            filters->Controls->Add(paymentHistorySearchBox);
+            filters->Controls->Add(methodLabel);
+            filters->Controls->Add(paymentHistoryMethodBox);
+            filters->Controls->Add(statusLabel);
+            filters->Controls->Add(paymentHistoryStatusBox);
+            filters->Controls->Add(fromLabel);
+            filters->Controls->Add(paymentHistoryFromPicker);
+            filters->Controls->Add(toLabel);
+            filters->Controls->Add(paymentHistoryToPicker);
+            filters->Controls->Add(searchButton);
+
+            paymentHistoryGrid =
+                gcnew DataGridView();
+
+            paymentHistoryGrid->Dock =
+                DockStyle::Fill;
+            paymentHistoryGrid->AllowUserToAddRows = false;
+            paymentHistoryGrid->AllowUserToDeleteRows = false;
+            paymentHistoryGrid->AllowUserToResizeRows = false;
+            paymentHistoryGrid->ReadOnly = true;
+            paymentHistoryGrid->MultiSelect = false;
+            paymentHistoryGrid->SelectionMode =
+                DataGridViewSelectionMode::FullRowSelect;
+            paymentHistoryGrid->AutoGenerateColumns = false;
+            paymentHistoryGrid->AutoSizeRowsMode =
+                DataGridViewAutoSizeRowsMode::None;
+            paymentHistoryGrid->RowHeadersVisible = false;
+
+            DataGridViewTextBoxColumn^ idColumn =
+                gcnew DataGridViewTextBoxColumn();
+            idColumn->Name = L"PaymentId";
+            idColumn->HeaderText = L"ID";
+            idColumn->Width = 50;
+
+            DataGridViewTextBoxColumn^ receiptColumn =
+                gcnew DataGridViewTextBoxColumn();
+            receiptColumn->Name = L"Receipt";
+            receiptColumn->HeaderText = L"Receipt";
+            receiptColumn->Width = 135;
+
+            DataGridViewTextBoxColumn^ registrationColumn =
+                gcnew DataGridViewTextBoxColumn();
+            registrationColumn->Name = L"Registration";
+            registrationColumn->HeaderText = L"Registration";
+            registrationColumn->Width = 120;
+
+            DataGridViewTextBoxColumn^ studentColumn =
+                gcnew DataGridViewTextBoxColumn();
+            studentColumn->Name = L"Student";
+            studentColumn->HeaderText = L"Student";
+            studentColumn->Width = 180;
+
+            DataGridViewTextBoxColumn^ dateColumn =
+                gcnew DataGridViewTextBoxColumn();
+            dateColumn->Name = L"PaymentDate";
+            dateColumn->HeaderText = L"Date";
+            dateColumn->Width = 95;
+
+            DataGridViewTextBoxColumn^ amountColumn =
+                gcnew DataGridViewTextBoxColumn();
+            amountColumn->Name = L"Amount";
+            amountColumn->HeaderText = L"Amount (UGX)";
+            amountColumn->Width = 110;
+
+            DataGridViewTextBoxColumn^ methodColumn =
+                gcnew DataGridViewTextBoxColumn();
+            methodColumn->Name = L"Method";
+            methodColumn->HeaderText = L"Method";
+            methodColumn->Width = 145;
+
+            DataGridViewTextBoxColumn^ providerColumn =
+                gcnew DataGridViewTextBoxColumn();
+            providerColumn->Name = L"Provider";
+            providerColumn->HeaderText = L"Provider";
+            providerColumn->Width = 145;
+
+            DataGridViewTextBoxColumn^ referenceColumn =
+                gcnew DataGridViewTextBoxColumn();
+            referenceColumn->Name = L"Reference";
+            referenceColumn->HeaderText = L"Transaction Reference";
+            referenceColumn->Width = 170;
+
+            DataGridViewTextBoxColumn^ statusColumn =
+                gcnew DataGridViewTextBoxColumn();
+            statusColumn->Name = L"Status";
+            statusColumn->HeaderText = L"Status";
+            statusColumn->Width = 100;
+
+            paymentHistoryGrid->Columns->Add(idColumn);
+            paymentHistoryGrid->Columns->Add(receiptColumn);
+            paymentHistoryGrid->Columns->Add(registrationColumn);
+            paymentHistoryGrid->Columns->Add(studentColumn);
+            paymentHistoryGrid->Columns->Add(dateColumn);
+            paymentHistoryGrid->Columns->Add(amountColumn);
+            paymentHistoryGrid->Columns->Add(methodColumn);
+            paymentHistoryGrid->Columns->Add(providerColumn);
+            paymentHistoryGrid->Columns->Add(referenceColumn);
+            paymentHistoryGrid->Columns->Add(statusColumn);
+
+            FlowLayoutPanel^ footer =
+                gcnew FlowLayoutPanel();
+
+            footer->Dock = DockStyle::Fill;
+            footer->FlowDirection =
+                FlowDirection::RightToLeft;
+            footer->WrapContents = false;
+
+            Button^ close =
+                gcnew Button();
+
+            close->Text = L"Close";
+            close->Width = 100;
+            close->DialogResult =
+                DialogResult::Cancel;
+
+            paymentHistoryViewButton =
+                gcnew Button();
+
+            paymentHistoryViewButton->Text =
+                L"View Details";
+            paymentHistoryViewButton->Width = 120;
+
+            paymentHistorySummaryLabel =
+                CreateLabel(
+                    L"0 payment(s)",
+                    FinanceTheme::Small,
+                    FinanceTheme::TextMuted);
+
+            paymentHistorySummaryLabel->AutoSize = true;
+            paymentHistorySummaryLabel->Margin =
+                System::Windows::Forms::Padding(
+                    0,
+                    9,
+                    18,
+                    0);
+
+            footer->Controls->Add(close);
+            footer->Controls->Add(
+                paymentHistoryViewButton);
+            footer->Controls->Add(
+                paymentHistorySummaryLabel);
+
+            root->Controls->Add(title, 0, 0);
+            root->Controls->Add(filters, 0, 1);
+            root->Controls->Add(
+                paymentHistoryGrid,
+                0,
+                2);
+            root->Controls->Add(footer, 0, 3);
+
+            searchButton->Click +=
+                gcnew EventHandler(
+                    this,
+                    &Finance::PaymentHistoryFilterChanged
+                );
+
+            paymentHistorySearchBox->KeyDown +=
+                gcnew KeyEventHandler(
+                    [this](
+                        Object^ sender,
+                        KeyEventArgs^ e)
+                    {
+                        if (e->KeyCode ==
+                            Keys::Enter)
+                        {
+                            LoadPaymentHistory();
+                            e->SuppressKeyPress = true;
+                        }
+                    }
+                );
+
+            paymentHistoryMethodBox->SelectedIndexChanged +=
+                gcnew EventHandler(
+                    this,
+                    &Finance::PaymentHistoryFilterChanged
+                );
+
+            paymentHistoryStatusBox->SelectedIndexChanged +=
+                gcnew EventHandler(
+                    this,
+                    &Finance::PaymentHistoryFilterChanged
+                );
+
+            paymentHistoryFromPicker->ValueChanged +=
+                gcnew EventHandler(
+                    this,
+                    &Finance::PaymentHistoryFilterChanged
+                );
+
+            paymentHistoryToPicker->ValueChanged +=
+                gcnew EventHandler(
+                    this,
+                    &Finance::PaymentHistoryFilterChanged
+                );
+
+            paymentHistoryViewButton->Click +=
+                gcnew EventHandler(
+                    [this](
+                        Object^ sender,
+                        EventArgs^ e)
+                    {
+                        ShowSelectedPaymentDetails();
+                    }
+                );
+
+            paymentHistoryGrid->CellDoubleClick +=
+                gcnew DataGridViewCellEventHandler(
+                    [this](
+                        Object^ sender,
+                        DataGridViewCellEventArgs^ e)
+                    {
+                        if (e->RowIndex >= 0)
+                            ShowSelectedPaymentDetails();
+                    }
+                );
+
+            paymentHistoryForm->Controls->Add(root);
+            paymentHistoryForm->AcceptButton = searchButton;
+            paymentHistoryForm->CancelButton = close;
+
+            ThemeManager::ApplyToForm(
+                paymentHistoryForm);
+
+            LoadPaymentHistory();
+
+            paymentHistoryForm->ShowDialog(this);
+
+            delete paymentHistoryForm;
+            paymentHistoryForm = nullptr;
+            paymentHistoryGrid = nullptr;
+            paymentHistorySearchBox = nullptr;
+            paymentHistoryMethodBox = nullptr;
+            paymentHistoryStatusBox = nullptr;
+            paymentHistoryFromPicker = nullptr;
+            paymentHistoryToPicker = nullptr;
+            paymentHistorySummaryLabel = nullptr;
+            paymentHistoryViewButton = nullptr;
+        }
+
         void SetMetric(int index, Decimal amount)
         {
             if (index < 0 || index >= MetricCount)
@@ -1505,6 +2404,12 @@ namespace SchoolCore
             if (operation->Title->Equals(L"Record Payment"))
             {
                 OpenRecordPaymentDialog();
+                return;
+            }
+
+            if (operation->Title->Equals(L"Payment History"))
+            {
+                OpenPaymentHistoryDialog();
                 return;
             }
 
