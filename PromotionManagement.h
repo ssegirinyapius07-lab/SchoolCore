@@ -899,8 +899,14 @@ namespace SchoolCore
                 this->studentId = result->getInt64("student_id");
                 this->currentEnrollmentId = 0;
                 this->currentClassId = 0;
+                this->currentGrade = 0;
+                this->currentClassName = L"";
+                this->targetClassId = 0;
+                this->targetGrade = 0;
+                this->targetClassName = L"";
 
                 LoadStudentAndEnrollment();
+                LoadTargetClasses();
             }
             catch (sql::SQLException& ex)
             {
