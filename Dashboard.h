@@ -651,7 +651,7 @@ namespace SchoolCore {
 
 			// Title
 			System::Windows::Forms::Label^ title = gcnew Label();
-			title->Text = L"Dashboard  •  " +
+			title->Text = L"Dashboard  -  " +
 				(String::IsNullOrWhiteSpace(AuthSession::RoleName)
 					? L"User"
 					: AuthSession::RoleName);
@@ -1413,11 +1413,11 @@ namespace SchoolCore {
 
 				this->lblSubtitle->Visible = true;
 				this->lblSubtitle->Location =
-					System::Drawing::Point(25, 60);
+					System::Drawing::Point(25, 58);
 				this->lblSubtitle->Size =
 					System::Drawing::Size(
 						compact ? 420 : 600,
-						25);
+						34);
 
 				this->lblUserName->Location =
 					System::Drawing::Point(
@@ -1525,7 +1525,7 @@ namespace SchoolCore {
 						: AuthSession::RoleName) +
 					(String::IsNullOrWhiteSpace(AuthSession::Username)
 						? L""
-						: L"  •  @" + AuthSession::Username);
+						: L"  -  @" + AuthSession::Username);
 				this->mobileSidebarVisible = false;
 				this->sidebarPanel->Visible = true;
 				this->UpdateHeaderForResponsiveLayout();
@@ -1588,9 +1588,9 @@ namespace SchoolCore {
 			// 
 			this->lblSubtitle->Font = (gcnew System::Drawing::Font(L"Segoe UI", 10));
 			this->lblSubtitle->ForeColor = System::Drawing::Color::Gainsboro;
-			this->lblSubtitle->Location = System::Drawing::Point(25, 60);
+			this->lblSubtitle->Location = System::Drawing::Point(25, 58);
 			this->lblSubtitle->Name = L"lblSubtitle";
-			this->lblSubtitle->Size = System::Drawing::Size(600, 25);
+			this->lblSubtitle->Size = System::Drawing::Size(600, 34);
 			this->lblSubtitle->TabIndex = 0;
 			this->lblSubtitle->Text = L"Secondary School Management System";
 			this->lblSubtitle->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
@@ -1660,7 +1660,7 @@ namespace SchoolCore {
 					16.0F,
 					System::Drawing::FontStyle::Bold));
 			this->btnMenu->Name = L"btnMenu";
-			this->btnMenu->Text = L"≡";
+			this->btnMenu->Text = L"Menu";
 			this->btnMenu->Size = System::Drawing::Size(42, 42);
 			this->btnMenu->Location = System::Drawing::Point(8, 8);
 			this->btnMenu->Visible = false;
@@ -1681,7 +1681,7 @@ namespace SchoolCore {
 			this->headerPanel->Dock = System::Windows::Forms::DockStyle::Top;
 			this->headerPanel->Location = System::Drawing::Point(0, 0);
 			this->headerPanel->Name = L"headerPanel";
-			this->headerPanel->Size = System::Drawing::Size(1309, 100);
+			this->headerPanel->Size = System::Drawing::Size(1309, 112);
 			this->headerPanel->TabIndex = 0;
 			// 
 			// sidebarPanel
@@ -1707,7 +1707,7 @@ namespace SchoolCore {
 			this->sidebarPanel->Controls->Add(this->btnSettings);
 			this->sidebarPanel->Dock = System::Windows::Forms::DockStyle::Left;
 			this->sidebarPanel->AutoScroll = true;
-			this->sidebarPanel->Location = System::Drawing::Point(0, 100);
+			this->sidebarPanel->Location = System::Drawing::Point(0, 112);
 			this->sidebarPanel->Name = L"sidebarPanel";
 			this->sidebarPanel->Size = System::Drawing::Size(280, 700);
 			this->sidebarPanel->TabIndex = 1;
@@ -1720,7 +1720,7 @@ namespace SchoolCore {
 			this->btnDashboard->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
 			this->btnDashboard->Font = (gcnew System::Drawing::Font(L"Segoe UI", 10));
 			this->btnDashboard->ForeColor = System::Drawing::Color::White;
-			this->btnDashboard->Location = System::Drawing::Point(15, 20);
+			this->btnDashboard->Location = System::Drawing::Point(15, 15);
 			this->btnDashboard->Name = L"btnDashboard";
 			this->btnDashboard->Size = System::Drawing::Size(250, 45);
 			this->btnDashboard->TabIndex = 0;
@@ -1999,7 +1999,7 @@ namespace SchoolCore {
 			this->contentPanel->BackColor = System::Drawing::Color::White;
 			this->contentPanel->AutoScroll = true;
 			this->contentPanel->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->contentPanel->Location = System::Drawing::Point(280, 100);
+			this->contentPanel->Location = System::Drawing::Point(280, 112);
 			this->contentPanel->Name = L"contentPanel";
 			this->contentPanel->Size = System::Drawing::Size(1029, 700);
 			this->contentPanel->TabIndex = 2;
