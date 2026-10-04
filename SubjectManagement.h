@@ -3,6 +3,7 @@
 #include "DbConnection.h"
 #include "ThemeManager.h"
 #include "UnebSubjectPaperManagement.h"
+#include "CurriculumSubjectsManagement.h"
 
 #include <mariadb/conncpp.hpp>
 #include <msclr/marshal_cppstd.h>
@@ -45,6 +46,7 @@ namespace SchoolCore
         System::Windows::Forms::Panel^ actionPanel;
         System::Windows::Forms::Button^ btnRegisterSubject;
         System::Windows::Forms::Button^ btnUnebSetup;
+        System::Windows::Forms::Button^ btnCurriculumSetup;
         System::Windows::Forms::Label^ lblSearch;
         System::Windows::Forms::TextBox^ txtSearch;
         System::Windows::Forms::Button^ btnSearch;
@@ -489,6 +491,21 @@ namespace SchoolCore
                 gcnew UnebSubjectPaperManagement();
 
             form->ShowDialog(this);
+            LoadSubjects(
+                this->txtSearch->Text->Trim()
+            );
+        }
+
+
+        System::Void btnCurriculumSetup_Click(
+            System::Object^ sender,
+            System::EventArgs^ e)
+        {
+            CurriculumSubjectsManagement^ form =
+                gcnew CurriculumSubjectsManagement();
+
+            form->ShowDialog(this);
+
             LoadSubjects(
                 this->txtSearch->Text->Trim()
             );
@@ -2181,6 +2198,9 @@ void InitializeComponent(void)
             this->btnUnebSetup =
                 gcnew System::Windows::Forms::Button();
 
+            this->btnCurriculumSetup =
+                gcnew System::Windows::Forms::Button();
+
             this->lblSearch =
                 gcnew System::Windows::Forms::Label();
 
@@ -2507,6 +2527,43 @@ void InitializeComponent(void)
                 0;
 
 
+            this->btnCurriculumSetup->Text =
+                L"Curriculum Requirements";
+
+            this->btnCurriculumSetup->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI",
+                    9.5F);
+
+            this->btnCurriculumSetup->Location =
+                System::Drawing::Point(
+                    390,
+                    13);
+
+            this->btnCurriculumSetup->Size =
+                System::Drawing::Size(
+                    185,
+                    42);
+
+            this->btnCurriculumSetup->BackColor =
+                System::Drawing::Color::FromArgb(
+                    226,
+                    232,
+                    240);
+
+            this->btnCurriculumSetup->ForeColor =
+                System::Drawing::Color::FromArgb(
+                    30,
+                    41,
+                    59);
+
+            this->btnCurriculumSetup->FlatStyle =
+                System::Windows::Forms::FlatStyle::Flat;
+
+            this->btnCurriculumSetup->FlatAppearance->BorderSize =
+                0;
+
+
             this->lblSearch->AutoSize =
                 true;
 
@@ -2582,6 +2639,10 @@ void InitializeComponent(void)
 
             this->actionPanel->Controls->Add(
                 this->btnUnebSetup
+            );
+
+            this->actionPanel->Controls->Add(
+                this->btnCurriculumSetup
             );
 
             this->actionPanel->Controls->Add(
@@ -2979,6 +3040,12 @@ void InitializeComponent(void)
                 gcnew System::EventHandler(
                     this,
                     &SubjectManagement::btnUnebSetup_Click
+                );
+
+            this->btnCurriculumSetup->Click +=
+                gcnew System::EventHandler(
+                    this,
+                    &SubjectManagement::btnCurriculumSetup_Click
                 );
 
             this->btnSearch->Click +=
