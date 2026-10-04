@@ -16,6 +16,8 @@
 #include "Finance.h"
 #include "AuthSession.h"
 #include "UsersRoles.h"
+#include "AcademicEditApprovals.h"
+#include "AcademicSecurity.h"
 
 namespace SchoolCore {
 
@@ -86,6 +88,7 @@ namespace SchoolCore {
 			if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
 			{
 				ApplyRolePermissions();
+				InitializeApprovalNotifications();
 				ShowDashboardOverview();
 			}
 		}
@@ -141,6 +144,13 @@ namespace SchoolCore {
 	protected:
 		~Dashboard()
 		{
+            if (this->approvalNotificationTimer != nullptr)
+            {
+                this->approvalNotificationTimer->Stop();
+                delete this->approvalNotificationTimer;
+                this->approvalNotificationTimer = nullptr;
+            }
+
 			if (components)
 			{
 				delete components;
@@ -166,6 +176,8 @@ namespace SchoolCore {
 		System::Windows::Forms::Button^ btnCombinations;
 		System::Windows::Forms::Button^ btnSubjects;
 		System::Windows::Forms::Button^ btnAcademic;
+        System::Windows::Forms::Label^ lblApprovalBadge;
+        System::Windows::Forms::Timer^ approvalNotificationTimer;
 		System::Windows::Forms::Button^ btnTimetable;
 		System::Windows::Forms::Button^ btnAttendance;
 		System::Windows::Forms::Button^ btnExaminations;
@@ -175,6 +187,100 @@ namespace SchoolCore {
 		System::Windows::Forms::Button^ btnReports;
 		System::Windows::Forms::Button^ btnUsers;
 		System::Windows::Forms::Button^ btnSettings;
+
+        void OpenAcademicApprovals()
+        {
+            if (!AuthSession::HasPermission(
+                    L"academic_records.override_inactive_year"))
+            {
+                return;
+            }
+
+            AcademicEditApprovals^ form =
+                gcnew AcademicEditApprovals();
+
+            form->ShowDialog(this);
+            delete form;
+
+            UpdateApprovalNotificationBadge();
+        }
+
+
+        System::Void ApprovalBadge_Click(
+            System::Object^ sender,
+            System::EventArgs^ e)
+        {
+            OpenAcademicApprovals();
+        }
+
+
+        void UpdateApprovalNotificationBadge()
+        {
+            if (this->lblApprovalBadge == nullptr)
+                return;
+
+            if (!AuthSession::HasPermission(
+                    L"academic_records.override_inactive_year"))
+            {
+                this->lblApprovalBadge->Visible = false;
+                return;
+            }
+
+            int count =
+                AcademicSecurity::GetPendingApprovalCount();
+
+            if (count <= 0)
+            {
+                this->lblApprovalBadge->Visible = false;
+                return;
+            }
+
+            this->lblApprovalBadge->Text =
+                count > 99
+                ? L"99+"
+                : count.ToString();
+
+            this->lblApprovalBadge->Width =
+                count > 99 ? 34 : 26;
+
+            this->lblApprovalBadge->Visible = true;
+        }
+
+
+        System::Void ApprovalNotificationTimer_Tick(
+            System::Object^ sender,
+            System::EventArgs^ e)
+        {
+            UpdateApprovalNotificationBadge();
+        }
+
+
+        void InitializeApprovalNotifications()
+        {
+            if (!AuthSession::HasPermission(
+                    L"academic_records.override_inactive_year"))
+            {
+                this->lblApprovalBadge->Visible = false;
+                return;
+            }
+
+            UpdateApprovalNotificationBadge();
+
+            this->approvalNotificationTimer =
+                gcnew System::Windows::Forms::Timer();
+
+            this->approvalNotificationTimer->Interval =
+                30000;
+
+            this->approvalNotificationTimer->Tick +=
+                gcnew System::EventHandler(
+                    this,
+                    &Dashboard::ApprovalNotificationTimer_Tick
+                );
+
+            this->approvalNotificationTimer->Start();
+        }
+
 
 		System::Void embeddedModule_FormClosed(
 			System::Object^ sender,
