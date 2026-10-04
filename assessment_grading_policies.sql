@@ -469,35 +469,105 @@ WHERE @uace_curriculum_id IS NOT NULL
         AND cs.subject_id = s.subject_id
   );
 
--- Helper inserts for the known two-paper aligned subjects.
+-- Idempotent aligned A-Level paper catalogue.
+-- Existing rows are updated in place. This is safe to resume after a
+-- partially applied migration and preserves paper IDs referenced by marks.
+
 INSERT INTO subject_papers
-    (curriculum_subject_id, subject_id, academic_level_id, paper_code, paper_number, paper_name, paper_type, status)
-SELECT cs.curriculum_subject_id, cs.subject_id, 2, p.paper_code, p.paper_number, p.paper_name, p.paper_type, 'Active'
+    (curriculum_subject_id, subject_id, academic_level_id, paper_code,
+     paper_number, paper_name, paper_type, status)
+SELECT
+    cs.curriculum_subject_id,
+    cs.subject_id,
+    2,
+    p.paper_code,
+    p.paper_number,
+    p.paper_name,
+    p.paper_type,
+    'Active'
 FROM curriculum_subjects cs
 INNER JOIN (
-    SELECT 1 subject_id, 'P425/1' paper_code, '1' paper_number, 'Principal Mathematics Paper 1' paper_name, 'Theory' paper_type
-    UNION ALL SELECT 1, 'P425/2', '2', 'Principal Mathematics Paper 2', 'Theory'
-    UNION ALL SELECT 2, 'P510/1', '1', 'Physics Paper 1', 'Theory'
-    UNION ALL SELECT 2, 'P510/2', '2', 'Physics Paper 2', 'Practical'
-    UNION ALL SELECT 4, 'P530/1', '1', 'Biology Paper 1', 'Theory'
-    UNION ALL SELECT 4, 'P530/2', '2', 'Biology Paper 2', 'Practical'
-    UNION ALL SELECT 8, 'P525/1', '1', 'Chemistry Paper 1', 'Theory'
-    UNION ALL SELECT 8, 'P525/2', '2', 'Chemistry Paper 2', 'Practical'
-    UNION ALL SELECT 3, 'P220/1', '1', 'Economics Paper 1', 'Theory'
-    UNION ALL SELECT 3, 'P220/2', '2', 'Economics Paper 2', 'Theory'
-    UNION ALL SELECT 6, 'P250/1', '1', 'Geography Paper 1', 'Theory'
-    UNION ALL SELECT 6, 'P250/2', '2', 'Geography Paper 2', 'Theory'
-    UNION ALL SELECT 10, 'P210/1', '1', 'History Paper 1', 'Theory'
-    UNION ALL SELECT 10, 'P210/2', '2', 'History Paper 2', 'Theory'
-    UNION ALL SELECT 7, 'P310/1', '1', 'Literature in English Paper 1', 'Theory'
-    UNION ALL SELECT 7, 'P310/2', '2', 'Literature in English Paper 2', 'Theory'
+    SELECT 1 subject_id, 'P425/1' paper_code, '1' paper_number,
+           'Principal Mathematics Paper 1' paper_name, 'Theory' paper_type
+    UNION ALL SELECT 1, 'P425/2', '2',
+           'Principal Mathematics Paper 2', 'Theory'
+    UNION ALL SELECT 2, 'P510/1', '1',
+           'Physics Paper 1', 'Theory'
+    UNION ALL SELECT 2, 'P510/2', '2',
+           'Physics Paper 2', 'Practical'
+    UNION ALL SELECT 4, 'P530/1', '1',
+           'Biology Paper 1', 'Theory'
+    UNION ALL SELECT 4, 'P530/2', '2',
+           'Biology Paper 2', 'Practical'
+    UNION ALL SELECT 8, 'P525/1', '1',
+           'Chemistry Paper 1', 'Theory'
+    UNION ALL SELECT 8, 'P525/2', '2',
+           'Chemistry Paper 2', 'Practical'
+    UNION ALL SELECT 3, 'P220/1', '1',
+           'Economics Paper 1', 'Theory'
+    UNION ALL SELECT 3, 'P220/2', '2',
+           'Economics Paper 2', 'Theory'
+    UNION ALL SELECT 6, 'P250/1', '1',
+           'Geography Paper 1', 'Theory'
+    UNION ALL SELECT 6, 'P250/2', '2',
+           'Geography Paper 2', 'Theory'
+    UNION ALL SELECT 10, 'P210/1', '1',
+           'History Paper 1', 'Theory'
+    UNION ALL SELECT 10, 'P210/2', '2',
+           'History Paper 2', 'Theory'
+    UNION ALL SELECT 7, 'P310/1', '1',
+           'Literature in English Paper 1', 'Theory'
+    UNION ALL SELECT 7, 'P310/2', '2',
+           'Literature in English Paper 2', 'Theory'
 ) p ON p.subject_id = cs.subject_id
 WHERE cs.curriculum_id = @uace_curriculum_id
   AND cs.status = 'Active'
-  AND NOT EXISTS (
-      SELECT 1 FROM subject_papers sp
-      WHERE sp.curriculum_subject_id = cs.curriculum_subject_id
-        AND sp.paper_code = p.paper_code
+ON DUPLICATE KEY UPDATE
+    subject_id = VALUES(subject_id),
+    academic_level_id = VALUES(academic_level_id),
+    paper_number = VALUES(paper_number),
+    paper_name = VALUES(paper_name),
+    paper_type = VALUES(paper_type),
+    status = 'Active';
+
+-- If the original malformed seed rows P425/245 still exist alongside the
+-- canonical P425/1/P425/2 rows, keep their IDs (and any marks) but move them
+-- out of the active curriculum catalogue. Existing examination_papers that
+-- reference them remain valid and can still be migrated/closed later.
+UPDATE subject_papers sp
+INNER JOIN curriculum_subjects cs
+    ON cs.curriculum_subject_id = sp.curriculum_subject_id
+SET
+    sp.paper_code = CONCAT('LEGACY-P425-', sp.paper_id),
+    sp.status = 'Inactive'
+WHERE sp.subject_id = 1
+  AND sp.academic_level_id = 2
+  AND cs.curriculum_id = @uace_curriculum_id
+  AND sp.paper_code = 'P425'
+  AND EXISTS (
+      SELECT 1
+      FROM subject_papers canon
+      WHERE canon.curriculum_subject_id = sp.curriculum_subject_id
+        AND canon.paper_code = 'P425/1'
+        AND canon.paper_id <> sp.paper_id
+  );
+
+UPDATE subject_papers sp
+INNER JOIN curriculum_subjects cs
+    ON cs.curriculum_subject_id = sp.curriculum_subject_id
+SET
+    sp.paper_code = CONCAT('LEGACY-245-', sp.paper_id),
+    sp.status = 'Inactive'
+WHERE sp.subject_id = 1
+  AND sp.academic_level_id = 2
+  AND cs.curriculum_id = @uace_curriculum_id
+  AND sp.paper_code = '245'
+  AND EXISTS (
+      SELECT 1
+      FROM subject_papers canon
+      WHERE canon.curriculum_subject_id = sp.curriculum_subject_id
+        AND canon.paper_code = 'P425/2'
+        AND canon.paper_id <> sp.paper_id
   );
 
 -- Current aligned A-Level results must not inherit historical 6-point values.
