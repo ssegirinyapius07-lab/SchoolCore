@@ -398,6 +398,55 @@ SET @uace_curriculum_id := (
     LIMIT 1
 );
 
+-- Normalize the original A-Level Mathematics seed rows BEFORE adding
+-- the new aligned paper catalogue. This ordering prevents a duplicate
+-- curriculum_subject_id + paper_code when a clean database contains P425/245.
+SET @uace_curriculum_id := (
+    SELECT curriculum_id FROM curricula
+    WHERE curriculum_code = 'UACE_ALIGNED'
+    LIMIT 1
+);
+
+UPDATE subject_papers sp
+INNER JOIN curriculum_subjects cs
+    ON cs.curriculum_subject_id = sp.curriculum_subject_id
+SET
+    sp.paper_code = 'P425/1',
+    sp.paper_number = '1',
+    sp.paper_name = 'Principal Mathematics Paper 1',
+    sp.paper_type = 'Theory',
+    sp.status = 'Active'
+WHERE sp.subject_id = 1
+  AND sp.academic_level_id = 2
+  AND cs.curriculum_id = @uace_curriculum_id
+  AND sp.paper_code = 'P425'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM subject_papers existing_p1
+      WHERE existing_p1.curriculum_subject_id = sp.curriculum_subject_id
+        AND existing_p1.paper_code = 'P425/1'
+  );
+
+UPDATE subject_papers sp
+INNER JOIN curriculum_subjects cs
+    ON cs.curriculum_subject_id = sp.curriculum_subject_id
+SET
+    sp.paper_code = 'P425/2',
+    sp.paper_number = '2',
+    sp.paper_name = 'Principal Mathematics Paper 2',
+    sp.paper_type = 'Theory',
+    sp.status = 'Active'
+WHERE sp.subject_id = 1
+  AND sp.academic_level_id = 2
+  AND cs.curriculum_id = @uace_curriculum_id
+  AND sp.paper_code = '245'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM subject_papers existing_p2
+      WHERE existing_p2.curriculum_subject_id = sp.curriculum_subject_id
+        AND existing_p2.paper_code = 'P425/2'
+  );
+
 -- Curriculum subject mappings.
 INSERT INTO curriculum_subjects
     (curriculum_id, subject_id, uneb_subject_code, subject_group, requirement_type, status)
@@ -450,36 +499,6 @@ WHERE cs.curriculum_id = @uace_curriculum_id
       WHERE sp.curriculum_subject_id = cs.curriculum_subject_id
         AND sp.paper_code = p.paper_code
   );
-
--- Repair the two original malformed A-Level Mathematics paper rows in place.
--- Updating them preserves any existing examination_papers foreign keys.
-UPDATE subject_papers sp
-INNER JOIN curriculum_subjects cs
-    ON cs.curriculum_subject_id = sp.curriculum_subject_id
-SET
-    sp.paper_code = 'P425/1',
-    sp.paper_number = '1',
-    sp.paper_name = 'Principal Mathematics Paper 1',
-    sp.paper_type = 'Theory',
-    sp.status = 'Active'
-WHERE sp.subject_id = 1
-  AND sp.academic_level_id = 2
-  AND cs.curriculum_id = @uace_curriculum_id
-  AND sp.paper_code = 'P425';
-
-UPDATE subject_papers sp
-INNER JOIN curriculum_subjects cs
-    ON cs.curriculum_subject_id = sp.curriculum_subject_id
-SET
-    sp.paper_code = 'P425/2',
-    sp.paper_number = '2',
-    sp.paper_name = 'Principal Mathematics Paper 2',
-    sp.paper_type = 'Theory',
-    sp.status = 'Active'
-WHERE sp.subject_id = 1
-  AND sp.academic_level_id = 2
-  AND cs.curriculum_id = @uace_curriculum_id
-  AND sp.paper_code = '245';
 
 -- Current aligned A-Level results must not inherit historical 6-point values.
 UPDATE student_subject_results ssr
