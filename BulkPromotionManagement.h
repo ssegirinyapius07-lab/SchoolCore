@@ -1648,6 +1648,7 @@ namespace SchoolCore
 
             SetDefaultTargetStreams();
             ApplyExistingAcademicChoices();
+            SetDefaultOptionCellsForNewSelection();
         }
 
         void ClearStudentSelections()
