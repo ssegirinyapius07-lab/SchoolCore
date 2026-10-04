@@ -576,9 +576,11 @@ namespace SchoolCore
             this->btnSubjects->Enabled =
                 selected;
 
-            // These remain disabled until their real workflow is implemented.
-            this->btnMarks->Enabled = false;
-            this->btnResults->Enabled = false;
+            this->btnMarks->Enabled =
+                selected;
+
+            this->btnResults->Enabled =
+                selected;
         }
 
 
