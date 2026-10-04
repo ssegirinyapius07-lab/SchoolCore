@@ -182,18 +182,17 @@ INSERT INTO grading_policies
 SELECT
     NULL,
     al.academic_level_id,
-    'SCHOOL_CUSTOM_PERCENTAGE',
-    'School Custom Percentage',
+    CONCAT('SCHOOL_CUSTOM_', al.level_code),
+    CONCAT('School Custom ', al.level_name),
     'SchoolCustom',
     'PERCENTAGE_CUSTOM',
-    'Reusable school-defined percentage grading policy. Schools may create their own bands without changing application code.',
+    'Reusable school-defined percentage grading policy. Schools may define their own bands without changing application code.',
     'Active'
 FROM academic_levels al
-WHERE al.level_code = 'O_LEVEL'
-  AND NOT EXISTS (
-      SELECT 1 FROM grading_policies gp
-      WHERE gp.policy_code = 'SCHOOL_CUSTOM_PERCENTAGE'
-  );
+WHERE NOT EXISTS (
+    SELECT 1 FROM grading_policies gp
+    WHERE gp.policy_code = CONCAT('SCHOOL_CUSTOM_', al.level_code)
+);
 
 -- UCE provisional A-E.
 INSERT INTO grading_policy_bands
@@ -317,6 +316,78 @@ SELECT gp.policy_id, 7, 0.00, 29.99, 'F', 0.00, 0.00, 'Fail'
 FROM grading_policies gp
 WHERE gp.policy_code = 'UACE_LEGACY_20_POINT'
   AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 7);
+
+-- Starter custom bands for both levels. These are deliberately school-policy
+-- defaults, not UNEB claims, and may be edited later.
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 1, 80.00, 100.00, 'A', 5.00, 4.00, 'School-defined Exceptional'
+FROM grading_policies gp
+WHERE gp.policy_code = 'SCHOOL_CUSTOM_O_LEVEL'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 1);
+
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 2, 70.00, 79.99, 'B', 4.00, 3.00, 'School-defined Outstanding'
+FROM grading_policies gp
+WHERE gp.policy_code = 'SCHOOL_CUSTOM_O_LEVEL'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 2);
+
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 3, 60.00, 69.99, 'C', 3.00, 2.00, 'School-defined Satisfactory'
+FROM grading_policies gp
+WHERE gp.policy_code = 'SCHOOL_CUSTOM_O_LEVEL'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 3);
+
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 4, 50.00, 59.99, 'D', 2.00, 1.00, 'School-defined Basic'
+FROM grading_policies gp
+WHERE gp.policy_code = 'SCHOOL_CUSTOM_O_LEVEL'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 4);
+
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 5, 0.00, 49.99, 'E', 1.00, 0.00, 'School-defined Elementary'
+FROM grading_policies gp
+WHERE gp.policy_code = 'SCHOOL_CUSTOM_O_LEVEL'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 5);
+
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 1, 80.00, 100.00, 'A', 5.00, NULL, 'School-defined Exceptional'
+FROM grading_policies gp
+WHERE gp.policy_code = 'SCHOOL_CUSTOM_A_LEVEL'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 1);
+
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 2, 70.00, 79.99, 'B', 4.00, NULL, 'School-defined Outstanding'
+FROM grading_policies gp
+WHERE gp.policy_code = 'SCHOOL_CUSTOM_A_LEVEL'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 2);
+
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 3, 60.00, 69.99, 'C', 3.00, NULL, 'School-defined Satisfactory'
+FROM grading_policies gp
+WHERE gp.policy_code = 'SCHOOL_CUSTOM_A_LEVEL'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 3);
+
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 4, 50.00, 59.99, 'D', 2.00, NULL, 'School-defined Basic'
+FROM grading_policies gp
+WHERE gp.policy_code = 'SCHOOL_CUSTOM_A_LEVEL'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 4);
+
+INSERT INTO grading_policy_bands
+    (policy_id, band_order, min_value, max_value, grade, grade_weight, grade_point, remarks)
+SELECT gp.policy_id, 5, 0.00, 49.99, 'E', 1.00, NULL, 'School-defined Elementary'
+FROM grading_policies gp
+WHERE gp.policy_code = 'SCHOOL_CUSTOM_A_LEVEL'
+  AND NOT EXISTS (SELECT 1 FROM grading_policy_bands b WHERE b.policy_id = gp.policy_id AND b.band_order = 5);
 
 -- Seed current aligned A-Level paper catalogue for subjects already present in SchoolCore.
 -- The 2026 aligned framework uses two end-of-cycle papers for these subjects.
