@@ -1036,8 +1036,8 @@ namespace SchoolCore
             paymentForm->MaximizeBox = false;
             paymentForm->MinimizeBox = false;
             paymentForm->ShowInTaskbar = false;
-            paymentForm->ClientSize = Drawing::Size(820, 650);
-            paymentForm->MinimumSize = Drawing::Size(780, 620);
+            paymentForm->ClientSize = Drawing::Size(820, 720);
+            paymentForm->MinimumSize = Drawing::Size(780, 680);
             paymentForm->BackColor = ThemeManager::Canvas();
 
             TableLayoutPanel^ root =
@@ -1047,7 +1047,7 @@ namespace SchoolCore
             root->Padding =
                 System::Windows::Forms::Padding(28);
             root->ColumnCount = 2;
-            root->RowCount = 9;
+            root->RowCount = 12;
             root->ColumnStyles->Add(
                 gcnew ColumnStyle(SizeType::Absolute, 170.0F));
             root->ColumnStyles->Add(
@@ -1059,6 +1059,12 @@ namespace SchoolCore
                 gcnew RowStyle(SizeType::Absolute, 52.0F));
             root->RowStyles->Add(
                 gcnew RowStyle(SizeType::Absolute, 28.0F));
+            root->RowStyles->Add(
+                gcnew RowStyle(SizeType::Absolute, 52.0F));
+            root->RowStyles->Add(
+                gcnew RowStyle(SizeType::Absolute, 54.0F));
+            root->RowStyles->Add(
+                gcnew RowStyle(SizeType::Absolute, 52.0F));
             root->RowStyles->Add(
                 gcnew RowStyle(SizeType::Absolute, 52.0F));
             root->RowStyles->Add(
@@ -1240,49 +1246,39 @@ namespace SchoolCore
                 0, 7);
             root->Controls->Add(paymentProviderBox, 1, 7);
 
-            TableLayoutPanel^ bottom =
-                gcnew TableLayoutPanel();
-            bottom->Dock = DockStyle::Fill;
-            bottom->ColumnCount = 2;
-            bottom->RowCount = 3;
-            bottom->ColumnStyles->Add(
-                gcnew ColumnStyle(SizeType::Absolute, 170.0F));
-            bottom->ColumnStyles->Add(
-                gcnew ColumnStyle(SizeType::Percent, 100.0F));
-
-            bottom->Controls->Add(
+            root->Controls->Add(
                 CreateLabel(
                     L"Reference",
                     FinanceTheme::Body,
                     FinanceTheme::TextStrong),
-                0, 0);
-            bottom->Controls->Add(
+                0, 8);
+            root->Controls->Add(
                 paymentReferenceBox,
-                1, 0);
+                1, 8);
 
-            bottom->Controls->Add(
+            root->Controls->Add(
                 CreateLabel(
                     L"Payer Contact",
                     FinanceTheme::Body,
                     FinanceTheme::TextStrong),
-                0, 1);
-            bottom->Controls->Add(
+                0, 9);
+            root->Controls->Add(
                 paymentPayerContactBox,
-                1, 1);
+                1, 9);
 
-            bottom->Controls->Add(
+            root->Controls->Add(
                 CreateLabel(
                     L"Remarks",
                     FinanceTheme::Body,
                     FinanceTheme::TextStrong),
-                0, 2);
-            bottom->Controls->Add(
+                0, 10);
+            root->Controls->Add(
                 paymentRemarksBox,
-                1, 2);
+                1, 10);
 
-            root->Controls->Add(bottom, 0, 8);
-            root->SetColumnSpan(bottom, 2);
-            root->Controls->Add(footer, 0, 8);
+            root->Controls->Add(
+                footer,
+                0, 11);
             root->SetColumnSpan(footer, 2);
 
             paymentStudentBox->SelectedIndexChanged +=
@@ -1322,8 +1318,6 @@ namespace SchoolCore
             paymentForm = nullptr;
         }
 
-        void SetMetric(int index, Decimal amount)
-        {
         void SetMetric(int index, Decimal amount)
         {
             if (index < 0 || index >= MetricCount)
