@@ -97,7 +97,7 @@ namespace SchoolCore
         String^ AcademicYear;
         String^ Term;
         String^ ClassName;
-        String^ StreamName;
+        String^ SessionName;
         Decimal Amount;
         String^ DueDate;
 
@@ -107,7 +107,7 @@ namespace SchoolCore
             String^ academicYear,
             String^ term,
             String^ className,
-            String^ streamName,
+            String^ sessionName,
             Decimal amount,
             String^ dueDate)
             : Id(id),
@@ -115,7 +115,7 @@ namespace SchoolCore
               AcademicYear(academicYear),
               Term(term),
               ClassName(className),
-              StreamName(streamName),
+              SessionName(sessionName),
               Amount(amount),
               DueDate(dueDate)
         {
@@ -127,7 +127,7 @@ namespace SchoolCore
                 L" | " + AcademicYear +
                 L" | " + Term +
                 L" | " + ClassName +
-                L" | " + StreamName +
+                L" | " + SessionName +
                 L" | UGX " +
                 Amount.ToString(
                     L"N2",
@@ -210,7 +210,7 @@ namespace SchoolCore
         ComboBox^ feeStructureYearBox;
         ComboBox^ feeStructureTermBox;
         ComboBox^ feeStructureClassBox;
-        ComboBox^ feeStructureStreamBox;
+        ComboBox^ feeStructureSessionBox;
         TextBox^ feeStructureNameBox;
         TextBox^ feeStructureAmountBox;
         DateTimePicker^ feeStructureDueDatePicker;
@@ -2663,57 +2663,43 @@ namespace SchoolCore
             }
         }
 
-        void FeeStructureClassChanged(Object^ sender, EventArgs^ e)
+        void LoadFeeStructureSessions()
         {
-            feeStructureStreamBox->Items->Clear();
-            feeStructureStreamBox->Items->Add(
-                gcnew FinanceLookupItem(0, L"All Streams")
-            );
-
-            FinanceLookupItem^ classItem =
-                dynamic_cast<FinanceLookupItem^>(
-                    feeStructureClassBox->SelectedItem
-                );
-
-            if (classItem == nullptr || classItem->Id <= 0)
-            {
-                feeStructureStreamBox->SelectedIndex = 0;
-                return;
-            }
+            feeStructureSessionBox->Items->Clear();
 
             try
             {
                 auto con = DbConnection::GetConnection();
                 std::unique_ptr<sql::PreparedStatement> stmt(
                     con->prepareStatement(
-                        "SELECT stream_id, stream_name "
-                        "FROM streams "
-                        "WHERE class_id = ? "
-                        "ORDER BY stream_name"
+                        "SELECT session_id, session_name "
+                        "FROM student_sessions "
+                        "WHERE status = 'Active' "
+                        "ORDER BY session_name"
                     )
                 );
-                stmt->setInt(1, classItem->Id);
 
                 std::unique_ptr<sql::ResultSet> result(stmt->executeQuery());
 
                 while (result->next())
                 {
-                    feeStructureStreamBox->Items->Add(
+                    feeStructureSessionBox->Items->Add(
                         gcnew FinanceLookupItem(
-                            result->getInt("stream_id"),
-                            gcnew String(result->getString("stream_name").c_str())
+                            result->getInt("session_id"),
+                            gcnew String(result->getString("session_name").c_str())
                         )
                     );
                 }
 
-                feeStructureStreamBox->SelectedIndex = 0;
+                if (feeStructureSessionBox->Items->Count > 0)
+                    feeStructureSessionBox->SelectedIndex = 0;
             }
             catch (sql::SQLException& ex)
             {
                 MessageBox::Show(
                     feeStructureEditorForm,
                     gcnew String(ex.what()),
-                    L"Unable to Load Streams",
+                    L"Unable to Load Sessions",
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Error
                 );
@@ -2728,17 +2714,18 @@ namespace SchoolCore
                 dynamic_cast<FinanceLookupItem^>(feeStructureTermBox->SelectedItem);
             FinanceLookupItem^ classItem =
                 dynamic_cast<FinanceLookupItem^>(feeStructureClassBox->SelectedItem);
-            FinanceLookupItem^ streamItem =
-                dynamic_cast<FinanceLookupItem^>(feeStructureStreamBox->SelectedItem);
+            FinanceLookupItem^ sessionItem =
+                dynamic_cast<FinanceLookupItem^>(feeStructureSessionBox->SelectedItem);
 
             String^ feeName = feeStructureNameBox->Text->Trim();
             Decimal amount;
 
-            if (year == nullptr || term == nullptr || classItem == nullptr)
+            if (year == nullptr || term == nullptr || classItem == nullptr ||
+                sessionItem == nullptr || sessionItem->Id <= 0)
             {
                 MessageBox::Show(
                     feeStructureEditorForm,
-                    L"Select the academic year, term and class.",
+                    L"Select the academic year, term, class and session.",
                     L"Fee Structure",
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Warning
@@ -2795,24 +2782,11 @@ namespace SchoolCore
             {
                 auto con = DbConnection::GetConnection();
 
-                String^ insertSql;
-
-                if (streamItem != nullptr && streamItem->Id > 0)
-                {
-                    insertSql =
-                        L"INSERT INTO fee_structures "
-                        L"(academic_year_id, term_id, class_id, stream_id, "
-                        L"fee_name, amount, due_date, description, status) "
-                        L"VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Active')";
-                }
-                else
-                {
-                    insertSql =
-                        L"INSERT INTO fee_structures "
-                        L"(academic_year_id, term_id, class_id, stream_id, "
-                        L"fee_name, amount, due_date, description, status) "
-                        L"VALUES (?, ?, ?, NULL, ?, ?, ?, ?, 'Active')";
-                }
+                String^ insertSql =
+                    L"INSERT INTO fee_structures "
+                    L"(academic_year_id, term_id, class_id, session_id, "
+                    L"fee_name, amount, due_date, description, status) "
+                    L"VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Active')";
 
                 std::unique_ptr<sql::PreparedStatement> stmt(
                     con->prepareStatement(
@@ -2824,9 +2798,7 @@ namespace SchoolCore
                 stmt->setInt(p++, year->Id);
                 stmt->setInt(p++, term->Id);
                 stmt->setInt(p++, classItem->Id);
-
-                if (streamItem != nullptr && streamItem->Id > 0)
-                    stmt->setInt(p++, streamItem->Id);
+                stmt->setInt(p++, sessionItem->Id);
 
                 stmt->setString(
                     p++,
@@ -2890,12 +2862,12 @@ namespace SchoolCore
             feeStructureYearBox = gcnew ComboBox();
             feeStructureTermBox = gcnew ComboBox();
             feeStructureClassBox = gcnew ComboBox();
-            feeStructureStreamBox = gcnew ComboBox();
+            feeStructureSessionBox = gcnew ComboBox();
 
             feeStructureYearBox->Dock = DockStyle::Fill;
             feeStructureTermBox->Dock = DockStyle::Fill;
             feeStructureClassBox->Dock = DockStyle::Fill;
-            feeStructureStreamBox->Dock = DockStyle::Fill;
+            feeStructureSessionBox->Dock = DockStyle::Fill;
 
             feeStructureNameBox = gcnew TextBox();
             feeStructureAmountBox = gcnew TextBox();
@@ -2916,7 +2888,7 @@ namespace SchoolCore
                 L"Academic Year",
                 L"Term",
                 L"Class",
-                L"Stream",
+                L"Session",
                 L"Fee Name",
                 L"Amount (UGX)",
                 L"Due Date",
@@ -2928,7 +2900,7 @@ namespace SchoolCore
                 feeStructureYearBox,
                 feeStructureTermBox,
                 feeStructureClassBox,
-                feeStructureStreamBox,
+                feeStructureSessionBox,
                 feeStructureNameBox,
                 feeStructureAmountBox,
                 feeStructureDueDatePicker,
@@ -2970,12 +2942,6 @@ namespace SchoolCore
                     &Finance::FeeStructureYearChanged
                 );
 
-            feeStructureClassBox->SelectedIndexChanged +=
-                gcnew EventHandler(
-                    this,
-                    &Finance::FeeStructureClassChanged
-                );
-
             feeStructureEditorForm->Controls->Add(root);
             feeStructureEditorForm->Controls->Add(footer);
 
@@ -2986,6 +2952,7 @@ namespace SchoolCore
 
             LoadFeeStructureYears();
             LoadFeeStructureClasses();
+            LoadFeeStructureSessions();
 
             feeStructureEditorForm->ShowDialog(this);
 
