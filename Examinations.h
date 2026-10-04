@@ -1331,8 +1331,6 @@ namespace SchoolCore
                         "WHERE academic_year_id = ? "
                         "AND term_id = ? "
                         "AND class_id = ? "
-                        "AND TRIM(LOWER(COALESCE(examination_name, ''))) = "
-                        "    TRIM(LOWER(?)) "
                         "AND TRIM(LOWER(COALESCE(examination_type, ''))) = "
                         "    TRIM(LOWER(?)) "
                         "AND examination_id <> ?"
@@ -1353,14 +1351,10 @@ namespace SchoolCore
                 );
                 duplicateStmt->setString(
                     4,
-                    name
-                );
-                duplicateStmt->setString(
-                    5,
                     type
                 );
                 duplicateStmt->setInt(
-                    6,
+                    5,
                     this->editorEditMode
                     ? this->editingExaminationId
                     : 0
@@ -1396,7 +1390,7 @@ namespace SchoolCore
                         : L"the selected stream";
 
                     MessageBox::Show(
-                        L"An examination with the same academic year, term, class, name and type already exists for " +
+                        L"An examination with the same academic year, term, class and examination type already exists for " +
                         existingScope +
                         L". The selected scope (" +
                         selectedScope +
