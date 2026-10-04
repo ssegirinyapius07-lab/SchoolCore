@@ -718,6 +718,7 @@ namespace SchoolCore
                 LoadTeacherForEdit(teacherId);
             }
 
+            ThemeManager::ApplyBoldTypographyToForm(this->editorForm);
             this->editorForm->ShowDialog(this);
         }
 
@@ -1820,6 +1821,7 @@ namespace SchoolCore
                 profileForm->Controls->Add(footer);
                 profileForm->Controls->Add(profileHeader);
 
+                ThemeManager::ApplyBoldTypographyToForm(profileForm);
                 profileForm->ShowDialog(this);
             }
             catch (sql::SQLException& ex)
