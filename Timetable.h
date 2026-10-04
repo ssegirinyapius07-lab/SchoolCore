@@ -1102,7 +1102,7 @@ void InitializeComponent(void)
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(System::Windows::Forms::SizeType::Percent, 100.0F));
             this->mainLayout->RowStyles->Add(
-                gcnew RowStyle(System::Windows::Forms::SizeType::Absolute, 58.0F));
+                gcnew RowStyle(System::Windows::Forms::SizeType::Absolute, 76.0F));
 
             this->headerPanel = gcnew System::Windows::Forms::Panel();
             this->headerPanel->Dock = System::Windows::Forms::DockStyle::Fill;
@@ -1256,7 +1256,7 @@ void InitializeComponent(void)
             footer->FlowDirection = FlowDirection::RightToLeft;
             footer->WrapContents = false;
             footer->Padding =
-                System::Windows::Forms::Padding(0, 8, 0, 0);
+                System::Windows::Forms::Padding(0, 4, 0, 0);
 
             this->btnBack = gcnew System::Windows::Forms::Button();
             this->btnBack->Text = L"Back to Dashboard";
