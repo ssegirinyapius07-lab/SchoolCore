@@ -1187,7 +1187,7 @@ namespace SchoolCore
             paymentForm->Text = L"SchoolCore - Record Payment";
             paymentForm->StartPosition = FormStartPosition::CenterParent;
             paymentForm->FormBorderStyle =
-                System::Windows::Forms::System::Windows::Forms::FormBorderStyle::FixedDialog;
+                System::Windows::Forms::FormBorderStyle::FixedDialog;
             paymentForm->MaximizeBox = false;
             paymentForm->MinimizeBox = false;
             paymentForm->ShowInTaskbar = false;
@@ -1326,7 +1326,7 @@ namespace SchoolCore
             cancel->Text = L"Cancel";
             cancel->Width = 110;
             cancel->DialogResult =
-                System::Windows::Forms::System::Windows::Forms::DialogResult::Cancel;
+                System::Windows::Forms::DialogResult::Cancel;
 
             paymentSaveButton = gcnew Button();
             paymentSaveButton->Text = L"Record Payment";
@@ -2449,7 +2449,7 @@ namespace SchoolCore
                 close->Dock = DockStyle::Right;
                 close->Width = 110;
                 close->DialogResult =
-                    System::Windows::Forms::System::Windows::Forms::DialogResult::Cancel;
+                    System::Windows::Forms::DialogResult::Cancel;
 
                 footer->Controls->Add(close);
                 view->CancelButton = close;
