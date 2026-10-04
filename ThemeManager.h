@@ -404,6 +404,38 @@ namespace SchoolCore
         // Applying the theme
         // -----------------------------------------------------
 
+        static void ApplyBoldTypography(
+            System::Windows::Forms::Control::ControlCollection^ controls)
+        {
+            if (controls == nullptr)
+            {
+                return;
+            }
+
+            for each (System::Windows::Forms::Control^ control in controls)
+            {
+                if (control == nullptr || IsOptedOut(control))
+                {
+                    continue;
+                }
+
+                if (control->Font != nullptr)
+                {
+                    control->Font =
+                        gcnew System::Drawing::Font(
+                            L"Segoe UI",
+                            control->Font->SizeInPoints,
+                            System::Drawing::FontStyle::Bold
+                        );
+                }
+
+                if (control->HasChildren)
+                {
+                    ApplyBoldTypography(control->Controls);
+                }
+            }
+        }
+
         static void ApplyToControls(
             System::Windows::Forms::Control::ControlCollection^ controls)
         {
@@ -582,19 +614,22 @@ namespace SchoolCore
 
             System::String^ name = form->GetType()->Name;
 
-            // These forms are styled by hand.
-            if (name->Equals(L"LoginForm") ||
-                name->Equals(L"PasswordChangeForm"))
-            {
-                return;
-            }
-
             form->BackColor = Canvas();
             form->ForeColor = Ink();
+
+            // Typography is global, including hand-styled forms/dialogs.
+            // Colours and layout are still allowed to remain custom.
+            ApplyBoldTypography(form->Controls);
 
             // The dashboard uses a dark navigation rail that must
             // keep its own colours.
             if (name->Equals(L"Dashboard"))
+            {
+                return;
+            }
+
+            if (name->Equals(L"LoginForm") ||
+                name->Equals(L"PasswordChangeForm"))
             {
                 return;
             }
