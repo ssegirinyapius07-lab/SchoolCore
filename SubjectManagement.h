@@ -972,6 +972,8 @@ namespace SchoolCore
                 );
             }
 
+            ThemeManager::ApplyBoldTypographyToForm(this->editorForm);
+
             this->editorForm->ShowDialog(
                 this
             );
@@ -1968,6 +1970,8 @@ namespace SchoolCore
                 profileForm->Controls->Add(
                     profileHeader
                 );
+
+                ThemeManager::ApplyBoldTypographyToForm(profileForm);
 
                 profileForm->ShowDialog(
                     this
