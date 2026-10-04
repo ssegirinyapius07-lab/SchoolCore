@@ -218,6 +218,7 @@ namespace SchoolCore
                         96,
                         36));
 
+                ThemeManager::ApplyBoldTypographyToForm(view);
                 view->ShowDialog(this);
             }
             finally
