@@ -324,7 +324,7 @@ namespace SchoolCore
                     L"Confirm Approval",
                     MessageBoxButtons::YesNo,
                     MessageBoxIcon::Question) !=
-                DialogResult::Yes)
+                System::Windows::Forms::DialogResult::Yes)
             {
                 return;
             }
@@ -349,7 +349,7 @@ namespace SchoolCore
                     L"Confirm Rejection",
                     MessageBoxButtons::YesNo,
                     MessageBoxIcon::Question) !=
-                DialogResult::Yes)
+                System::Windows::Forms::DialogResult::Yes)
             {
                 return;
             }
