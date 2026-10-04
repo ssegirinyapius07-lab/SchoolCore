@@ -59,6 +59,14 @@ namespace SchoolCore
                             this,
                             &AcademicYearsTerms::btnApprovals_Click
                         );
+
+                    this->headerPanel->Resize +=
+                        gcnew System::EventHandler(
+                            this,
+                            &AcademicYearsTerms::headerPanel_Resize
+                        );
+
+                    PositionApprovalsButton();
         
         
                    
@@ -118,6 +126,45 @@ namespace SchoolCore
         // Bottom
         System::Windows::Forms::Panel^ buttonPanel;
 
+
+        void PositionApprovalsButton()
+        {
+            if (this->headerPanel == nullptr ||
+                this->btnApprovals == nullptr)
+            {
+                return;
+            }
+
+            const int rightMargin = 20;
+            int x =
+                this->headerPanel->ClientSize.Width -
+                this->btnApprovals->Width -
+                rightMargin;
+
+            if (x < rightMargin)
+            {
+                x = rightMargin;
+            }
+
+            int y =
+                (this->headerPanel->ClientSize.Height -
+                 this->btnApprovals->Height) / 2;
+
+            if (y < 10)
+            {
+                y = 10;
+            }
+
+            this->btnApprovals->Location =
+                System::Drawing::Point(x, y);
+        }
+
+        void headerPanel_Resize(
+            System::Object^ sender,
+            System::EventArgs^ e)
+        {
+            PositionApprovalsButton();
+        }
 
         void StyleProfessionalGrid(
             System::Windows::Forms::DataGridView^ grid)
@@ -339,14 +386,11 @@ void InitializeComponent(void)
                 System::Drawing::Size(190, 36);
 
             this->btnApprovals->Location =
-                System::Drawing::Point(
-                    this->ClientSize.Width - 215,
-                    16
-                );
+                System::Drawing::Point(20, 20);
 
             this->btnApprovals->Anchor =
                 System::Windows::Forms::AnchorStyles::Top |
-                System::Windows::Forms::AnchorStyles::Right;
+                System::Windows::Forms::AnchorStyles::Left;
 
             this->btnApprovals->BackColor =
                 System::Drawing::Color::FromArgb(
