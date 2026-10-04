@@ -14,6 +14,7 @@ namespace SchoolCore
 {
     using namespace System;
     using namespace System::Drawing;
+    using namespace System::Drawing::Printing;
     using namespace System::Windows::Forms;
 
     private ref class FinanceTheme abstract sealed
@@ -178,7 +179,8 @@ namespace SchoolCore
         Finance()
         {
             InitializeComponent();
-                            ThemeManager::ApplyToForm(this);
+            ThemeManager::ApplyToForm(this);
+            LoadFinanceMetrics();
                     }
 
     private:
@@ -230,6 +232,17 @@ namespace SchoolCore
         DateTimePicker^ paymentHistoryToPicker;
         Label^ paymentHistorySummaryLabel;
         Button^ paymentHistoryViewButton;
+
+        PrintDocument^ receiptPrintDocument;
+        String^ receiptPrintNumber;
+        String^ receiptPrintRegistration;
+        String^ receiptPrintStudent;
+        String^ receiptPrintDate;
+        String^ receiptPrintAmount;
+        String^ receiptPrintMethod;
+        String^ receiptPrintProvider;
+        String^ receiptPrintReference;
+        String^ receiptPrintStatus;
 
         static Label^ CreateLabel(String^ text, Drawing::Font^ font, Color color)
         {
@@ -618,11 +631,7 @@ namespace SchoolCore
                     System::Globalization::CultureInfo::InvariantCulture
                 );
 
-            paymentAmountBox->Text =
-                charge->Balance.ToString(
-                    L"N2",
-                    System::Globalization::CultureInfo::InvariantCulture
-                );
+            paymentAmountBox->Text = L"";
         }
 
         void PaymentStudentChanged(Object^ sender, EventArgs^ e)
@@ -1441,7 +1450,7 @@ namespace SchoolCore
 
             details->Controls->Add(
                 CreatePaymentFieldBlock(
-                    L"Amount (UGX)",
+                    L"Amount Received (UGX)",
                     paymentAmountBox),
                 0, 1);
 
@@ -1904,6 +1913,166 @@ namespace SchoolCore
                 ShowSelectedPaymentDetails();
         }
 
+        void PrintReceiptPage(
+            Object^ sender,
+            PrintPageEventArgs^ e)
+        {
+            if (e == nullptr)
+                return;
+
+            Graphics^ graphics = e->Graphics;
+            int left = e->MarginBounds.Left;
+            int top = e->MarginBounds.Top;
+            int width = e->MarginBounds.Width;
+            int y = top;
+
+            Drawing::Font^ schoolFont =
+                gcnew Drawing::Font(L"Segoe UI Semibold", 18.0F, FontStyle::Bold);
+            Drawing::Font^ titleFont =
+                gcnew Drawing::Font(L"Segoe UI Semibold", 14.0F, FontStyle::Bold);
+            Drawing::Font^ labelFont =
+                gcnew Drawing::Font(L"Segoe UI Semibold", 10.0F, FontStyle::Bold);
+            Drawing::Font^ valueFont =
+                gcnew Drawing::Font(L"Segoe UI", 10.0F);
+
+            graphics->DrawString(
+                L"SchoolCore",
+                schoolFont,
+                Brushes::Black,
+                left,
+                y);
+            y += 34;
+
+            graphics->DrawString(
+                L"PAYMENT RECEIPT",
+                titleFont,
+                Brushes::Black,
+                left,
+                y);
+            y += 32;
+
+            Pen^ linePen = gcnew Pen(Color::Black, 1.0F);
+            graphics->DrawLine(linePen, left, y, left + width, y);
+            y += 18;
+
+            array<String^>^ labels = gcnew array<String^>
+            {
+                L"Receipt",
+                L"Registration",
+                L"Student",
+                L"Payment Date",
+                L"Amount",
+                L"Method",
+                L"Provider",
+                L"Transaction Reference",
+                L"Status"
+            };
+
+            array<String^>^ values = gcnew array<String^>
+            {
+                receiptPrintNumber,
+                receiptPrintRegistration,
+                receiptPrintStudent,
+                receiptPrintDate,
+                L"UGX " + receiptPrintAmount,
+                receiptPrintMethod,
+                receiptPrintProvider,
+                receiptPrintReference,
+                receiptPrintStatus
+            };
+
+            for (int i = 0; i < labels->Length; ++i)
+            {
+                graphics->DrawString(labels[i], labelFont, Brushes::Black, left, y);
+                graphics->DrawString(values[i], valueFont, Brushes::Black, left + 180, y);
+                y += 27;
+            }
+
+            y += 12;
+            graphics->DrawLine(linePen, left, y, left + width, y);
+            y += 18;
+
+            graphics->DrawString(
+                L"Thank you for your payment.",
+                valueFont,
+                Brushes::Black,
+                left,
+                y);
+
+            e->HasMorePages = false;
+        }
+
+        void PrintSelectedReceipt()
+        {
+            if (paymentHistoryGrid == nullptr ||
+                paymentHistoryGrid->SelectedRows->Count == 0)
+            {
+                MessageBox::Show(
+                    paymentHistoryForm,
+                    L"Select a payment first.",
+                    L"Print Receipt",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Information
+                );
+                return;
+            }
+
+            DataGridViewRow^ row = paymentHistoryGrid->SelectedRows[0];
+
+            receiptPrintNumber = Convert::ToString(row->Cells[L"Receipt"]->Value);
+            receiptPrintRegistration = Convert::ToString(row->Cells[L"Registration"]->Value);
+            receiptPrintStudent = Convert::ToString(row->Cells[L"Student"]->Value);
+            receiptPrintDate = Convert::ToString(row->Cells[L"PaymentDate"]->Value);
+            receiptPrintAmount = Convert::ToString(row->Cells[L"Amount"]->Value);
+            receiptPrintMethod = Convert::ToString(row->Cells[L"Method"]->Value);
+            receiptPrintProvider = Convert::ToString(row->Cells[L"Provider"]->Value);
+            receiptPrintReference = Convert::ToString(row->Cells[L"Reference"]->Value);
+            receiptPrintStatus = Convert::ToString(row->Cells[L"Status"]->Value);
+
+            receiptPrintDocument = gcnew PrintDocument();
+            receiptPrintDocument->DocumentName = receiptPrintNumber;
+            receiptPrintDocument->PrintPage +=
+                gcnew PrintPageEventHandler(
+                    this,
+                    &Finance::PrintReceiptPage
+                );
+
+            try
+            {
+                PrintDialog^ dialog = gcnew PrintDialog();
+                dialog->UseEXDialog = true;
+                dialog->Document = receiptPrintDocument;
+
+                if (dialog->ShowDialog(paymentHistoryForm)
+                    == System::Windows::Forms::DialogResult::OK)
+                {
+                    receiptPrintDocument->Print();
+                }
+
+                delete dialog;
+            }
+            catch (Exception^ ex)
+            {
+                MessageBox::Show(
+                    paymentHistoryForm,
+                    ex->Message,
+                    L"Unable to Print Receipt",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error
+                );
+            }
+            finally
+            {
+                delete receiptPrintDocument;
+                receiptPrintDocument = nullptr;
+            }
+        }
+
+        void PaymentHistoryPrintClick(Object^ sender, EventArgs^ e)
+        {
+            PrintSelectedReceipt();
+        }
+
         void ShowSelectedPaymentDetails()
         {
             if (paymentHistoryGrid == nullptr ||
@@ -1982,7 +2151,7 @@ namespace SchoolCore
             layout->Padding =
                 System::Windows::Forms::Padding(28);
             layout->ColumnCount = 2;
-            layout->RowCount = 10;
+            layout->RowCount = 11;
 
             layout->ColumnStyles->Add(
                 gcnew ColumnStyle(
@@ -1993,7 +2162,7 @@ namespace SchoolCore
                     SizeType::Percent,
                     100.0F));
 
-            for (int i = 0; i < 9; ++i)
+            for (int i = 0; i < 10; ++i)
             {
                 layout->RowStyles->Add(
                     gcnew RowStyle(
@@ -2078,6 +2247,18 @@ namespace SchoolCore
                     i + 1);
             }
 
+            Button^ printReceipt =
+                gcnew Button();
+
+            printReceipt->Text =
+                L"Print Receipt";
+            printReceipt->Width = 130;
+            printReceipt->Click +=
+                gcnew EventHandler(
+                    this,
+                    &Finance::PaymentHistoryPrintClick
+                );
+
             Button^ close =
                 gcnew Button();
 
@@ -2094,11 +2275,12 @@ namespace SchoolCore
                 FlowDirection::RightToLeft;
             footer->WrapContents = false;
             footer->Controls->Add(close);
+            footer->Controls->Add(printReceipt);
 
             layout->Controls->Add(
                 footer,
                 0,
-                9);
+                10);
             layout->SetColumnSpan(
                 footer,
                 2);
@@ -3643,6 +3825,84 @@ namespace SchoolCore
             studentChargesSummaryLabel = nullptr;
         }
 
+        void LoadFinanceMetrics()
+        {
+            if (metricValues == nullptr ||
+                metricValues->Length < MetricCount)
+                return;
+
+            try
+            {
+                auto con = DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "SELECT "
+                        "COALESCE((SELECT SUM(p.amount) "
+                        "FROM payments p "
+                        "WHERE COALESCE(p.payment_status, 'Confirmed') = 'Confirmed'), 0) AS total_revenue, "
+                        "COALESCE((SELECT SUM(fc.amount - COALESCE(paid.total_paid, 0)) "
+                        "FROM fee_charges fc "
+                        "LEFT JOIN ("
+                        "SELECT fee_charge_id, SUM(amount) AS total_paid "
+                        "FROM payment_allocations "
+                        "GROUP BY fee_charge_id"
+                        ") paid ON paid.fee_charge_id = fc.fee_charge_id "
+                        "WHERE fc.status <> 'Cancelled' "
+                        "AND fc.amount - COALESCE(paid.total_paid, 0) > 0), 0) AS outstanding_fees, "
+                        "COALESCE((SELECT SUM(p.amount) "
+                        "FROM payments p "
+                        "WHERE COALESCE(p.payment_status, 'Confirmed') = 'Confirmed' "
+                        "AND p.payment_date = CURDATE()), 0) AS collected_today, "
+                        "COALESCE((SELECT SUM(p.amount) "
+                        "FROM payments p "
+                        "WHERE p.payment_status = 'Pending'), 0) AS pending_amount"
+                    )
+                );
+
+                std::unique_ptr<sql::ResultSet> result(
+                    stmt->executeQuery()
+                );
+
+                if (!result->next())
+                    return;
+
+                Decimal totalRevenue =
+                    Decimal::Parse(
+                        gcnew String(result->getString("total_revenue").c_str()),
+                        System::Globalization::CultureInfo::InvariantCulture
+                    );
+
+                Decimal outstandingFees =
+                    Decimal::Parse(
+                        gcnew String(result->getString("outstanding_fees").c_str()),
+                        System::Globalization::CultureInfo::InvariantCulture
+                    );
+
+                Decimal collectedToday =
+                    Decimal::Parse(
+                        gcnew String(result->getString("collected_today").c_str()),
+                        System::Globalization::CultureInfo::InvariantCulture
+                    );
+
+                Decimal pendingAmount =
+                    Decimal::Parse(
+                        gcnew String(result->getString("pending_amount").c_str()),
+                        System::Globalization::CultureInfo::InvariantCulture
+                    );
+
+                SetMetric(0, totalRevenue);
+                SetMetric(1, outstandingFees);
+                SetMetric(2, collectedToday);
+                SetMetric(3, pendingAmount);
+            }
+            catch (sql::SQLException&)
+            {
+                for (int i = 0; i < MetricCount; ++i)
+                    metricValues[i]->Text = L"Unavailable";
+            }
+        }
+
         void SetMetric(int index, Decimal amount)
         {
             if (index < 0 || index >= MetricCount)
@@ -3703,6 +3963,7 @@ namespace SchoolCore
             if (operation->Title->Equals(L"Record Payment"))
             {
                 OpenRecordPaymentDialog();
+                LoadFinanceMetrics();
                 return;
             }
 
