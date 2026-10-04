@@ -333,7 +333,7 @@ namespace SchoolCore
                     L"Review student fee charges, due dates, payment status and outstanding balances."),
                 gcnew FinanceOperation(
                     L"Record Payment",
-                    L"Record cash, Mobile Money, bank, card or other supported payments with a transaction reference."),
+                    L"Record Mobile Money, bank, or online/electronic payments with the provider and transaction reference."),
                 gcnew FinanceOperation(
                     L"Payment History",
                     L"Review recorded payments, receipts, payment methods and transaction references.")
