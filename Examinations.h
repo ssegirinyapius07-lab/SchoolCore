@@ -279,9 +279,11 @@ namespace SchoolCore
                 return;
             }
 
+            std::unique_ptr<sql::Connection> con;
+
             try
             {
-                auto con =
+                con =
                     DbConnection::GetConnection();
 
                 std::unique_ptr<sql::PreparedStatement> stmt(
@@ -1586,9 +1588,7 @@ namespace SchoolCore
                     );
                     scopeStmt->setString(
                         5,
-                        this->editorName->Text->Trim()->ToString()->Length > 0
-                        ? name
-                        : name
+                        name
                     );
                     scopeStmt->setString(
                         6,
@@ -1692,7 +1692,31 @@ namespace SchoolCore
             }
             catch (sql::SQLException& ex)
             {
-                ShowDatabaseError(ex);
+                try
+                {
+                    if (con != nullptr)
+                    {
+                        con->rollback();
+                        con->setAutoCommit(true);
+                    }
+                }
+                catch (...)
+                {
+                }
+
+                if (ex.getErrorCode() == 1062)
+                {
+                    MessageBox::Show(
+                        L"The database rejected this examination because its stream scope overlaps an existing examination with the same academic year, term, class, name and type.",
+                        L"Overlapping Examination",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning
+                    );
+                }
+                else
+                {
+                    ShowDatabaseError(ex);
+                }
             }
         }
 
