@@ -42,6 +42,10 @@ namespace SchoolCore
         int currentEnrollmentId = 0;
         int currentClassId = 0;
         int targetClassId = 0;
+        int currentGrade = 0;
+        int targetGrade = 0;
+        String^ currentClassName = L"";
+        String^ targetClassName = L"";
 
         TableLayoutPanel^ mainLayout;
         Label^ lblTitle;
@@ -121,7 +125,7 @@ namespace SchoolCore
 
             this->lblSubtitle = gcnew Label();
             this->lblSubtitle->Text =
-                L"Promote an existing student from S2 to S3 and record two optional subjects.";
+                L"Promote the student to the next configured class and record optional subjects where applicable.";
             this->lblSubtitle->Font =
                 gcnew Drawing::Font(L"Segoe UI", 9.5F);
             this->lblSubtitle->ForeColor = Color::DimGray;
@@ -204,7 +208,7 @@ namespace SchoolCore
             optionPanel->Controls->Add(this->cmbOption2);
 
             this->mainLayout->Controls->Add(
-                MakeLabel(L"Two Optional Subjects"), 0, 8);
+                MakeLabel(L"Optional Subjects"), 0, 8);
             this->mainLayout->Controls->Add(optionPanel, 1, 8);
 
             FlowLayoutPanel^ buttonPanel = gcnew FlowLayoutPanel();
@@ -213,7 +217,7 @@ namespace SchoolCore
             buttonPanel->WrapContents = false;
 
             this->btnPromote = gcnew Button();
-            this->btnPromote->Text = L"Promote to S3";
+            this->btnPromote->Text = L"Promote Student";
             this->btnPromote->Width = 150;
             this->btnPromote->Height = 36;
             this->btnPromote->Click +=
@@ -266,6 +270,79 @@ namespace SchoolCore
             combo->Height = 32;
             combo->Margin = System::Windows::Forms::Padding(0, 7, 8, 7);
             return combo;
+        }
+
+        int GetGradeNumber(String^ className)
+        {
+            if (String::IsNullOrWhiteSpace(className))
+                return 0;
+
+            String^ value = className->Trim();
+
+            if (!value->StartsWith(
+                    L"Senior ",
+                    StringComparison::OrdinalIgnoreCase))
+            {
+                return 0;
+            }
+
+            try
+            {
+                return Convert::ToInt32(
+                    value->Substring(7)
+                );
+            }
+            catch (System::Exception^)
+            {
+                return 0;
+            }
+        }
+
+        void UpdatePromotionText()
+        {
+            if (this->currentGrade <= 0)
+            {
+                this->lblSubtitle->Text =
+                    L"Load a student with an active enrollment first.";
+                this->btnPromote->Text =
+                    L"Promote Student";
+                this->btnPromote->Enabled = false;
+                return;
+            }
+
+            if (this->currentGrade >= 4)
+            {
+                this->lblSubtitle->Text =
+                    L"Senior 4 to Senior 5 is an A-Level transition and uses the A-Level admission process.";
+                this->btnPromote->Text =
+                    L"Promote Student";
+                this->btnPromote->Enabled = false;
+                return;
+            }
+
+            if (this->targetGrade == this->currentGrade + 1 &&
+                !String::IsNullOrWhiteSpace(this->targetClassName))
+            {
+                this->lblSubtitle->Text =
+                    L"Promote " +
+                    this->currentClassName +
+                    L" to " +
+                    this->targetClassName +
+                    L"; select the required stream and optional subjects.";
+
+                this->btnPromote->Text =
+                    L"Promote to " + this->targetClassName;
+                this->btnPromote->Enabled = true;
+                return;
+            }
+
+            this->lblSubtitle->Text =
+                L"No valid next class is configured for " +
+                this->currentClassName +
+                L".";
+            this->btnPromote->Text =
+                L"Promote Student";
+            this->btnPromote->Enabled = false;
         }
 
         void LoadStudentAndEnrollment()
@@ -325,6 +402,15 @@ namespace SchoolCore
                         ? 0
                         : result->getInt("class_id");
 
+                this->currentClassName =
+                    result->isNull("class_name")
+                        ? L""
+                        : gcnew String(
+                            result->getString("class_name").c_str());
+
+                this->currentGrade =
+                    GetGradeNumber(this->currentClassName);
+
                 String^ first =
                     gcnew String(result->getString("first_name").c_str());
 
@@ -352,7 +438,9 @@ namespace SchoolCore
                 this->lblCurrent->Text =
                     result->isNull("class_name")
                         ? L"No active enrollment"
-                        : gcnew String(result->getString("class_name").c_str());
+                        : this->currentClassName;
+
+                UpdatePromotionText();
             }
             catch (sql::SQLException& ex)
             {
@@ -395,6 +483,17 @@ namespace SchoolCore
 
         void LoadTerms()
         {
+            this->cmbTerm->Items->Clear();
+
+            ComboItem^ yearItem =
+                this->cmbAcademicYear->SelectedIndex >= 0
+                ? dynamic_cast<ComboItem^>(
+                    this->cmbAcademicYear->SelectedItem)
+                : nullptr;
+
+            if (yearItem == nullptr)
+                return;
+
             try
             {
                 auto con = DbConnection::GetConnection();
@@ -403,15 +502,16 @@ namespace SchoolCore
                     con->prepareStatement(
                         "SELECT term_id, term_name "
                         "FROM terms "
-                        "WHERE status = 'Active' "
+                        "WHERE academic_year_id = ? "
+                        "AND status = 'Active' "
                         "ORDER BY term_id"
                     )
                 );
 
+                stmt->setInt(1, yearItem->Id);
+
                 std::unique_ptr<sql::ResultSet> result(
                     stmt->executeQuery());
-
-                this->cmbTerm->Items->Clear();
 
                 while (result->next())
                 {
@@ -440,6 +540,25 @@ namespace SchoolCore
 
         void LoadTargetClasses()
         {
+            this->cmbClass->Items->Clear();
+            this->targetClassId = 0;
+            this->targetGrade = 0;
+            this->targetClassName = L"";
+
+            if (this->currentGrade <= 0)
+            {
+                UpdatePromotionText();
+                return;
+            }
+
+            if (this->currentGrade >= 4)
+            {
+                UpdatePromotionText();
+                return;
+            }
+
+            int nextGrade = this->currentGrade + 1;
+
             try
             {
                 auto con = DbConnection::GetConnection();
@@ -451,6 +570,7 @@ namespace SchoolCore
                         "INNER JOIN academic_levels al "
                         "ON al.academic_level_id = c.academic_level_id "
                         "WHERE c.status = 'Active' "
+                        "AND al.status = 'Active' "
                         "AND al.level_code = 'O_LEVEL' "
                         "ORDER BY c.class_id"
                     )
@@ -459,22 +579,36 @@ namespace SchoolCore
                 std::unique_ptr<sql::ResultSet> result(
                     stmt->executeQuery());
 
-                this->cmbClass->Items->Clear();
-
                 while (result->next())
                 {
-                    this->cmbClass->Items->Add(
+                    String^ className =
+                        gcnew String(
+                            result->getString("class_name").c_str());
+
+                    if (GetGradeNumber(className) != nextGrade)
+                        continue;
+
+                    ComboItem^ item =
                         gcnew ComboItem(
                             result->getInt("class_id"),
-                            gcnew String(result->getString("class_name").c_str())
-                        )
-                    );
+                            className
+                        );
+
+                    this->cmbClass->Items->Add(item);
                 }
 
                 if (this->cmbClass->Items->Count > 0)
                 {
                     this->cmbClass->SelectedIndex = 0;
                 }
+                else
+                {
+                    this->targetClassId = 0;
+                    this->targetGrade = 0;
+                    this->targetClassName = L"";
+                }
+
+                UpdatePromotionText();
             }
             catch (sql::SQLException& ex)
             {
@@ -547,13 +681,23 @@ namespace SchoolCore
             this->cmbOption1->Items->Clear();
             this->cmbOption2->Items->Clear();
 
-            if (this->cmbAcademicYear->SelectedIndex < 0)
-            {
+            this->cmbOption1->Visible = false;
+            this->cmbOption2->Visible = false;
+
+            if (this->targetGrade < 2)
                 return;
-            }
+
+            this->cmbOption1->Visible = true;
+
+            if (this->targetGrade >= 3)
+                this->cmbOption2->Visible = true;
+
+            if (this->cmbAcademicYear->SelectedIndex < 0)
+                return;
 
             ComboItem^ yearItem =
-                safe_cast<ComboItem^>(this->cmbAcademicYear->SelectedItem);
+                safe_cast<ComboItem^>(
+                    this->cmbAcademicYear->SelectedItem);
 
             try
             {
@@ -561,71 +705,113 @@ namespace SchoolCore
 
                 std::unique_ptr<sql::PreparedStatement> stmt(
                     con->prepareStatement(
-                        "SELECT "
+                        "SELECT DISTINCT "
                         "s.subject_id, "
                         "s.subject_name "
-                        "FROM academic_years ay "
-                        "INNER JOIN curricula c "
-                        "ON c.curriculum_id = ay.curriculum_id "
+                        "FROM curricula c "
                         "INNER JOIN academic_levels al "
                         "ON al.academic_level_id = c.academic_level_id "
                         "INNER JOIN curriculum_subjects cs "
                         "ON cs.curriculum_id = c.curriculum_id "
                         "INNER JOIN subjects s "
                         "ON s.subject_id = cs.subject_id "
-                        "WHERE ay.academic_year_id = ? "
+                        "WHERE c.status = 'Active' "
+                        "AND al.status = 'Active' "
                         "AND al.level_code = 'O_LEVEL' "
                         "AND cs.requirement_type = 'Optional' "
                         "AND cs.status = 'Active' "
                         "AND s.status = 'Active' "
+                        "AND c.curriculum_id = ("
+                            "SELECT c2.curriculum_id "
+                            "FROM curricula c2 "
+                            "INNER JOIN academic_levels al2 "
+                            "ON al2.academic_level_id = c2.academic_level_id "
+                            "WHERE c2.status = 'Active' "
+                            "AND al2.status = 'Active' "
+                            "AND al2.level_code = 'O_LEVEL' "
+                            "ORDER BY "
+                                "c2.effective_from_year DESC, "
+                                "c2.curriculum_id DESC "
+                            "LIMIT 1"
+                        ") "
                         "ORDER BY s.subject_name"
                     )
                 );
 
-                stmt->setInt(1, yearItem->Id);
+                (void)yearItem;
 
                 std::unique_ptr<sql::ResultSet> result(
                     stmt->executeQuery());
 
                 while (result->next())
                 {
-                    this->cmbOption1->Items->Add(
+                    ComboItem^ item1 =
                         gcnew ComboItem(
                             result->getInt("subject_id"),
-                            gcnew String(result->getString("subject_name").c_str())
-                        )
-                    );
+                            gcnew String(
+                                result->getString("subject_name").c_str()));
 
-                    this->cmbOption2->Items->Add(
+                    ComboItem^ item2 =
                         gcnew ComboItem(
-                            result->getInt("subject_id"),
-                            gcnew String(result->getString("subject_name").c_str())
-                        )
-                    );
+                            item1->Id,
+                            item1->Text);
+
+                    this->cmbOption1->Items->Add(item1);
+                    this->cmbOption2->Items->Add(item2);
                 }
 
                 if (this->cmbOption1->Items->Count > 0)
                 {
                     this->cmbOption1->SelectedIndex = 0;
-                    this->cmbOption2->SelectedIndex =
-                        this->cmbOption2->Items->Count > 1 ? 1 : -1;
+                }
+
+                if (this->targetGrade >= 3 &&
+                    this->cmbOption2->Items->Count > 1)
+                {
+                    this->cmbOption2->SelectedIndex = 1;
+                }
+                else
+                {
+                    this->cmbOption2->SelectedIndex = -1;
                 }
             }
             catch (sql::SQLException& ex)
             {
                 MessageBox::Show(
                     gcnew String(ex.what()),
-                    L"Database Error",
+                    L"Optional Subjects",
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Error);
             }
         }
 
-        System::Void cmbClass_SelectedIndexChanged(
+                System::Void cmbClass_SelectedIndexChanged(
             Object^ sender,
             EventArgs^ e)
         {
+            ComboItem^ item =
+                this->cmbClass->SelectedIndex >= 0
+                ? dynamic_cast<ComboItem^>(
+                    this->cmbClass->SelectedItem)
+                : nullptr;
+
+            if (item != nullptr)
+            {
+                this->targetClassId = item->Id;
+                this->targetClassName = item->Text;
+                this->targetGrade = GetGradeNumber(
+                    this->targetClassName);
+            }
+            else
+            {
+                this->targetClassId = 0;
+                this->targetClassName = L"";
+                this->targetGrade = 0;
+            }
+
+            UpdatePromotionText();
             LoadStreams();
+            LoadOptionalSubjects();
         }
 
         System::Void cmbOption1_SelectedIndexChanged(
@@ -743,53 +929,109 @@ namespace SchoolCore
 
             ComboItem^ yearItem =
                 this->cmbAcademicYear->SelectedIndex >= 0
-                ? safe_cast<ComboItem^>(this->cmbAcademicYear->SelectedItem)
+                ? safe_cast<ComboItem^>(
+                    this->cmbAcademicYear->SelectedItem)
                 : nullptr;
 
             ComboItem^ termItem =
                 this->cmbTerm->SelectedIndex >= 0
-                ? safe_cast<ComboItem^>(this->cmbTerm->SelectedItem)
+                ? safe_cast<ComboItem^>(
+                    this->cmbTerm->SelectedItem)
                 : nullptr;
 
             ComboItem^ classItem =
                 this->cmbClass->SelectedIndex >= 0
-                ? safe_cast<ComboItem^>(this->cmbClass->SelectedItem)
+                ? safe_cast<ComboItem^>(
+                    this->cmbClass->SelectedItem)
                 : nullptr;
 
             ComboItem^ streamItem =
                 this->cmbStream->SelectedIndex >= 0
-                ? safe_cast<ComboItem^>(this->cmbStream->SelectedItem)
+                ? safe_cast<ComboItem^>(
+                    this->cmbStream->SelectedItem)
                 : nullptr;
 
             ComboItem^ option1 =
                 this->cmbOption1->SelectedIndex >= 0
-                ? safe_cast<ComboItem^>(this->cmbOption1->SelectedItem)
+                ? dynamic_cast<ComboItem^>(
+                    this->cmbOption1->SelectedItem)
                 : nullptr;
 
             ComboItem^ option2 =
                 this->cmbOption2->SelectedIndex >= 0
-                ? safe_cast<ComboItem^>(this->cmbOption2->SelectedItem)
+                ? dynamic_cast<ComboItem^>(
+                    this->cmbOption2->SelectedItem)
                 : nullptr;
 
             if (yearItem == nullptr ||
                 termItem == nullptr ||
                 classItem == nullptr ||
-                streamItem == nullptr ||
-                option1 == nullptr ||
-                option2 == nullptr)
+                streamItem == nullptr)
             {
                 MessageBox::Show(
-                    L"Select the target academic year, term, class, stream and two optional subjects.",
+                    L"Select the target academic year, term, class and stream.",
                     L"Validation",
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Warning);
                 return;
             }
 
-            if (option1->Id == option2->Id)
+            this->targetClassId = classItem->Id;
+            this->targetClassName = classItem->Text;
+            this->targetGrade = GetGradeNumber(
+                this->targetClassName);
+
+            if (this->currentGrade <= 0 ||
+                this->targetGrade != this->currentGrade + 1)
             {
                 MessageBox::Show(
-                    L"The two optional subjects must be different.",
+                    L"Students can only be promoted to the next configured class.",
+                    L"Promotion",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning);
+                return;
+            }
+
+            if (this->currentGrade >= 4)
+            {
+                MessageBox::Show(
+                    L"Senior 4 to Senior 5 is an A-Level transition and uses the A-Level admission process.",
+                    L"Promotion",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Information);
+                return;
+            }
+
+            if (option1 == nullptr)
+            {
+                MessageBox::Show(
+                    L"Select an optional subject for " +
+                    this->targetClassName +
+                    L".",
+                    L"Validation",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning);
+                return;
+            }
+
+            if (this->targetGrade >= 3 &&
+                option2 == nullptr)
+            {
+                MessageBox::Show(
+                    L"Select a second optional subject for " +
+                    this->targetClassName +
+                    L".",
+                    L"Validation",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning);
+                return;
+            }
+
+            if (option2 != nullptr &&
+                option1->Id == option2->Id)
+            {
+                MessageBox::Show(
+                    L"The selected optional subjects must be different.",
                     L"Validation",
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Warning);
@@ -802,107 +1044,34 @@ namespace SchoolCore
             {
                 con->setAutoCommit(false);
 
-                // Confirm the current class is Senior 2.
+                std::unique_ptr<sql::PreparedStatement> check(
+                    con->prepareStatement(
+                        "SELECT enrollment_id "
+                        "FROM enrollments "
+                        "WHERE student_id = ? "
+                        "AND academic_year_id = ? "
+                        "AND term_id = ? "
+                        "LIMIT 1"
+                    )
+                );
+
+                check->setInt64(1, this->studentId);
+                check->setInt(2, yearItem->Id);
+                check->setInt(3, termItem->Id);
+
+                std::unique_ptr<sql::ResultSet> duplicateResult(
+                    check->executeQuery());
+
+                if (duplicateResult->next())
                 {
-                    std::unique_ptr<sql::PreparedStatement> stmt(
-                        con->prepareStatement(
-                            "SELECT class_name "
-                            "FROM classes "
-                            "WHERE class_id = ? "
-                            "LIMIT 1"
-                        )
-                    );
-                    stmt->setInt(1, this->currentClassId);
+                    con->rollback();
 
-                    std::unique_ptr<sql::ResultSet> result(
-                        stmt->executeQuery());
-
-                    String^ className = result->next()
-                        ? gcnew String(result->getString("class_name").c_str())
-                        : L"";
-
-                    if (String::IsNullOrWhiteSpace(className) ||
-                        !className->Equals(
-                            L"Senior 2",
-                            StringComparison::OrdinalIgnoreCase))
-                    {
-                        con->rollback();
-
-                        MessageBox::Show(
-                            L"This promotion screen currently handles the S2 to S3 transition only.",
-                            L"Promotion",
-                            MessageBoxButtons::OK,
-                            MessageBoxIcon::Information);
-                        return;
-                    }
-                }
-
-                // Confirm the target is Senior 3.
-                {
-                    std::unique_ptr<sql::PreparedStatement> stmt(
-                        con->prepareStatement(
-                            "SELECT class_name "
-                            "FROM classes "
-                            "WHERE class_id = ? "
-                            "LIMIT 1"
-                        )
-                    );
-                    stmt->setInt(1, classItem->Id);
-
-                    std::unique_ptr<sql::ResultSet> result(
-                        stmt->executeQuery());
-
-                    String^ className = result->next()
-                        ? gcnew String(result->getString("class_name").c_str())
-                        : L"";
-
-                    if (String::IsNullOrWhiteSpace(className) ||
-                        !className->Equals(
-                            L"Senior 3",
-                            StringComparison::OrdinalIgnoreCase))
-                    {
-                        con->rollback();
-
-                        MessageBox::Show(
-                            L"Select Senior 3 as the target class.",
-                            L"Promotion",
-                            MessageBoxButtons::OK,
-                            MessageBoxIcon::Warning);
-                        return;
-                    }
-                }
-
-                // Prevent duplicate enrollment for the target academic period.
-                {
-                    std::unique_ptr<sql::PreparedStatement> check(
-                        con->prepareStatement(
-                            "SELECT enrollment_id "
-                            "FROM enrollments "
-                            "WHERE student_id = ? "
-                            "AND academic_year_id = ? "
-                            "AND term_id = ? "
-                            "LIMIT 1"
-                        )
-                    );
-
-                    check->setInt64(1, this->studentId);
-                    check->setInt(2, yearItem->Id);
-                    check->setInt(3, termItem->Id);
-
-                    std::unique_ptr<sql::ResultSet> result(
-                        check->executeQuery());
-
-                    if (result->next())
-                    {
-                        con->rollback();
-
-                        MessageBox::Show(
-                            L"The student already has an enrollment for the selected academic year and term.",
-                            L"Promotion",
-                            MessageBoxButtons::OK,
-                            MessageBoxIcon::Warning);
-                        return;
-                    }
+                    MessageBox::Show(
+                        L"The student already has an enrollment for the selected academic year and term.",
+                        L"Promotion",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning);
+                    return;
                 }
 
                 std::unique_ptr<sql::PreparedStatement> insertEnrollment(
@@ -913,11 +1082,26 @@ namespace SchoolCore
                     )
                 );
 
-                insertEnrollment->setInt64(1, this->studentId);
-                insertEnrollment->setInt(2, yearItem->Id);
-                insertEnrollment->setInt(3, termItem->Id);
-                insertEnrollment->setInt(4, classItem->Id);
-                insertEnrollment->setInt(5, streamItem->Id);
+                insertEnrollment->setInt64(
+                    1,
+                    this->studentId);
+
+                insertEnrollment->setInt(
+                    2,
+                    yearItem->Id);
+
+                insertEnrollment->setInt(
+                    3,
+                    termItem->Id);
+
+                insertEnrollment->setInt(
+                    4,
+                    this->targetClassId);
+
+                insertEnrollment->setInt(
+                    5,
+                    streamItem->Id);
+
                 insertEnrollment->setString(
                     6,
                     msclr::interop::marshal_as<std::string>(
@@ -933,65 +1117,111 @@ namespace SchoolCore
                     con->createStatement());
 
                 std::unique_ptr<sql::ResultSet> keys(
-                    keyStmt->executeQuery("SELECT LAST_INSERT_ID() AS enrollment_id"));
+                    keyStmt->executeQuery(
+                        "SELECT LAST_INSERT_ID() AS enrollment_id"));
 
                 if (!keys->next())
                 {
                     con->rollback();
-                    throw std::runtime_error("Could not obtain new enrollment ID.");
+
+                    throw std::runtime_error(
+                        "Could not obtain new enrollment ID.");
                 }
 
-                newEnrollmentId = keys->getInt("enrollment_id");
+                newEnrollmentId =
+                    keys->getInt("enrollment_id");
 
-                std::unique_ptr<sql::PreparedStatement> insertOption(
-                    con->prepareStatement(
-                        "INSERT INTO enrollment_optional_subjects "
-                        "(enrollment_id, subject_id, option_number, selected_date, status) "
-                        "VALUES (?, ?, ?, ?, 'Active')"
-                    )
-                );
-
-                for (int i = 0; i < 2; ++i)
+                if (option1 != nullptr)
                 {
-                    ComboItem^ selected =
-                        (i == 0) ? option1 : option2;
+                    std::unique_ptr<sql::PreparedStatement>
+                        insertOption(
+                            con->prepareStatement(
+                                "INSERT INTO enrollment_optional_subjects "
+                                "(enrollment_id, subject_id, option_number, selected_date, status) "
+                                "VALUES (?, ?, ?, ?, 'Active')"
+                            )
+                        );
 
-                    insertOption->setInt(1, newEnrollmentId);
-                    insertOption->setInt(2, selected->Id);
-                    insertOption->setInt(3, i + 1);
+                    insertOption->setInt(
+                        1,
+                        newEnrollmentId);
+
+                    insertOption->setInt(
+                        2,
+                        option1->Id);
+
+                    insertOption->setInt(
+                        3,
+                        1);
+
                     insertOption->setString(
                         4,
                         msclr::interop::marshal_as<std::string>(
-                            DateTime::Today.ToString(L"yyyy-MM-dd")
-                        )
-                    );
+                            DateTime::Today.ToString(
+                                L"yyyy-MM-dd")));
+
                     insertOption->executeUpdate();
+
+                    if (option2 != nullptr)
+                    {
+                        insertOption->setInt(
+                            1,
+                            newEnrollmentId);
+
+                        insertOption->setInt(
+                            2,
+                            option2->Id);
+
+                        insertOption->setInt(
+                            3,
+                            2);
+
+                        insertOption->setString(
+                            4,
+                            msclr::interop::marshal_as<std::string>(
+                                DateTime::Today.ToString(
+                                    L"yyyy-MM-dd")));
+
+                        insertOption->executeUpdate();
+                    }
                 }
 
-                // Keep the previous enrollment as history.
                 std::unique_ptr<sql::PreparedStatement> closeOld(
                     con->prepareStatement(
                         "UPDATE enrollments "
                         "SET status = 'Completed' "
                         "WHERE enrollment_id = ? "
-                        "AND student_id = ?"
+                        "AND student_id = ? "
+                        "AND status = 'Active'"
                     )
                 );
 
-                closeOld->setInt(1, this->currentEnrollmentId);
-                closeOld->setInt64(2, this->studentId);
+                closeOld->setInt(
+                    1,
+                    this->currentEnrollmentId);
+
+                closeOld->setInt64(
+                    2,
+                    this->studentId);
+
                 closeOld->executeUpdate();
 
                 con->commit();
                 con->setAutoCommit(true);
 
                 MessageBox::Show(
-                    L"The student has been promoted from Senior 2 to Senior 3 and the two optional subjects have been recorded.",
+                    L"The student has been promoted from " +
+                    this->currentClassName +
+                    L" to " +
+                    this->targetClassName +
+                    L".",
                     L"Promotion Complete",
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Information);
 
-                this->DialogResult = System::Windows::Forms::DialogResult::OK;
+                this->DialogResult =
+                    System::Windows::Forms::DialogResult::OK;
+
                 this->Close();
             }
             catch (sql::SQLException& ex)
