@@ -9,12 +9,127 @@ namespace SchoolCore
         Dark
     };
 
+    // =========================================================
+    // SchoolCore design system
+    //
+    // One neutral palette and a single accent colour, applied
+    // to every form that calls ThemeManager::ApplyToForm.
+    //
+    // A control (or a whole panel) can opt out by setting its
+    // Tag to the text "NoTheme".
+    // =========================================================
     public ref class ThemeManager abstract sealed
     {
     private:
         static ThemeMode currentMode = ThemeMode::System;
 
+        static bool IsOptedOut(System::Windows::Forms::Control^ control)
+        {
+            System::String^ tag =
+                dynamic_cast<System::String^>(control->Tag);
+
+            return tag != nullptr &&
+                   tag->Equals(L"NoTheme");
+        }
+
+        static bool IsFilledColor(System::Drawing::Color c)
+        {
+            if (c.IsEmpty || c.IsSystemColor || c.A != 255)
+            {
+                return false;
+            }
+
+            return c.GetBrightness() < 0.78f;
+        }
+
+        static bool IsDangerHue(System::Drawing::Color c)
+        {
+            return c.R > 150 && c.G < 110 && c.B < 110;
+        }
+
+        static System::Drawing::Color Darken(System::Drawing::Color c)
+        {
+            return System::Drawing::Color::FromArgb(
+                (int)(c.R * 0.88),
+                (int)(c.G * 0.88),
+                (int)(c.B * 0.88)
+            );
+        }
+
     public:
+        // -----------------------------------------------------
+        // Palette
+        // -----------------------------------------------------
+
+        static System::Drawing::Color Canvas()
+        {
+            return System::Drawing::Color::FromArgb(248, 250, 252);
+        }
+
+        static System::Drawing::Color Surface()
+        {
+            return System::Drawing::Color::White;
+        }
+
+        static System::Drawing::Color Ink()
+        {
+            return System::Drawing::Color::FromArgb(15, 23, 42);
+        }
+
+        static System::Drawing::Color TextSecondary()
+        {
+            return System::Drawing::Color::FromArgb(71, 85, 105);
+        }
+
+        static System::Drawing::Color TextMuted()
+        {
+            return System::Drawing::Color::FromArgb(100, 116, 139);
+        }
+
+        static System::Drawing::Color Border()
+        {
+            return System::Drawing::Color::FromArgb(203, 213, 225);
+        }
+
+        static System::Drawing::Color Divider()
+        {
+            return System::Drawing::Color::FromArgb(226, 232, 240);
+        }
+
+        static System::Drawing::Color HeaderFill()
+        {
+            return System::Drawing::Color::FromArgb(241, 245, 249);
+        }
+
+        static System::Drawing::Color Selection()
+        {
+            return System::Drawing::Color::FromArgb(219, 234, 254);
+        }
+
+        static System::Drawing::Color Accent()
+        {
+            return System::Drawing::Color::FromArgb(29, 78, 216);
+        }
+
+        static System::Drawing::Color AccentHover()
+        {
+            return System::Drawing::Color::FromArgb(30, 64, 175);
+        }
+
+        static System::Drawing::Color Danger()
+        {
+            return System::Drawing::Color::FromArgb(185, 28, 28);
+        }
+
+        static System::Drawing::Color Success()
+        {
+            return System::Drawing::Color::FromArgb(21, 128, 61);
+        }
+
+        // -----------------------------------------------------
+        // Mode handling (unchanged behaviour)
+        // -----------------------------------------------------
+
         static void Load()
         {
             currentMode = ThemeMode::System;
@@ -39,13 +154,278 @@ namespace SchoolCore
             return L"Light";
         }
 
+        // -----------------------------------------------------
+        // Control styling helpers
+        // -----------------------------------------------------
+
+        static void StyleTextBox(System::Windows::Forms::TextBox^ box)
+        {
+            box->BorderStyle =
+                System::Windows::Forms::BorderStyle::FixedSingle;
+
+            box->ForeColor = Ink();
+
+            box->BackColor =
+                box->ReadOnly
+                ? HeaderFill()
+                : Surface();
+        }
+
+        static void StyleComboBox(System::Windows::Forms::ComboBox^ combo)
+        {
+            combo->FlatStyle =
+                System::Windows::Forms::FlatStyle::Flat;
+
+            combo->ForeColor = Ink();
+            combo->BackColor = Surface();
+        }
+
+        static void StylePrimaryButton(System::Windows::Forms::Button^ button)
+        {
+            button->FlatStyle =
+                System::Windows::Forms::FlatStyle::Flat;
+
+            button->BackColor = Accent();
+            button->ForeColor = System::Drawing::Color::White;
+            button->FlatAppearance->BorderSize = 0;
+            button->FlatAppearance->MouseOverBackColor = AccentHover();
+            button->FlatAppearance->MouseDownBackColor = AccentHover();
+            button->Cursor = System::Windows::Forms::Cursors::Hand;
+        }
+
+        static void StyleDangerButton(System::Windows::Forms::Button^ button)
+        {
+            button->FlatStyle =
+                System::Windows::Forms::FlatStyle::Flat;
+
+            button->BackColor = Danger();
+            button->ForeColor = System::Drawing::Color::White;
+            button->FlatAppearance->BorderSize = 0;
+            button->FlatAppearance->MouseOverBackColor = Darken(Danger());
+            button->FlatAppearance->MouseDownBackColor = Darken(Danger());
+            button->Cursor = System::Windows::Forms::Cursors::Hand;
+        }
+
+        static void StyleSecondaryButton(System::Windows::Forms::Button^ button)
+        {
+            button->FlatStyle =
+                System::Windows::Forms::FlatStyle::Flat;
+
+            button->BackColor = Surface();
+            button->ForeColor = Ink();
+            button->FlatAppearance->BorderSize = 1;
+            button->FlatAppearance->BorderColor = Border();
+            button->FlatAppearance->MouseOverBackColor = HeaderFill();
+            button->FlatAppearance->MouseDownBackColor = Divider();
+            button->Cursor = System::Windows::Forms::Cursors::Hand;
+        }
+
+        static void StyleGrid(System::Windows::Forms::DataGridView^ grid)
+        {
+            grid->BackgroundColor = Surface();
+            grid->BorderStyle =
+                System::Windows::Forms::BorderStyle::None;
+
+            grid->GridColor = Divider();
+
+            grid->CellBorderStyle =
+                System::Windows::Forms::DataGridViewCellBorderStyle::SingleHorizontal;
+
+            grid->EnableHeadersVisualStyles = false;
+
+            grid->ColumnHeadersBorderStyle =
+                System::Windows::Forms::DataGridViewHeaderBorderStyle::Single;
+
+            grid->ColumnHeadersDefaultCellStyle->BackColor = HeaderFill();
+            grid->ColumnHeadersDefaultCellStyle->ForeColor = Ink();
+            grid->ColumnHeadersDefaultCellStyle->SelectionBackColor = HeaderFill();
+            grid->ColumnHeadersDefaultCellStyle->SelectionForeColor = Ink();
+            grid->ColumnHeadersDefaultCellStyle->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI Semibold",
+                    9.0F,
+                    System::Drawing::FontStyle::Regular
+                );
+
+            grid->DefaultCellStyle->BackColor = Surface();
+            grid->DefaultCellStyle->ForeColor = Ink();
+            grid->DefaultCellStyle->SelectionBackColor = Selection();
+            grid->DefaultCellStyle->SelectionForeColor = Ink();
+
+            grid->AlternatingRowsDefaultCellStyle->BackColor = Canvas();
+            grid->AlternatingRowsDefaultCellStyle->ForeColor = Ink();
+            grid->AlternatingRowsDefaultCellStyle->SelectionBackColor = Selection();
+            grid->AlternatingRowsDefaultCellStyle->SelectionForeColor = Ink();
+        }
+
+        // Buttons that already carry a deliberate fill are mapped
+        // onto the single accent (or the danger colour for red
+        // buttons) so the application stops mixing many colours.
+        static void NormaliseButton(System::Windows::Forms::Button^ button)
+        {
+            if (button->FlatStyle !=
+                System::Windows::Forms::FlatStyle::Flat)
+            {
+                StyleSecondaryButton(button);
+                return;
+            }
+
+            System::Drawing::Color fill = button->BackColor;
+
+            if (!IsFilledColor(fill))
+            {
+                return;
+            }
+
+            if (IsDangerHue(fill))
+            {
+                StyleDangerButton(button);
+            }
+            else
+            {
+                StylePrimaryButton(button);
+            }
+        }
+
+        // -----------------------------------------------------
+        // Applying the theme
+        // -----------------------------------------------------
+
+        static void ApplyToControls(
+            System::Windows::Forms::Control::ControlCollection^ controls)
+        {
+            if (controls == nullptr)
+            {
+                return;
+            }
+
+            for each (System::Windows::Forms::Control^ control in controls)
+            {
+                if (control == nullptr || IsOptedOut(control))
+                {
+                    continue;
+                }
+
+                System::Windows::Forms::TextBox^ box =
+                    dynamic_cast<System::Windows::Forms::TextBox^>(control);
+
+                if (box != nullptr)
+                {
+                    StyleTextBox(box);
+                    continue;
+                }
+
+                System::Windows::Forms::ComboBox^ combo =
+                    dynamic_cast<System::Windows::Forms::ComboBox^>(control);
+
+                if (combo != nullptr)
+                {
+                    StyleComboBox(combo);
+                    continue;
+                }
+
+                System::Windows::Forms::DataGridView^ grid =
+                    dynamic_cast<System::Windows::Forms::DataGridView^>(control);
+
+                if (grid != nullptr)
+                {
+                    StyleGrid(grid);
+                    continue;
+                }
+
+                System::Windows::Forms::Button^ button =
+                    dynamic_cast<System::Windows::Forms::Button^>(control);
+
+                if (button != nullptr)
+                {
+                    NormaliseButton(button);
+                    continue;
+                }
+
+                if (control->HasChildren)
+                {
+                    ApplyToControls(control->Controls);
+                }
+            }
+        }
+
+        // For controls created after the form has been built.
+        static void ApplyToControl(System::Windows::Forms::Control^ control)
+        {
+            if (control == nullptr)
+            {
+                return;
+            }
+
+            System::Windows::Forms::TextBox^ box =
+                dynamic_cast<System::Windows::Forms::TextBox^>(control);
+
+            if (box != nullptr)
+            {
+                StyleTextBox(box);
+                return;
+            }
+
+            System::Windows::Forms::ComboBox^ combo =
+                dynamic_cast<System::Windows::Forms::ComboBox^>(control);
+
+            if (combo != nullptr)
+            {
+                StyleComboBox(combo);
+                return;
+            }
+
+            System::Windows::Forms::DataGridView^ grid =
+                dynamic_cast<System::Windows::Forms::DataGridView^>(control);
+
+            if (grid != nullptr)
+            {
+                StyleGrid(grid);
+                return;
+            }
+
+            System::Windows::Forms::Button^ button =
+                dynamic_cast<System::Windows::Forms::Button^>(control);
+
+            if (button != nullptr)
+            {
+                NormaliseButton(button);
+                return;
+            }
+
+            if (control->HasChildren)
+            {
+                ApplyToControls(control->Controls);
+            }
+        }
+
         static void ApplyToForm(System::Windows::Forms::Form^ form)
         {
             if (form == nullptr)
+            {
                 return;
+            }
 
-            form->BackColor = System::Drawing::Color::White;
-            form->ForeColor = System::Drawing::Color::Black;
+            System::String^ name = form->GetType()->Name;
+
+            // These forms are styled by hand.
+            if (name->Equals(L"LoginForm") ||
+                name->Equals(L"PasswordChangeForm"))
+            {
+                return;
+            }
+
+            form->BackColor = Canvas();
+            form->ForeColor = Ink();
+
+            // The dashboard uses a dark navigation rail that must
+            // keep its own colours.
+            if (name->Equals(L"Dashboard"))
+            {
+                return;
+            }
+
+            ApplyToControls(form->Controls);
         }
 
         static void ApplyToOpenForms()
@@ -53,11 +433,7 @@ namespace SchoolCore
             for each (System::Windows::Forms::Form^ form
                      in System::Windows::Forms::Application::OpenForms)
             {
-                if (form != nullptr)
-                {
-                    form->BackColor = System::Drawing::Color::White;
-                    form->ForeColor = System::Drawing::Color::Black;
-                }
+                ApplyToForm(form);
             }
         }
     };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DbConnection.h"
+#include "ThemeManager.h"
 
 #include <mariadb/conncpp.hpp>
 #include <msclr/marshal_cppstd.h>
@@ -111,8 +112,8 @@ namespace SchoolCore
             lblMessage->Text = message;
             lblMessage->ForeColor =
                 error
-                ? Color::Firebrick
-                : Color::DarkGreen;
+                ? ThemeManager::Danger()
+                : ThemeManager::Success();
         }
 
         bool IsStrongEnough(String^ password)
@@ -213,15 +214,23 @@ namespace SchoolCore
             }
             catch (sql::SQLException& ex)
             {
+                System::Diagnostics::Debug::WriteLine(
+                    gcnew String(ex.what())
+                );
+
                 SetMessage(
-                    gcnew String(ex.what()),
+                    L"Unable to change the password right now. Please try again.",
                     true
                 );
             }
             catch (Exception^ ex)
             {
+                System::Diagnostics::Debug::WriteLine(
+                    ex->Message
+                );
+
                 SetMessage(
-                    ex->Message,
+                    L"Unable to change the password right now. Please try again.",
                     true
                 );
             }
@@ -251,6 +260,106 @@ namespace SchoolCore
                 !show;
         }
 
+        System::Void Field_Enter(
+            Object^ sender,
+            EventArgs^ e)
+        {
+            Control^ box = safe_cast<Control^>(sender);
+
+            if (box->Parent != nullptr &&
+                box->Parent->Parent != nullptr)
+            {
+                box->Parent->Parent->BackColor =
+                    ThemeManager::Accent();
+            }
+        }
+
+        System::Void Field_Leave(
+            Object^ sender,
+            EventArgs^ e)
+        {
+            Control^ box = safe_cast<Control^>(sender);
+
+            if (box->Parent != nullptr &&
+                box->Parent->Parent != nullptr)
+            {
+                box->Parent->Parent->BackColor =
+                    ThemeManager::Border();
+            }
+        }
+
+        // Builds a bordered input: outer panel draws the border,
+        // inner panel holds the borderless text box.
+        Panel^ BuildField(
+            TextBox^ box,
+            int left,
+            int top,
+            int width,
+            int tabIndex)
+        {
+            Panel^ outer = gcnew Panel();
+            outer->Size = System::Drawing::Size(width, 44);
+            outer->Location = System::Drawing::Point(left, top);
+            outer->BackColor = ThemeManager::Border();
+            outer->Padding = System::Windows::Forms::Padding(1);
+            outer->TabIndex = tabIndex;
+
+            Panel^ inner = gcnew Panel();
+            inner->Dock = DockStyle::Fill;
+            inner->BackColor = ThemeManager::Surface();
+            inner->Padding =
+                System::Windows::Forms::Padding(12, 11, 12, 0);
+
+            box->Dock = DockStyle::Fill;
+            box->BorderStyle =
+                System::Windows::Forms::BorderStyle::None;
+            box->BackColor = ThemeManager::Surface();
+            box->ForeColor = ThemeManager::Ink();
+            box->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI",
+                    10.5F
+                );
+            box->UseSystemPasswordChar = true;
+            box->TabIndex = 0;
+
+            box->Enter +=
+                gcnew EventHandler(
+                    this,
+                    &PasswordChangeForm::Field_Enter
+                );
+
+            box->Leave +=
+                gcnew EventHandler(
+                    this,
+                    &PasswordChangeForm::Field_Leave
+                );
+
+            inner->Controls->Add(box);
+            outer->Controls->Add(inner);
+
+            return outer;
+        }
+
+        Label^ BuildCaption(
+            String^ text,
+            int left,
+            int top)
+        {
+            Label^ caption = gcnew Label();
+            caption->Text = text;
+            caption->AutoSize = true;
+            caption->Location = System::Drawing::Point(left, top);
+            caption->ForeColor = ThemeManager::TextSecondary();
+            caption->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI Semibold",
+                    9.0F
+                );
+
+            return caption;
+        }
+
         #pragma region Windows Form Designer generated code
 
         void InitializeComponent(void)
@@ -273,84 +382,84 @@ namespace SchoolCore
             MinimizeBox = false;
 
             ClientSize =
-                Drawing::Size(520, 430);
+                System::Drawing::Size(440, 480);
 
-            BackColor =
-                Color::FromArgb(
-                    241,
-                    245,
-                    249
+            BackColor = ThemeManager::Surface();
+            ForeColor = ThemeManager::Ink();
+
+            Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI",
+                    10.0F
                 );
 
             card = gcnew Panel();
             card->Dock = DockStyle::Fill;
-            card->BackColor = Color::White;
-            card->Padding =
-                System::Windows::Forms::Padding(38, 30, 38, 30);
+            card->BackColor = ThemeManager::Surface();
 
             lblTitle = gcnew Label();
-            lblTitle->Text =
-                L"Set Your Password";
-            lblTitle->Dock = DockStyle::Top;
-            lblTitle->Height = 38;
+            lblTitle->Text = L"Set your password";
+            lblTitle->AutoSize = true;
+            lblTitle->Location = System::Drawing::Point(34, 30);
+            lblTitle->ForeColor = ThemeManager::Ink();
             lblTitle->Font =
-                gcnew Drawing::Font(
+                gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
                     18.0F
                 );
-            lblTitle->ForeColor =
-                Color::FromArgb(15, 23, 42);
 
             lblSubtitle = gcnew Label();
             lblSubtitle->Text =
-                L"Your temporary password must be replaced before continuing.";
-            lblSubtitle->Dock = DockStyle::Top;
-            lblSubtitle->Height = 44;
-            lblSubtitle->ForeColor =
-                Color::FromArgb(71, 85, 105);
+                L"Your temporary password must be replaced before you continue.";
+            lblSubtitle->Size = System::Drawing::Size(370, 40);
+            lblSubtitle->Location = System::Drawing::Point(36, 74);
+            lblSubtitle->ForeColor = ThemeManager::TextMuted();
+            lblSubtitle->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI",
+                    9.5F
+                );
 
             lblUsername = gcnew Label();
-            lblUsername->Text =
-                L"Account: " + username;
-            lblUsername->Dock = DockStyle::Top;
-            lblUsername->Height = 32;
+            lblUsername->Text = L"Account: " + username;
+            lblUsername->AutoSize = true;
+            lblUsername->Location = System::Drawing::Point(36, 120);
+            lblUsername->ForeColor = ThemeManager::TextSecondary();
             lblUsername->Font =
-                gcnew Drawing::Font(
+                gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
                     9.5F
                 );
-            lblUsername->ForeColor =
-                Color::FromArgb(15, 118, 110);
 
-            lblNewPassword = gcnew Label();
-            lblNewPassword->Text =
-                L"New password";
-            lblNewPassword->Dock = DockStyle::Top;
-            lblNewPassword->Height = 28;
+            lblNewPassword =
+                BuildCaption(L"New password", 36, 158);
 
             txtNewPassword = gcnew TextBox();
-            txtNewPassword->Dock = DockStyle::Top;
-            txtNewPassword->Height = 34;
-            txtNewPassword->UseSystemPasswordChar = true;
 
-            lblConfirmPassword = gcnew Label();
-            lblConfirmPassword->Text =
-                L"Confirm password";
-            lblConfirmPassword->Dock = DockStyle::Top;
-            lblConfirmPassword->Height = 28;
-            lblConfirmPassword->Margin =
-                System::Windows::Forms::Padding(0, 12, 0, 0);
+            Panel^ newField =
+                BuildField(txtNewPassword, 36, 182, 368, 0);
+
+            lblConfirmPassword =
+                BuildCaption(L"Confirm password", 36, 238);
 
             txtConfirmPassword = gcnew TextBox();
-            txtConfirmPassword->Dock = DockStyle::Top;
-            txtConfirmPassword->Height = 34;
-            txtConfirmPassword->UseSystemPasswordChar = true;
+
+            Panel^ confirmField =
+                BuildField(txtConfirmPassword, 36, 262, 368, 1);
 
             chkShowPassword = gcnew CheckBox();
-            chkShowPassword->Text =
-                L"Show passwords";
-            chkShowPassword->Dock = DockStyle::Top;
-            chkShowPassword->Height = 28;
+            chkShowPassword->Text = L"Show passwords";
+            chkShowPassword->AutoSize = true;
+            chkShowPassword->Location =
+                System::Drawing::Point(36, 316);
+            chkShowPassword->ForeColor =
+                ThemeManager::TextSecondary();
+            chkShowPassword->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI",
+                    9.0F
+                );
+            chkShowPassword->TabIndex = 2;
             chkShowPassword->CheckedChanged +=
                 gcnew EventHandler(
                     this,
@@ -359,37 +468,28 @@ namespace SchoolCore
 
             lblMessage = gcnew Label();
             lblMessage->Text = L"";
-            lblMessage->Dock = DockStyle::Top;
-            lblMessage->Height = 38;
-            lblMessage->ForeColor =
-                Color::Firebrick;
-            lblMessage->AutoEllipsis = true;
-
-            FlowLayoutPanel^ buttonPanel =
-                gcnew FlowLayoutPanel();
-
-            buttonPanel->Dock = DockStyle::Bottom;
-            buttonPanel->Height = 48;
-            buttonPanel->FlowDirection =
-                FlowDirection::RightToLeft;
-            buttonPanel->WrapContents = false;
+            lblMessage->Size = System::Drawing::Size(368, 44);
+            lblMessage->Location = System::Drawing::Point(36, 348);
+            lblMessage->ForeColor = ThemeManager::Danger();
+            lblMessage->TextAlign =
+                System::Drawing::ContentAlignment::MiddleLeft;
+            lblMessage->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI",
+                    9.0F
+                );
 
             btnChange = gcnew Button();
-            btnChange->Text =
-                L"Change Password";
-            btnChange->Width = 140;
-            btnChange->Height = 36;
-            btnChange->BackColor =
-                Color::FromArgb(15, 118, 110);
-            btnChange->ForeColor = Color::White;
-            btnChange->FlatStyle =
-                FlatStyle::Flat;
-            btnChange->FlatAppearance->BorderSize = 0;
+            btnChange->Text = L"Change password";
+            btnChange->Size = System::Drawing::Size(170, 42);
+            btnChange->Location = System::Drawing::Point(234, 410);
             btnChange->Font =
-                gcnew Drawing::Font(
+                gcnew System::Drawing::Font(
                     L"Segoe UI Semibold",
                     9.5F
                 );
+            btnChange->TabIndex = 3;
+            ThemeManager::StylePrimaryButton(btnChange);
             btnChange->Click +=
                 gcnew EventHandler(
                     this,
@@ -398,23 +498,28 @@ namespace SchoolCore
 
             btnCancel = gcnew Button();
             btnCancel->Text = L"Cancel";
-            btnCancel->Width = 90;
-            btnCancel->Height = 36;
+            btnCancel->Size = System::Drawing::Size(90, 42);
+            btnCancel->Location = System::Drawing::Point(136, 410);
+            btnCancel->Font =
+                gcnew System::Drawing::Font(
+                    L"Segoe UI",
+                    9.5F
+                );
+            btnCancel->TabIndex = 4;
+            ThemeManager::StyleSecondaryButton(btnCancel);
             btnCancel->Click +=
                 gcnew EventHandler(
                     this,
                     &PasswordChangeForm::btnCancel_Click
                 );
 
-            buttonPanel->Controls->Add(btnChange);
-            buttonPanel->Controls->Add(btnCancel);
-
-            card->Controls->Add(buttonPanel);
+            card->Controls->Add(btnCancel);
+            card->Controls->Add(btnChange);
             card->Controls->Add(lblMessage);
             card->Controls->Add(chkShowPassword);
-            card->Controls->Add(txtConfirmPassword);
+            card->Controls->Add(confirmField);
             card->Controls->Add(lblConfirmPassword);
-            card->Controls->Add(txtNewPassword);
+            card->Controls->Add(newField);
             card->Controls->Add(lblNewPassword);
             card->Controls->Add(lblUsername);
             card->Controls->Add(lblSubtitle);
@@ -424,6 +529,7 @@ namespace SchoolCore
 
             AcceptButton = btnChange;
             CancelButton = btnCancel;
+            ActiveControl = txtNewPassword;
 
             ResumeLayout(false);
         }
