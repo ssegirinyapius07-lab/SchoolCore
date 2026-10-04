@@ -1,6 +1,8 @@
 #pragma once
 
 #include "DbConnection.h"
+#include "AcademicEditApprovals.h"
+#include "AuthSession.h"
 #include "ThemeManager.h"
 
 #include <mariadb/conncpp.hpp>
@@ -51,6 +53,12 @@ namespace SchoolCore
                             this,
                             &AcademicYearsTerms::btnToggleTerm_Click
                         );
+
+                    this->btnApprovals->Click +=
+                        gcnew System::EventHandler(
+                            this,
+                            &AcademicYearsTerms::btnApprovals_Click
+                        );
         
         
                    
@@ -84,6 +92,7 @@ namespace SchoolCore
         System::Windows::Forms::Panel^ headerPanel;
         System::Windows::Forms::Label^ lblTitle;
         System::Windows::Forms::Label^ lblSubtitle;
+        System::Windows::Forms::Button^ btnApprovals;
 
         System::Windows::Forms::GroupBox^ yearGroup;
         System::Windows::Forms::GroupBox^ termGroup;
@@ -319,6 +328,48 @@ void InitializeComponent(void)
             this->lblSubtitle->Location =
                 System::Drawing::Point(20, 45);
 
+
+            this->btnApprovals =
+                gcnew System::Windows::Forms::Button();
+
+            this->btnApprovals->Text =
+                L"Academic Edit Approvals";
+
+            this->btnApprovals->Size =
+                System::Drawing::Size(190, 36);
+
+            this->btnApprovals->Location =
+                System::Drawing::Point(
+                    this->ClientSize.Width - 215,
+                    16
+                );
+
+            this->btnApprovals->Anchor =
+                System::Windows::Forms::AnchorStyles::Top |
+                System::Windows::Forms::AnchorStyles::Right;
+
+            this->btnApprovals->BackColor =
+                System::Drawing::Color::FromArgb(
+                    51, 65, 85
+                );
+
+            this->btnApprovals->ForeColor =
+                System::Drawing::Color::White;
+
+            this->btnApprovals->FlatStyle =
+                System::Windows::Forms::FlatStyle::Flat;
+
+            this->btnApprovals->FlatAppearance->BorderSize =
+                0;
+
+            this->btnApprovals->Visible =
+                AuthSession::HasPermission(
+                    L"academic_records.override_inactive_year"
+                );
+
+            this->headerPanel->Controls->Add(
+                this->btnApprovals
+            );
 
             this->headerPanel->Controls->Add(
                 this->lblTitle
@@ -1610,6 +1661,30 @@ void InitializeComponent(void)
                     MessageBoxIcon::Error
                 );
             }
+        }
+
+
+        System::Void btnApprovals_Click(
+            System::Object^ sender,
+            System::EventArgs^ e)
+        {
+            if (!AuthSession::HasPermission(
+                    L"academic_records.override_inactive_year"))
+            {
+                MessageBox::Show(
+                    L"You do not have permission to access academic edit approvals.",
+                    L"Access Denied",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning
+                );
+                return;
+            }
+
+            AcademicEditApprovals^ form =
+                gcnew AcademicEditApprovals();
+
+            form->ShowDialog(this);
+            delete form;
         }
 
 
