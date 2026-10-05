@@ -37,6 +37,36 @@ namespace SchoolCore
                             this,
                             &Attendance::cmbClass_SelectedIndexChanged
                         );
+
+                    this->cmbTerm->SelectedIndexChanged +=
+                        gcnew EventHandler(
+                            this,
+                            &Attendance::cmbTerm_SelectedIndexChanged
+                        );
+
+                    this->cmbStream->SelectedIndexChanged +=
+                        gcnew EventHandler(
+                            this,
+                            &Attendance::cmbStream_SelectedIndexChanged
+                        );
+
+                    this->dtpAttendanceDate->ValueChanged +=
+                        gcnew EventHandler(
+                            this,
+                            &Attendance::dtpAttendanceDate_ValueChanged
+                        );
+
+                    this->attendanceGrid->CurrentCellDirtyStateChanged +=
+                        gcnew EventHandler(
+                            this,
+                            &Attendance::attendanceGrid_CurrentCellDirtyStateChanged
+                        );
+
+                    this->attendanceGrid->CellValueChanged +=
+                        gcnew DataGridViewCellEventHandler(
+                            this,
+                            &Attendance::attendanceGrid_CellValueChanged
+                        );
         
                     this->btnLoadStudents->Click +=
                         gcnew EventHandler(
@@ -64,7 +94,14 @@ namespace SchoolCore
         
                     if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
                     {
+                        attendanceContextLoading = true;
                         LoadAcademicYears();
+                        SelectActiveTerm();
+                        SelectRememberedClass();
+                        LoadStreams();
+                        SelectRememberedOrFirstStream();
+                        attendanceContextLoading = false;
+                        RememberCurrentAttendanceContext();
                     }
                 }
 
@@ -127,6 +164,18 @@ namespace SchoolCore
         System::Windows::Forms::DataGridView^ attendanceGrid;
         System::Windows::Forms::Label^ lblStudentCount;
         System::Windows::Forms::Label^ lblStatus;
+
+        bool attendanceContextLoading = false;
+        bool attendanceDirty = false;
+
+        int rememberedTermId = 0;
+        int rememberedClassId = 0;
+        int rememberedStreamId = 0;
+
+        int previousTermIndex = 0;
+        int previousClassIndex = 0;
+        int previousStreamIndex = 0;
+        DateTime previousAttendanceDate = DateTime::Today;
 
         void StyleCombo(System::Windows::Forms::ComboBox^ combo)
         {
@@ -471,6 +520,198 @@ void InitializeComponent(void)
         }
 
 #pragma endregion
+
+        int GetSelectedFilterId(ComboBox^ combo)
+        {
+            if (combo == nullptr || combo->SelectedIndex <= 0)
+                return 0;
+
+            FilterItem^ item =
+                dynamic_cast<FilterItem^>(combo->SelectedItem);
+
+            return item == nullptr ? 0 : item->Id;
+        }
+
+        bool ConfirmAttendanceContextChange()
+        {
+            if (!attendanceDirty ||
+                this->attendanceGrid == nullptr ||
+                this->attendanceGrid->Rows->Count == 0)
+            {
+                return true;
+            }
+
+            return MessageBox::Show(
+                this,
+                L"You have unsaved attendance changes. Changing the date, term, class or stream will discard them. Continue?",
+                L"Unsaved Attendance",
+                MessageBoxButtons::YesNo,
+                MessageBoxIcon::Warning
+            ) == DialogResult::Yes;
+        }
+
+        void RestorePreviousAttendanceContext()
+        {
+            attendanceContextLoading = true;
+
+            if (this->cmbTerm->Items->Count > previousTermIndex &&
+                previousTermIndex >= 0)
+            {
+                this->cmbTerm->SelectedIndex = previousTermIndex;
+            }
+
+            if (this->cmbClass->Items->Count > previousClassIndex &&
+                previousClassIndex >= 0)
+            {
+                this->cmbClass->SelectedIndex = previousClassIndex;
+            }
+
+            if (this->cmbStream->Items->Count > previousStreamIndex &&
+                previousStreamIndex >= 0)
+            {
+                this->cmbStream->SelectedIndex = previousStreamIndex;
+            }
+
+            if (previousAttendanceDate != DateTime::MinValue)
+            {
+                this->dtpAttendanceDate->Value =
+                    previousAttendanceDate;
+            }
+
+            attendanceContextLoading = false;
+        }
+
+        void RememberCurrentAttendanceContext()
+        {
+            previousTermIndex =
+                this->cmbTerm->SelectedIndex;
+
+            previousClassIndex =
+                this->cmbClass->SelectedIndex;
+
+            previousStreamIndex =
+                this->cmbStream->SelectedIndex;
+
+            previousAttendanceDate =
+                this->dtpAttendanceDate->Value;
+
+            rememberedTermId =
+                GetSelectedFilterId(this->cmbTerm);
+
+            rememberedClassId =
+                GetSelectedFilterId(this->cmbClass);
+
+            rememberedStreamId =
+                GetSelectedFilterId(this->cmbStream);
+        }
+
+        void SelectRememberedClass()
+        {
+            if (rememberedClassId <= 0)
+                return;
+
+            for (int i = 1; i < this->cmbClass->Items->Count; ++i)
+            {
+                FilterItem^ item =
+                    dynamic_cast<FilterItem^>(
+                        this->cmbClass->Items[i]);
+
+                if (item != nullptr &&
+                    item->Id == rememberedClassId)
+                {
+                    this->cmbClass->SelectedIndex = i;
+                    return;
+                }
+            }
+        }
+
+        void SelectRememberedOrFirstStream()
+        {
+            this->cmbStream->SelectedIndex = 0;
+
+            if (rememberedStreamId <= 0)
+                return;
+
+            for (int i = 1; i < this->cmbStream->Items->Count; ++i)
+            {
+                FilterItem^ item =
+                    dynamic_cast<FilterItem^>(
+                        this->cmbStream->Items[i]);
+
+                if (item != nullptr &&
+                    item->Id == rememberedStreamId)
+                {
+                    this->cmbStream->SelectedIndex = i;
+                    return;
+                }
+            }
+        }
+
+        void SelectActiveTerm()
+        {
+            if (this->cmbAcademicYear->SelectedIndex <= 0)
+                return;
+
+            FilterItem^ yearItem =
+                dynamic_cast<FilterItem^>(
+                    this->cmbAcademicYear->SelectedItem);
+
+            if (yearItem == nullptr)
+                return;
+
+            int targetTermId = 0;
+
+            try
+            {
+                targetTermId =
+                    AcademicContext::GetActiveTermIdForYear(
+                        yearItem->Id);
+            }
+            catch (std::exception&)
+            {
+                targetTermId = 0;
+            }
+
+            if (targetTermId <= 0)
+                targetTermId = rememberedTermId;
+
+            if (targetTermId <= 0)
+                return;
+
+            for (int i = 1; i < this->cmbTerm->Items->Count; ++i)
+            {
+                FilterItem^ item =
+                    dynamic_cast<FilterItem^>(
+                        this->cmbTerm->Items[i]);
+
+                if (item != nullptr &&
+                    item->Id == targetTermId)
+                {
+                    this->cmbTerm->SelectedIndex = i;
+                    return;
+                }
+            }
+        }
+
+        void UpdateAttendanceLoadedContext()
+        {
+            RememberCurrentAttendanceContext();
+            attendanceDirty = false;
+        }
+
+        void LoadDailyAttendance()
+        {
+            if (this->cmbTerm->SelectedIndex <= 0 ||
+                this->cmbClass->SelectedIndex <= 0)
+            {
+                ClearAttendanceGrid();
+                return;
+            }
+
+            attendanceContextLoading = true;
+            LoadStudents();
+            attendanceContextLoading = false;
+        }
 
         void LoadAcademicYears(){
             this->cmbAcademicYear->Items->Clear();
@@ -829,6 +1070,7 @@ void InitializeComponent(void)
                     L"Attendance date: " +
                     this->dtpAttendanceDate->Value.ToString(L"d") +
                     L"  |  Mark each student, then save.";
+                UpdateAttendanceLoadedContext();
             }
             catch (sql::SQLException& ex)
             {
@@ -1205,6 +1447,7 @@ void InitializeComponent(void)
                     L"Attendance saved for " +
                     this->dtpAttendanceDate->Value.ToString(L"d") +
                     L". You can review or update it.";
+                UpdateAttendanceLoadedContext();
             }
             catch (sql::SQLException& ex)
             {
@@ -1242,6 +1485,9 @@ void InitializeComponent(void)
 
             ClearAttendanceGrid();
 
+            attendanceDirty = false;
+            RememberCurrentAttendanceContext();
+
             this->lblSessionInfo->Text =
                 L"Select the academic year, term and class, then load students.";
         }
@@ -1250,24 +1496,148 @@ void InitializeComponent(void)
             System::Object^ sender,
             EventArgs^ e)
         {
+            if (attendanceContextLoading)
+                return;
+
+            if (!ConfirmAttendanceContextChange())
+            {
+                RestorePreviousAttendanceContext();
+                return;
+            }
+
+            attendanceContextLoading = true;
             LoadTerms();
             LoadClasses();
-            ClearAttendanceGrid();
+            SelectActiveTerm();
+            SelectRememberedClass();
+            LoadStreams();
+            SelectRememberedOrFirstStream();
+            attendanceContextLoading = false;
+
+            LoadDailyAttendance();
+        }
+
+        System::Void cmbTerm_SelectedIndexChanged(
+            System::Object^ sender,
+            EventArgs^ e)
+        {
+            if (attendanceContextLoading)
+                return;
+
+            if (!ConfirmAttendanceContextChange())
+            {
+                RestorePreviousAttendanceContext();
+                return;
+            }
+
+            rememberedTermId =
+                GetSelectedFilterId(this->cmbTerm);
+
+            attendanceContextLoading = true;
+            LoadClasses();
+            SelectRememberedClass();
+            LoadStreams();
+            SelectRememberedOrFirstStream();
+            attendanceContextLoading = false;
+
+            LoadDailyAttendance();
         }
 
         System::Void cmbClass_SelectedIndexChanged(
             System::Object^ sender,
             EventArgs^ e)
         {
+            if (attendanceContextLoading)
+                return;
+
+            if (!ConfirmAttendanceContextChange())
+            {
+                RestorePreviousAttendanceContext();
+                return;
+            }
+
+            rememberedClassId =
+                GetSelectedFilterId(this->cmbClass);
+
+            attendanceContextLoading = true;
             LoadStreams();
-            ClearAttendanceGrid();
+            SelectRememberedOrFirstStream();
+            attendanceContextLoading = false;
+
+            LoadDailyAttendance();
+        }
+
+        System::Void cmbStream_SelectedIndexChanged(
+            System::Object^ sender,
+            EventArgs^ e)
+        {
+            if (attendanceContextLoading)
+                return;
+
+            if (!ConfirmAttendanceContextChange())
+            {
+                RestorePreviousAttendanceContext();
+                return;
+            }
+
+            rememberedStreamId =
+                GetSelectedFilterId(this->cmbStream);
+
+            LoadDailyAttendance();
+        }
+
+        System::Void dtpAttendanceDate_ValueChanged(
+            System::Object^ sender,
+            EventArgs^ e)
+        {
+            if (attendanceContextLoading)
+                return;
+
+            if (!ConfirmAttendanceContextChange())
+            {
+                attendanceContextLoading = true;
+                this->dtpAttendanceDate->Value =
+                    previousAttendanceDate;
+                attendanceContextLoading = false;
+                return;
+            }
+
+            LoadDailyAttendance();
+        }
+
+        System::Void attendanceGrid_CurrentCellDirtyStateChanged(
+            System::Object^ sender,
+            EventArgs^ e)
+        {
+            if (this->attendanceGrid->IsCurrentCellDirty)
+            {
+                this->attendanceGrid->CommitEdit(
+                    DataGridViewDataErrorContexts::Commit);
+            }
+        }
+
+        System::Void attendanceGrid_CellValueChanged(
+            System::Object^ sender,
+            DataGridViewCellEventArgs^ e)
+        {
+            if (!attendanceContextLoading &&
+                e->RowIndex >= 0 &&
+                e->ColumnIndex >= 0)
+            {
+                attendanceDirty = true;
+            }
         }
 
         System::Void btnLoadStudents_Click(
             System::Object^ sender,
             EventArgs^ e)
         {
+            if (!ConfirmAttendanceContextChange())
+                return;
+
+            attendanceContextLoading = true;
             LoadStudents();
+            attendanceContextLoading = false;
         }
 
         System::Void btnSaveAttendance_Click(
