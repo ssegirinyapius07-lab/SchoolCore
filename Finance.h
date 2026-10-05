@@ -4033,19 +4033,14 @@ namespace SchoolCore
             this->MinimumSize = Drawing::Size(680, 560);
             this->BackColor = Color::White;
             this->DoubleBuffered = true;
+            this->AutoScroll = true;
+            this->AutoScrollMinSize = Drawing::Size(0, 760);
 
             bool canView = AuthSession::HasPermission(PermView);
             metricValues = gcnew array<Label^>(MetricCount);
 
             TableLayoutPanel^ content = gcnew TableLayoutPanel();
-            Panel^ scrollHost = gcnew Panel();
-            scrollHost->Dock = DockStyle::Fill;
-            scrollHost->AutoScroll = true;
-            scrollHost->BackColor = Color::White;
-
-            content->Dock = DockStyle::None;
-            content->Anchor = AnchorStyles::Top | AnchorStyles::Left | AnchorStyles::Right;
-            content->Location = Drawing::Point(0, 0);
+            content->Dock = DockStyle::Fill;
             content->Padding = System::Windows::Forms::Padding(28);
             content->ColumnCount = 1;
             content->ColumnStyles->Add(
@@ -4054,13 +4049,13 @@ namespace SchoolCore
             content->RowStyles->Add(
                 gcnew RowStyle(SizeType::Absolute, 42.0F));
             content->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 184.0F));
+                gcnew RowStyle(SizeType::Absolute, 135.0F));
             content->RowStyles->Add(
                 gcnew RowStyle(SizeType::Absolute, 45.0F));
             content->RowStyles->Add(
                 gcnew RowStyle(SizeType::Absolute, 190.0F));
             content->RowStyles->Add(
-                gcnew RowStyle(SizeType::Absolute, 52.0F));
+                gcnew RowStyle(SizeType::Percent, 100.0F));
 
             Label^ overview =
                 CreateLabel(
@@ -4184,13 +4179,7 @@ namespace SchoolCore
             content->Controls->Add(actions, 0, 3);
             content->Controls->Add(note, 0, 4);
 
-            scrollHost->Controls->Add(content);
-
-            // The fixed content height gives AutoScroll a real range on smaller screens.
-            content->Height = 569;
-            content->Width = this->ClientSize.Width;
-
-            this->Controls->Add(scrollHost);
+            this->Controls->Add(content);
             this->Controls->Add(
                 CreateHeader(
                     L"Fees & Finance",
