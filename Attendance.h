@@ -96,6 +96,8 @@ namespace SchoolCore
                     {
                         attendanceContextLoading = true;
                         LoadAcademicYears();
+                        LoadTerms();
+                        LoadClasses();
                         SelectActiveTerm();
                         SelectRememberedClass();
                         LoadStreams();
