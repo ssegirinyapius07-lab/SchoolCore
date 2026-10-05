@@ -4020,6 +4020,20 @@ namespace SchoolCore
             }
         }
 
+        void ResizeFinanceContent(Object^ sender, EventArgs^ e)
+        {
+            Control^ host = dynamic_cast<Control^>(sender);
+            if (host == nullptr || host->Controls->Count == 0)
+                return;
+
+            Control^ content = host->Controls[0];
+            if (content == nullptr)
+                return;
+
+            content->Width = host->ClientSize.Width;
+            content->Height = Math::Max(host->ClientSize.Height, 569);
+        }
+
         void InitializeComponent()
         {
             this->SuspendLayout();
@@ -4041,6 +4055,8 @@ namespace SchoolCore
             scrollHost->Dock = DockStyle::Fill;
             scrollHost->AutoScroll = true;
             scrollHost->BackColor = Color::White;
+            scrollHost->Resize +=
+                gcnew EventHandler(this, &Finance::ResizeFinanceContent);
 
             TableLayoutPanel^ content = gcnew TableLayoutPanel();
             content->Dock = DockStyle::None;
@@ -4050,7 +4066,7 @@ namespace SchoolCore
                 AnchorStyles::Right;
             content->Location = Drawing::Point(0, 0);
             content->Width = this->ClientSize.Width;
-            content->Height = 700;
+            content->Height = Math::Max(scrollHost->ClientSize.Height, 569);
             content->Padding = System::Windows::Forms::Padding(28);
             content->ColumnCount = 1;
             content->ColumnStyles->Add(
