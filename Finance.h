@@ -4031,7 +4031,7 @@ namespace SchoolCore
                 return;
 
             content->Width = host->ClientSize.Width;
-            content->Height = Math::Max(host->ClientSize.Height, 569);
+            content->Height = Math::Max(host->ClientSize.Height, 545);
         }
 
         void InitializeComponent()
@@ -4066,7 +4066,7 @@ namespace SchoolCore
                 AnchorStyles::Right;
             content->Location = Drawing::Point(0, 0);
             content->Width = this->ClientSize.Width;
-            content->Height = Math::Max(scrollHost->ClientSize.Height, 569);
+            content->Height = Math::Max(scrollHost->ClientSize.Height, 545);
             content->Padding = System::Windows::Forms::Padding(28);
             content->ColumnCount = 1;
             content->ColumnStyles->Add(
