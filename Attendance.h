@@ -549,7 +549,7 @@ void InitializeComponent(void)
                 L"Unsaved Attendance",
                 MessageBoxButtons::YesNo,
                 MessageBoxIcon::Warning
-            ) == DialogResult::Yes;
+            ) == System::Windows::Forms::DialogResult::Yes;
         }
 
         void RestorePreviousAttendanceContext()
