@@ -1473,25 +1473,23 @@ void InitializeComponent(void)
 
         void RefreshAttendance()
         {
-            this->cmbAcademicYear->SelectedIndex = 0;
-            this->cmbTerm->Items->Clear();
-            this->cmbTerm->Items->Add(L"Select term");
-            this->cmbTerm->SelectedIndex = 0;
+            if (!ConfirmAttendanceContextChange())
+                return;
 
-            this->cmbClass->SelectedIndex = 0;
-            this->cmbStream->Items->Clear();
-            this->cmbStream->Items->Add(L"All streams");
-            this->cmbStream->SelectedIndex = 0;
+            attendanceContextLoading = true;
 
-            this->dtpAttendanceDate->Value = DateTime::Today;
+            LoadAcademicYears();
+            LoadTerms();
+            LoadClasses();
+            SelectActiveTerm();
+            SelectRememberedClass();
+            LoadStreams();
+            SelectRememberedOrFirstStream();
 
-            ClearAttendanceGrid();
-
+            attendanceContextLoading = false;
             attendanceDirty = false;
-            RememberCurrentAttendanceContext();
 
-            this->lblSessionInfo->Text =
-                L"Select the academic year, term and class, then load students.";
+            LoadDailyAttendance();
         }
 
         System::Void cmbAcademicYear_SelectedIndexChanged(
