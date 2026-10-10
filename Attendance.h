@@ -467,8 +467,8 @@ void InitializeComponent(void)
 
             this->lblStudentCount = gcnew System::Windows::Forms::Label();
             this->lblStudentCount->Dock = System::Windows::Forms::DockStyle::Left;
-            this->lblStudentCount->Width = 220;
-            this->lblStudentCount->Text = L"Students: 0";
+            this->lblStudentCount->Width = 495;
+            this->lblStudentCount->Text = L"Total: 0 | Present: 0 | Absent: 0 | Late: 0 | Excused: 0 | Unmarked: 0";
             this->lblStudentCount->ForeColor = System::Drawing::Color::DimGray;
             this->lblStudentCount->TextAlign =
                 System::Drawing::ContentAlignment::MiddleLeft;
@@ -910,10 +910,58 @@ void InitializeComponent(void)
             }
         }
 
+        void UpdateAttendanceCountSummary()
+        {
+            if (this->attendanceGrid == nullptr ||
+                this->lblStudentCount == nullptr)
+            {
+                return;
+            }
+
+            int total = 0;
+            int present = 0;
+            int absent = 0;
+            int late = 0;
+            int excused = 0;
+            int unmarked = 0;
+
+            for each (DataGridViewRow^ row in this->attendanceGrid->Rows)
+            {
+                if (row->IsNewRow)
+                    continue;
+
+                ++total;
+
+                Object^ value = row->Cells["AttendanceStatus"]->Value;
+                String^ status = value == nullptr
+                    ? L""
+                    : Convert::ToString(value)->Trim();
+
+                if (String::Equals(status, L"Present", StringComparison::OrdinalIgnoreCase))
+                    ++present;
+                else if (String::Equals(status, L"Absent", StringComparison::OrdinalIgnoreCase))
+                    ++absent;
+                else if (String::Equals(status, L"Late", StringComparison::OrdinalIgnoreCase))
+                    ++late;
+                else if (String::Equals(status, L"Excused", StringComparison::OrdinalIgnoreCase))
+                    ++excused;
+                else if (String::IsNullOrWhiteSpace(status))
+                    ++unmarked;
+            }
+
+            this->lblStudentCount->Text =
+                L"Total: " + total.ToString() +
+                L" | Present: " + present.ToString() +
+                L" | Absent: " + absent.ToString() +
+                L" | Late: " + late.ToString() +
+                L" | Excused: " + excused.ToString() +
+                L" | Unmarked: " + unmarked.ToString();
+        }
+
         void ClearAttendanceGrid()
         {
             this->attendanceGrid->Rows->Clear();
-            this->lblStudentCount->Text = L"Students: 0";
+            UpdateAttendanceCountSummary();
         }
 
         void LoadStudents()
@@ -1064,14 +1112,10 @@ void InitializeComponent(void)
                         : 0
                 );
 
-                this->lblStudentCount->Text =
-                    L"Students: " +
-                    this->attendanceGrid->Rows->Count.ToString();
+                UpdateAttendanceCountSummary();
 
                 this->lblSessionInfo->Text =
-                    L"Attendance date: " +
-                    this->dtpAttendanceDate->Value.ToString(L"d") +
-                    L"  |  Mark each student, then save.";
+                    L"Default status is Present. Change absent, late or excused students, then save.";
                 UpdateAttendanceLoadedContext();
             }
             catch (sql::SQLException& ex)
@@ -1625,6 +1669,7 @@ void InitializeComponent(void)
                 e->ColumnIndex >= 0)
             {
                 attendanceDirty = true;
+                UpdateAttendanceCountSummary();
             }
         }
 
