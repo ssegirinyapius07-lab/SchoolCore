@@ -718,6 +718,16 @@ namespace SchoolCore
                         L"Current stream " + this->currentStreamName +
                         L" is preselected when available. You can change the target stream.";
                 }
+                else if (matchedIndex >= 0 &&
+                    !String::IsNullOrWhiteSpace(this->currentStreamName))
+                {
+                    this->lblSubtitle->Text =
+                        L"Current stream " + this->currentStreamName +
+                        L" is not available in " + this->targetClassName +
+                        L". The only configured target stream, " +
+                        safe_cast<ComboItem^>(this->cmbStream->Items[matchedIndex])->Text +
+                        L", is selected; change it only if needed.";
+                }
                 else if (!String::IsNullOrWhiteSpace(this->currentStreamName))
                 {
                     this->lblSubtitle->Text =
