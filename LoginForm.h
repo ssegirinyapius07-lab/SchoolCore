@@ -314,6 +314,14 @@ using namespace System::Drawing;
                 int userId =
                     userResult->getInt("user_id");
 
+                int roleId =
+                    userResult->getInt("role_id");
+
+                bool mustChangePassword =
+                    userResult->getBoolean(
+                        "must_change_password"
+                    );
+
                 String^ fullName =
                     gcnew String(
                         userResult->getString(
@@ -328,6 +336,12 @@ using namespace System::Drawing;
                         ).c_str()
                     );
 
+                // Copy the account values before running another query on
+                // the same connection. Then release this result set so the
+                // permission query cannot invalidate a later account read.
+                userResult.reset();
+                userStmt.reset();
+
                 std::unique_ptr<sql::PreparedStatement> permissionStmt(
                     con->prepareStatement(
                         "SELECT p.permission_name "
@@ -339,10 +353,7 @@ using namespace System::Drawing;
                     )
                 );
 
-                permissionStmt->setInt(
-                    1,
-                    userResult->getInt("role_id")
-                );
+                permissionStmt->setInt(1, roleId);
 
                 std::unique_ptr<sql::ResultSet> permissionResult(
                     permissionStmt->executeQuery()
@@ -361,11 +372,6 @@ using namespace System::Drawing;
                         )
                     );
                 }
-
-                bool mustChangePassword =
-                    userResult->getBoolean(
-                        "must_change_password"
-                    );
 
                 AuthSession::Start(
                     userId,
