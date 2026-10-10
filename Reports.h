@@ -130,7 +130,7 @@ namespace SchoolCore
 
             rootLayout = gcnew TableLayoutPanel();
             rootLayout->Dock = DockStyle::Fill;
-            rootLayout->Padding = Padding(24);
+            rootLayout->Padding = System::Windows::Forms::Padding(24);
             rootLayout->ColumnCount = 1;
             rootLayout->RowCount = 5;
             rootLayout->BackColor = Color::FromArgb(248, 250, 252);
@@ -160,7 +160,7 @@ namespace SchoolCore
             filterArea->FlowDirection = FlowDirection::LeftToRight;
             filterArea->WrapContents = true;
             filterArea->AutoScroll = true;
-            filterArea->Padding = Padding(0, 4, 0, 4);
+            filterArea->Padding = System::Windows::Forms::Padding(0, 4, 0, 4);
             filterArea->BackColor = Color::FromArgb(248, 250, 252);
 
             cmbReportType = gcnew ComboBox();
@@ -202,7 +202,7 @@ namespace SchoolCore
             Panel^ actionGroup = gcnew Panel();
             actionGroup->Width = 350;
             actionGroup->Height = 68;
-            actionGroup->Margin = Padding(0, 4, 8, 4);
+            actionGroup->Margin = System::Windows::Forms::Padding(0, 4, 8, 4);
 
             Label^ actionLabel = gcnew Label();
             actionLabel->Text = L"Actions";
@@ -295,7 +295,7 @@ namespace SchoolCore
             Panel^ group = gcnew Panel();
             group->Width = width;
             group->Height = 68;
-            group->Margin = Padding(0, 4, 12, 4);
+            group->Margin = System::Windows::Forms::Padding(0, 4, 12, 4);
 
             Label^ label = gcnew Label();
             label->Text = caption;
@@ -706,7 +706,7 @@ namespace SchoolCore
             dialog->FileName =
                 L"SchoolCore_Report_" + DateTime::Now.ToString(L"yyyyMMdd_HHmm") + L".csv";
 
-            if (dialog->ShowDialog(this) != DialogResult::OK)
+            if (dialog->ShowDialog(this) != System::Windows::Forms::DialogResult::OK)
             {
                 delete dialog;
                 return;
