@@ -1532,17 +1532,29 @@ void InitializeComponent(void)
                 }
                 catch (sql::SQLException& auditEx)
                 {
-                    System::Diagnostics::Debug::WriteLine(
-                        gcnew String(auditEx.what()));
+                    MessageBox::Show(
+                        L"Attendance was saved, but its audit entry could not be written.\n\n" +
+                            gcnew String(auditEx.what()),
+                        L"Attendance Audit Warning",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning);
                 }
                 catch (Exception^ auditEx)
                 {
-                    System::Diagnostics::Debug::WriteLine(auditEx->Message);
+                    MessageBox::Show(
+                        L"Attendance was saved, but its audit entry could not be written.\n\n" +
+                            auditEx->Message,
+                        L"Attendance Audit Warning",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning);
                 }
                 catch (...)
                 {
-                    System::Diagnostics::Debug::WriteLine(
-                        "Audit logging failed after saving attendance.");
+                    MessageBox::Show(
+                        L"Attendance was saved, but its audit entry could not be written.",
+                        L"Attendance Audit Warning",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning);
                 }
 
                 MessageBox::Show(
