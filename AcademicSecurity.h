@@ -430,117 +430,93 @@ namespace SchoolCore
             String^ oldValues,
             String^ newValues)
         {
-            auto con =
-                DbConnection::GetConnection();
+            auto con = DbConnection::GetConnection();
 
-            std::unique_ptr<sql::PreparedStatement> stmt(
+            try
+            {
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(
+                        "INSERT INTO audit_logs "
+                        "("
+                        "user_id, action, table_name, record_id, description, "
+                        "reason, approval_id, old_values, new_values"
+                        ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                    )
+                );
+
+                if (AuthSession::UserId > 0)
+                    stmt->setInt(1, AuthSession::UserId);
+                else
+                    stmt->setNull(1, sql::DataType::INTEGER);
+
+                stmt->setString(2, msclr::interop::marshal_as<std::string>(
+                    action == nullptr ? L"" : action));
+                stmt->setString(3, msclr::interop::marshal_as<std::string>(
+                    tableName == nullptr ? L"" : tableName));
+                stmt->setString(4, msclr::interop::marshal_as<std::string>(
+                    recordId == nullptr ? L"" : recordId));
+                stmt->setString(5, msclr::interop::marshal_as<std::string>(
+                    description == nullptr ? L"" : description));
+
+                if (String::IsNullOrWhiteSpace(reason))
+                    stmt->setNull(6, sql::DataType::VARCHAR);
+                else
+                    stmt->setString(6, msclr::interop::marshal_as<std::string>(reason));
+
+                if (approvalId > 0)
+                    stmt->setInt64(7, approvalId);
+                else
+                    stmt->setNull(7, sql::DataType::BIGINT);
+
+                if (String::IsNullOrWhiteSpace(oldValues))
+                    stmt->setNull(8, sql::DataType::LONGVARCHAR);
+                else
+                    stmt->setString(8, msclr::interop::marshal_as<std::string>(oldValues));
+
+                if (String::IsNullOrWhiteSpace(newValues))
+                    stmt->setNull(9, sql::DataType::LONGVARCHAR);
+                else
+                    stmt->setString(9, msclr::interop::marshal_as<std::string>(newValues));
+
+                stmt->executeUpdate();
+                return;
+            }
+            catch (sql::SQLException& ex)
+            {
+                // Older school databases may still have the original audit schema.
+                // Retry with core columns only when extended migration columns are missing.
+                std::string errorText(ex.what());
+                bool missingExtendedColumn =
+                    errorText.find("Unknown column") != std::string::npos ||
+                    errorText.find("unknown column") != std::string::npos ||
+                    errorText.find("doesn't exist") != std::string::npos;
+
+                if (!missingExtendedColumn)
+                    throw;
+            }
+
+            std::unique_ptr<sql::PreparedStatement> fallback(
                 con->prepareStatement(
                     "INSERT INTO audit_logs "
-                    "("
-                    "user_id, "
-                    "action, "
-                    "table_name, "
-                    "record_id, "
-                    "description, "
-                    "reason, "
-                    "approval_id, "
-                    "old_values, "
-                    "new_values"
-                    ") "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                    "(user_id, action, table_name, record_id, description) "
+                    "VALUES (?, ?, ?, ?, ?)"
                 )
             );
 
             if (AuthSession::UserId > 0)
-                stmt->setInt(
-                    1,
-                    AuthSession::UserId
-                );
+                fallback->setInt(1, AuthSession::UserId);
             else
-                stmt->setNull(
-                    1,
-                    sql::DataType::INTEGER
-                );
+                fallback->setNull(1, sql::DataType::INTEGER);
 
-            stmt->setString(
-                2,
-                msclr::interop::marshal_as<std::string>(
-                    action == nullptr ? L"" : action
-                )
-            );
-
-            stmt->setString(
-                3,
-                msclr::interop::marshal_as<std::string>(
-                    tableName == nullptr ? L"" : tableName
-                )
-            );
-
-            stmt->setString(
-                4,
-                msclr::interop::marshal_as<std::string>(
-                    recordId == nullptr ? L"" : recordId
-                )
-            );
-
-            stmt->setString(
-                5,
-                msclr::interop::marshal_as<std::string>(
-                    description == nullptr ? L"" : description
-                )
-            );
-
-            if (String::IsNullOrWhiteSpace(reason))
-                stmt->setNull(
-                    6,
-                    sql::DataType::VARCHAR
-                );
-            else
-                stmt->setString(
-                    6,
-                    msclr::interop::marshal_as<std::string>(
-                        reason
-                    )
-                );
-
-            if (approvalId > 0)
-                stmt->setInt64(
-                    7,
-                    approvalId
-                );
-            else
-                stmt->setNull(
-                    7,
-                    sql::DataType::BIGINT
-                );
-
-            if (String::IsNullOrWhiteSpace(oldValues))
-                stmt->setNull(
-                    8,
-                    sql::DataType::LONGVARCHAR
-                );
-            else
-                stmt->setString(
-                    8,
-                    msclr::interop::marshal_as<std::string>(
-                        oldValues
-                    )
-                );
-
-            if (String::IsNullOrWhiteSpace(newValues))
-                stmt->setNull(
-                    9,
-                    sql::DataType::LONGVARCHAR
-                );
-            else
-                stmt->setString(
-                    9,
-                    msclr::interop::marshal_as<std::string>(
-                        newValues
-                    )
-                );
-
-            stmt->executeUpdate();
+            fallback->setString(2, msclr::interop::marshal_as<std::string>(
+                action == nullptr ? L"" : action));
+            fallback->setString(3, msclr::interop::marshal_as<std::string>(
+                tableName == nullptr ? L"" : tableName));
+            fallback->setString(4, msclr::interop::marshal_as<std::string>(
+                recordId == nullptr ? L"" : recordId));
+            fallback->setString(5, msclr::interop::marshal_as<std::string>(
+                description == nullptr ? L"" : description));
+            fallback->executeUpdate();
         }
     };
 }
