@@ -114,7 +114,7 @@ namespace SchoolCore
                         "e2.term_id DESC, e2.enrollment_id DESC "
                         "LIMIT 1"
                     ") "
-                    "WHERE s.student_id IN (";
+                    "WHERE s.status = 'Active' AND s.student_id IN (";
 
                 for (int i = 0; i < this->studentIds->Length; ++i)
                 {
@@ -1598,6 +1598,26 @@ namespace SchoolCore
                 }
 
                 row->Cells["TargetStream"]->Value = matched;
+
+                if (matched != nullptr &&
+                    String::Equals(
+                        matched->Text,
+                        currentStream,
+                        StringComparison::OrdinalIgnoreCase))
+                {
+                    row->Cells["TargetStream"]->ToolTipText =
+                        L"Matched the student's current stream name. You can change it.";
+                }
+                else if (matched != nullptr)
+                {
+                    row->Cells["TargetStream"]->ToolTipText =
+                        L"Check this target stream. The previous stream name is not available in the target class.";
+                }
+                else if (this->streamColumn->Items->Count > 1)
+                {
+                    row->Cells["TargetStream"]->ToolTipText =
+                        L"Choose a target stream. No stream with the student's current name is available.";
+                }
             }
         }
 
@@ -1732,6 +1752,7 @@ namespace SchoolCore
                         "AND eos.status = 'Active' "
                         "WHERE e.class_id = ? "
                         "AND e.status = 'Active' "
+                        "AND s.status = 'Active' "
                         "GROUP BY "
                             "e.enrollment_id, "
                             "s.student_id, "
@@ -2086,7 +2107,7 @@ namespace SchoolCore
                     row->Cells["TargetStream"]->Value == nullptr)
                 {
                     MessageBox::Show(
-                        L"Every selected student must have a target stream.",
+                        L"One or more selected students has no target stream selected. Choose a target stream in each blank Target Stream cell before continuing.",
                         L"Bulk Promotion",
                         MessageBoxButtons::OK,
                         MessageBoxIcon::Warning);
