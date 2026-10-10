@@ -3,6 +3,7 @@
 #include "DbConnection.h"
 #include "ThemeManager.h"
 #include "AuthSession.h"
+#include "AcademicSecurity.h"
 #include "PasswordChangeForm.h"
 
 #include <mariadb/conncpp.hpp>
@@ -407,6 +408,38 @@ using namespace System::Drawing;
                         this->btnLogin->Enabled = true;
                         return;
                     }
+                }
+
+                // Log successful sign-ins, but do not block authentication if
+                // audit storage is unavailable.
+                try
+                {
+                    AcademicSecurity::WriteAudit(
+                        L"LOGIN",
+                        L"users",
+                        Convert::ToString(userId),
+                        L"User signed in successfully.",
+                        nullptr,
+                        0,
+                        nullptr,
+                        nullptr
+                    );
+                }
+                catch (sql::SQLException& auditEx)
+                {
+                    System::Diagnostics::Debug::WriteLine(
+                        gcnew String(auditEx.what())
+                    );
+                }
+                catch (Exception^ auditEx)
+                {
+                    System::Diagnostics::Debug::WriteLine(auditEx->Message);
+                }
+                catch (...)
+                {
+                    System::Diagnostics::Debug::WriteLine(
+                        "Audit logging failed after sign-in."
+                    );
                 }
 
                 this->DialogResult =
