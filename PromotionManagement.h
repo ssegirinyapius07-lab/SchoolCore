@@ -1040,6 +1040,17 @@ namespace SchoolCore
                     this->cmbOption2->SelectedItem)
                 : nullptr;
 
+            if (this->cmbStream->Items->Count == 0)
+            {
+                MessageBox::Show(
+                    L"No active streams are configured for " + classItem->Text +
+                        L". Configure the target class streams before promoting this student.",
+                    L"Promotion",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning);
+                return;
+            }
+
             if (yearItem == nullptr ||
                 termItem == nullptr ||
                 classItem == nullptr ||
