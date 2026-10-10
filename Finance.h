@@ -3,6 +3,7 @@
 #include "AuthSession.h"
 #include "ThemeManager.h"
 #include "DbConnection.h"
+#include "AcademicSecurity.h"
 
 #include <mariadb/conncpp.hpp>
 #include <msclr/marshal_cppstd.h>
@@ -1206,6 +1207,47 @@ namespace SchoolCore
                 con->commit();
                 con->setAutoCommit(true);
                 transactionStarted = false;
+
+                // Record the confirmed payment after the payment transaction commits.
+                // An audit failure must not make a saved payment appear to have failed.
+                try
+                {
+                    String^ paymentAuditDescription =
+                        L"Receipt " + receipt +
+                        L" recorded for " + student->Name +
+                        L". Amount: UGX " +
+                        amount.ToString(
+                            L"N2",
+                            System::Globalization::CultureInfo::InvariantCulture) +
+                        L"; method: " + method +
+                        L"; provider: " + provider +
+                        L"; reference: " + reference + L".";
+
+                    AcademicSecurity::WriteAudit(
+                        L"PAYMENT_RECORDED",
+                        L"payments",
+                        paymentId.ToString(),
+                        paymentAuditDescription,
+                        nullptr,
+                        0,
+                        nullptr,
+                        nullptr
+                    );
+                }
+                catch (sql::SQLException& auditEx)
+                {
+                    System::Diagnostics::Debug::WriteLine(
+                        gcnew String(auditEx.what()));
+                }
+                catch (Exception^ auditEx)
+                {
+                    System::Diagnostics::Debug::WriteLine(auditEx->Message);
+                }
+                catch (...)
+                {
+                    System::Diagnostics::Debug::WriteLine(
+                        "Audit logging failed after recording payment.");
+                }
 
                 MessageBox::Show(
                     paymentForm,
