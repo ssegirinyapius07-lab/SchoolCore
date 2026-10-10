@@ -3,6 +3,7 @@
 #include "DbConnection.h"
 #include "AcademicContext.h"
 #include "ThemeManager.h"
+#include "AcademicSecurity.h"
 
 #include <mariadb/conncpp.hpp>
 #include <msclr/marshal_cppstd.h>
@@ -3554,6 +3555,38 @@ void InitializeComponent(void)
 
                 con->commit();
 
+                // Record the completed student update without blocking the saved change.
+                try
+                {
+                    AcademicSecurity::WriteAudit(
+                        L"STUDENT_UPDATED",
+                        L"students",
+                        Convert::ToString(this->editingStudentId),
+                        L"Student record updated: " +
+                            this->editingRegistrationNumber + L" (" +
+                            this->txtFirstName->Text->Trim() + L" " +
+                            this->txtLastName->Text->Trim() + L").",
+                        nullptr,
+                        0,
+                        nullptr,
+                        nullptr
+                    );
+                }
+                catch (sql::SQLException& auditEx)
+                {
+                    System::Diagnostics::Debug::WriteLine(
+                        gcnew String(auditEx.what()));
+                }
+                catch (Exception^ auditEx)
+                {
+                    System::Diagnostics::Debug::WriteLine(auditEx->Message);
+                }
+                catch (...)
+                {
+                    System::Diagnostics::Debug::WriteLine(
+                        "Audit logging failed after updating a student.");
+                }
+
                 MessageBox::Show(
                     L"Student details updated successfully.",
                     L"Edit Student",
@@ -4349,6 +4382,40 @@ void InitializeComponent(void)
 
                 con->commit();
 
+                // Record the completed registration without blocking the saved student.
+                try
+                {
+                    String^ savedRegistrationNumber =
+                        gcnew String(registrationNumber.c_str());
+
+                    AcademicSecurity::WriteAudit(
+                        L"STUDENT_REGISTERED",
+                        L"students",
+                        savedRegistrationNumber,
+                        L"New student registered: " +
+                            savedRegistrationNumber + L" (" +
+                            this->txtFirstName->Text->Trim() + L" " +
+                            this->txtLastName->Text->Trim() + L").",
+                        nullptr,
+                        0,
+                        nullptr,
+                        nullptr
+                    );
+                }
+                catch (sql::SQLException& auditEx)
+                {
+                    System::Diagnostics::Debug::WriteLine(
+                        gcnew String(auditEx.what()));
+                }
+                catch (Exception^ auditEx)
+                {
+                    System::Diagnostics::Debug::WriteLine(auditEx->Message);
+                }
+                catch (...)
+                {
+                    System::Diagnostics::Debug::WriteLine(
+                        "Audit logging failed after registering a student.");
+                }
 
                 MessageBox::Show(
                     L"Student registered successfully.\n\n"
