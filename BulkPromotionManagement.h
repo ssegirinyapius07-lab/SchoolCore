@@ -2091,6 +2091,17 @@ namespace SchoolCore
                 return;
             }
 
+            if (this->streamColumn->Items->Count == 0)
+            {
+                MessageBox::Show(
+                    L"No active streams are configured for " + target->Text +
+                        L". Configure the target class streams before promoting students.",
+                    L"Bulk Promotion",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning);
+                return;
+            }
+
             for each (DataGridViewRow^ row in
                 this->studentsGrid->Rows)
             {
@@ -2101,8 +2112,7 @@ namespace SchoolCore
                     continue;
                 }
 
-                if (this->streamColumn->Items->Count > 0 &&
-                    row->Cells["TargetStream"]->Value == nullptr)
+                if (row->Cells["TargetStream"]->Value == nullptr)
                 {
                     MessageBox::Show(
                         L"One or more selected students has no target stream selected. Choose a target stream in each blank Target Stream cell before continuing.",
