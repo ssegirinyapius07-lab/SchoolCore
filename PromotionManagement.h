@@ -1040,6 +1040,18 @@ namespace SchoolCore
                     this->cmbOption2->SelectedItem)
                 : nullptr;
 
+            if (yearItem == nullptr ||
+                termItem == nullptr ||
+                classItem == nullptr)
+            {
+                MessageBox::Show(
+                    L"Select the target academic year, term and class.",
+                    L"Validation",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning);
+                return;
+            }
+
             if (this->cmbStream->Items->Count == 0)
             {
                 MessageBox::Show(
@@ -1051,13 +1063,10 @@ namespace SchoolCore
                 return;
             }
 
-            if (yearItem == nullptr ||
-                termItem == nullptr ||
-                classItem == nullptr ||
-                streamItem == nullptr)
+            if (streamItem == nullptr)
             {
                 MessageBox::Show(
-                    L"Select the target academic year, term, class and stream.",
+                    L"Choose the target stream for this student.",
                     L"Validation",
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Warning);
