@@ -45,6 +45,7 @@ namespace SchoolCore
         int currentGrade = 0;
         int targetGrade = 0;
         String^ currentClassName = L"";
+        String^ currentStreamName = L"";
         String^ targetClassName = L"";
 
         TableLayoutPanel^ mainLayout;
@@ -360,7 +361,8 @@ namespace SchoolCore
                         "s.last_name, "
                         "e.enrollment_id, "
                         "e.class_id, "
-                        "c.class_name "
+                        "c.class_name, "
+                        "st.stream_name "
                         "FROM students s "
                         "LEFT JOIN enrollments e "
                         "ON e.enrollment_id = ("
@@ -372,6 +374,7 @@ namespace SchoolCore
                             "LIMIT 1"
                         ") "
                         "LEFT JOIN classes c ON c.class_id = e.class_id "
+                        "LEFT JOIN streams st ON st.stream_id = e.stream_id "
                         "WHERE s.student_id = ? "
                         "LIMIT 1"
                     )
@@ -408,6 +411,12 @@ namespace SchoolCore
                         : gcnew String(
                             result->getString("class_name").c_str());
 
+                this->currentStreamName =
+                    result->isNull("stream_name")
+                        ? L""
+                        : gcnew String(
+                            result->getString("stream_name").c_str());
+
                 this->currentGrade =
                     GetGradeNumber(this->currentClassName);
 
@@ -438,7 +447,10 @@ namespace SchoolCore
                 this->lblCurrent->Text =
                     result->isNull("class_name")
                         ? L"No active enrollment"
-                        : this->currentClassName;
+                        : this->currentClassName +
+                            (String::IsNullOrWhiteSpace(this->currentStreamName)
+                                ? L" | Stream: Not assigned"
+                                : L" | Stream: " + this->currentStreamName);
 
                 UpdatePromotionText();
             }
@@ -661,9 +673,57 @@ namespace SchoolCore
                     );
                 }
 
-                if (this->cmbStream->Items->Count > 0)
+                int matchedIndex = -1;
+
+                if (!String::IsNullOrWhiteSpace(this->currentStreamName))
                 {
-                    this->cmbStream->SelectedIndex = 0;
+                    for (int i = 0; i < this->cmbStream->Items->Count; ++i)
+                    {
+                        ComboItem^ stream =
+                            dynamic_cast<ComboItem^>(this->cmbStream->Items[i]);
+
+                        if (stream != nullptr &&
+                            String::Equals(
+                                stream->Text,
+                                this->currentStreamName,
+                                StringComparison::OrdinalIgnoreCase))
+                        {
+                            matchedIndex = i;
+                            break;
+                        }
+                    }
+                }
+
+                if (matchedIndex < 0 && this->cmbStream->Items->Count == 1)
+                    matchedIndex = 0;
+
+                this->cmbStream->SelectedIndex = matchedIndex;
+
+                if (this->cmbStream->Items->Count == 0)
+                {
+                    this->lblSubtitle->Text =
+                        L"No active streams are configured for " +
+                        this->targetClassName +
+                        L". Configure the target class streams before promoting.";
+                    this->btnPromote->Enabled = false;
+                }
+                else if (matchedIndex >= 0 &&
+                    !String::IsNullOrWhiteSpace(this->currentStreamName) &&
+                    String::Equals(
+                        safe_cast<ComboItem^>(this->cmbStream->Items[matchedIndex])->Text,
+                        this->currentStreamName,
+                        StringComparison::OrdinalIgnoreCase))
+                {
+                    this->lblSubtitle->Text =
+                        L"Current stream " + this->currentStreamName +
+                        L" is preselected when available. You can change the target stream.";
+                }
+                else if (!String::IsNullOrWhiteSpace(this->currentStreamName))
+                {
+                    this->lblSubtitle->Text =
+                        L"Current stream " + this->currentStreamName +
+                        L" is not available in " + this->targetClassName +
+                        L". Select the correct target stream manually.";
                 }
             }
             catch (sql::SQLException& ex)
@@ -901,6 +961,7 @@ namespace SchoolCore
                 this->currentClassId = 0;
                 this->currentGrade = 0;
                 this->currentClassName = L"";
+                this->currentStreamName = L"";
                 this->targetClassId = 0;
                 this->targetGrade = 0;
                 this->targetClassName = L"";
@@ -1041,6 +1102,32 @@ namespace SchoolCore
                     L"Validation",
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Warning);
+                return;
+            }
+
+            String^ sourceStreamDisplay =
+                String::IsNullOrWhiteSpace(this->currentStreamName)
+                    ? L"Not assigned"
+                    : this->currentStreamName;
+
+            String^ promotionSummary =
+                L"Confirm student promotion\n\n" +
+                L"Student: " + this->lblStudent->Text +
+                L"\nCurrent class: " + this->currentClassName +
+                L"\nCurrent stream: " + sourceStreamDisplay +
+                L"\nTarget class: " + classItem->Text +
+                L"\nTarget stream: " + streamItem->Text +
+                L"\nTarget academic year: " + yearItem->Text +
+                L"\nTarget term: " + termItem->Text +
+                L"\n\nThe current enrollment will be retained as history. A new enrollment will be created for the target class and stream.\n\nContinue?";
+
+            if (MessageBox::Show(
+                    promotionSummary,
+                    L"Confirm Student Promotion",
+                    MessageBoxButtons::YesNo,
+                    MessageBoxIcon::Question) !=
+                System::Windows::Forms::DialogResult::Yes)
+            {
                 return;
             }
 
