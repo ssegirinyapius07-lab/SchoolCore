@@ -1236,17 +1236,32 @@ namespace SchoolCore
                 }
                 catch (sql::SQLException& auditEx)
                 {
-                    System::Diagnostics::Debug::WriteLine(
-                        gcnew String(auditEx.what()));
+                    MessageBox::Show(
+                        paymentForm,
+                        L"Payment was recorded, but its audit entry could not be written.\n\n" +
+                            gcnew String(auditEx.what()),
+                        L"Payment Audit Warning",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning);
                 }
                 catch (Exception^ auditEx)
                 {
-                    System::Diagnostics::Debug::WriteLine(auditEx->Message);
+                    MessageBox::Show(
+                        paymentForm,
+                        L"Payment was recorded, but its audit entry could not be written.\n\n" +
+                            auditEx->Message,
+                        L"Payment Audit Warning",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning);
                 }
                 catch (...)
                 {
-                    System::Diagnostics::Debug::WriteLine(
-                        "Audit logging failed after recording payment.");
+                    MessageBox::Show(
+                        paymentForm,
+                        L"Payment was recorded, but its audit entry could not be written.",
+                        L"Payment Audit Warning",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning);
                 }
 
                 MessageBox::Show(
