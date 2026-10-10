@@ -1361,7 +1361,7 @@ namespace SchoolCore {
 			return section;
 		}
 
-				void UpdateHeaderForResponsiveLayout()
+		void UpdateHeaderForResponsiveLayout()
 		{
 			if (this->headerPanel == nullptr)
 				return;
