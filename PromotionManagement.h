@@ -163,7 +163,7 @@ namespace SchoolCore
             this->mainLayout->Controls->Add(this->lblStudent, 1, 3);
 
             this->lblCurrent = MakeValueLabel(L"No current enrollment loaded.");
-            this->mainLayout->Controls->Add(MakeLabel(L"Current Class"), 0, 4);
+            this->mainLayout->Controls->Add(MakeLabel(L"Current Class / Stream"), 0, 4);
             this->mainLayout->Controls->Add(this->lblCurrent, 1, 4);
 
             this->cmbAcademicYear = MakeCombo();
