@@ -165,6 +165,7 @@ namespace SchoolCore {
 		System::Windows::Forms::Panel^ headerPanel;
 		System::Windows::Forms::Panel^ sidebarPanel;
 		System::Windows::Forms::Panel^ contentPanel;
+		System::Windows::Forms::TableLayoutPanel^ dashboardOverviewLayout = nullptr;
 
 		// Dashboard header labels
 		System::Windows::Forms::Label^ lblSchoolName;
@@ -634,10 +635,12 @@ namespace SchoolCore {
 
 		void ShowDashboardOverview()
 		{
+			this->dashboardOverviewLayout = nullptr;
 			this->contentPanel->Controls->Clear();
 
 			// Layout: title / stat cards / content area / footer
 			TableLayoutPanel^ layout = gcnew TableLayoutPanel();
+			this->dashboardOverviewLayout = layout;
 			layout->Dock = DockStyle::Top;
 			layout->AutoSize = true;
 			layout->Padding = System::Windows::Forms::Padding(30, 20, 30, 20);
@@ -650,9 +653,12 @@ namespace SchoolCore {
 				layout->ColumnStyles->Add(gcnew ColumnStyle(SizeType::Percent, 25.0F));
 			}
 
+			int lowerContentHeight =
+				Math::Max(320, this->contentPanel->ClientSize.Height - 280);
+
 			layout->RowStyles->Add(gcnew RowStyle(SizeType::Absolute, 60.0F));   // title
 			layout->RowStyles->Add(gcnew RowStyle(SizeType::Absolute, 120.0F));  // stat cards
-			layout->RowStyles->Add(gcnew RowStyle(SizeType::Absolute, 430.0F));  // main content area
+			layout->RowStyles->Add(gcnew RowStyle(SizeType::Absolute, static_cast<float>(lowerContentHeight))); // main content
 			layout->RowStyles->Add(gcnew RowStyle(SizeType::Absolute, 40.0F));   // footer
 
 			// Title
@@ -787,6 +793,7 @@ namespace SchoolCore {
 			layout->SetColumnSpan(footer, 4);
 
 			this->contentPanel->Controls->Add(layout);
+			UpdateDashboardOverviewLayout();
 		}
 
 
@@ -823,6 +830,34 @@ namespace SchoolCore {
 			card->Controls->Add(strip);
 
 			return card;
+		}
+
+
+		void RecentActivityList_SizeChanged(
+			System::Object^ sender,
+			System::EventArgs^ e)
+		{
+			FlowLayoutPanel^ activityList =
+				dynamic_cast<FlowLayoutPanel^>(sender);
+
+			if (activityList == nullptr)
+				return;
+
+			int itemWidth = Math::Max(
+				1,
+				activityList->ClientSize.Width -
+				activityList->Padding.Horizontal - 8);
+
+			for each (Control^ control in activityList->Controls)
+			{
+				Panel^ activityItem =
+					dynamic_cast<Panel^>(control);
+
+				if (activityItem != nullptr)
+				{
+					activityItem->Width = itemWidth;
+				}
+			}
 		}
 
 
@@ -892,6 +927,12 @@ namespace SchoolCore {
 			activityList->Padding =
 				System::Windows::Forms::Padding(
 					0, 4, 4, 0
+				);
+
+			activityList->SizeChanged +=
+				gcnew System::EventHandler(
+					this,
+					&Dashboard::RecentActivityList_SizeChanged
 				);
 
 			try
@@ -1512,11 +1553,48 @@ namespace SchoolCore {
 			}
 		}
 
+		void UpdateDashboardOverviewLayout()
+		{
+			if (this->contentPanel == nullptr ||
+				this->dashboardOverviewLayout == nullptr ||
+				!this->contentPanel->Controls->Contains(
+					this->dashboardOverviewLayout))
+			{
+				return;
+			}
+
+			// Fixed rows, panel padding and the lower panel margin use 280px.
+			// Keep the content area usable, and let the parent scroll when shorter.
+			int lowerContentHeight =
+				Math::Max(320, this->contentPanel->ClientSize.Height - 280);
+
+			if (this->dashboardOverviewLayout->RowStyles->Count > 2)
+			{
+				System::Windows::Forms::RowStyle^ lowerRow =
+					this->dashboardOverviewLayout->RowStyles[2];
+
+				if (lowerRow->SizeType != SizeType::Absolute)
+				{
+					lowerRow->SizeType = SizeType::Absolute;
+				}
+
+				if (lowerRow->Height != lowerContentHeight)
+				{
+					lowerRow->Height =
+						static_cast<float>(lowerContentHeight);
+				}
+
+				this->dashboardOverviewLayout->PerformLayout();
+			}
+		}
+
+
 		System::Void Dashboard_Resize(
 			System::Object^ sender,
 			System::EventArgs^ e)
 		{
 			UpdateHeaderForResponsiveLayout();
+			UpdateDashboardOverviewLayout();
 		}
 
 		System::Void btnMenu_Click(
