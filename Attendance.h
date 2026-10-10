@@ -4,6 +4,7 @@
 #include "AcademicContext.h"
 #include "ThemeManager.h"
 #include "AuthSession.h"
+#include "AcademicSecurity.h"
 
 #include <mariadb/conncpp.hpp>
 #include <msclr/marshal_cppstd.h>
@@ -1439,6 +1440,12 @@ void InitializeComponent(void)
                     )
                 );
 
+                int totalSaved = 0;
+                int presentSaved = 0;
+                int absentSaved = 0;
+                int lateSaved = 0;
+                int excusedSaved = 0;
+
                 for each (DataGridViewRow^ row in
                           this->attendanceGrid->Rows)
                 {
@@ -1465,6 +1472,16 @@ void InitializeComponent(void)
                     if (String::IsNullOrWhiteSpace(status))
                         status = L"Present";
 
+                    ++totalSaved;
+                    if (String::Equals(status, L"Present", StringComparison::OrdinalIgnoreCase))
+                        ++presentSaved;
+                    else if (String::Equals(status, L"Absent", StringComparison::OrdinalIgnoreCase))
+                        ++absentSaved;
+                    else if (String::Equals(status, L"Late", StringComparison::OrdinalIgnoreCase))
+                        ++lateSaved;
+                    else if (String::Equals(status, L"Excused", StringComparison::OrdinalIgnoreCase))
+                        ++excusedSaved;
+
                     recordStmt->setInt(1, sessionId);
                     recordStmt->setInt(2, studentId);
                     recordStmt->setString(
@@ -1481,6 +1498,52 @@ void InitializeComponent(void)
 
                 con->commit();
                 con->setAutoCommit(true);
+
+                // Record the saved attendance session in the audit trail.
+                // Audit failures must not undo successfully saved attendance.
+                try
+                {
+                    String^ streamName = streamId > 0
+                        ? Convert::ToString(this->cmbStream->SelectedItem)
+                        : L"All streams";
+
+                    String^ auditDescription =
+                        L"Attendance saved for " + classItem->Name +
+                        L" / " + streamName +
+                        L" on " + dateText +
+                        L". Academic year: " + yearItem->Name +
+                        L"; term: " + termItem->Name +
+                        L". Total: " + totalSaved.ToString() +
+                        L", Present: " + presentSaved.ToString() +
+                        L", Absent: " + absentSaved.ToString() +
+                        L", Late: " + lateSaved.ToString() +
+                        L", Excused: " + excusedSaved.ToString() + L".";
+
+                    AcademicSecurity::WriteAudit(
+                        L"ATTENDANCE_SAVED",
+                        L"attendance_sessions",
+                        Convert::ToString(sessionId),
+                        auditDescription,
+                        nullptr,
+                        0,
+                        nullptr,
+                        nullptr
+                    );
+                }
+                catch (sql::SQLException& auditEx)
+                {
+                    System::Diagnostics::Debug::WriteLine(
+                        gcnew String(auditEx.what()));
+                }
+                catch (Exception^ auditEx)
+                {
+                    System::Diagnostics::Debug::WriteLine(auditEx->Message);
+                }
+                catch (...)
+                {
+                    System::Diagnostics::Debug::WriteLine(
+                        "Audit logging failed after saving attendance.");
+                }
 
                 MessageBox::Show(
                     L"Attendance saved successfully.",
