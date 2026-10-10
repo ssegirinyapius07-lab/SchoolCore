@@ -43,6 +43,9 @@ namespace SchoolCore
         Label^ lblTitle;
         Label^ lblSubtitle;
         Label^ lblCount;
+        bool initializingData = false;
+        int preferredSourceClassId = 0;
+        bool initialSelectionContextInvalid = false;
 
         ComboBox^ cmbSourceClass;
         ComboBox^ cmbAcademicYear;
@@ -86,6 +89,65 @@ namespace SchoolCore
             }
         };
 
+        int ResolveSelectedSourceClassId()
+        {
+            if (this->studentIds == nullptr ||
+                this->studentIds->Length == 0)
+            {
+                return 0;
+            }
+
+            try
+            {
+                std::string query =
+                    "SELECT COUNT(DISTINCT e.student_id) AS matched_students, "
+                    "COUNT(DISTINCT e.class_id) AS source_class_count, "
+                    "MIN(e.class_id) AS source_class_id "
+                    "FROM enrollments e "
+                    "WHERE e.status = 'Active' AND e.student_id IN (";
+
+                for (int i = 0; i < this->studentIds->Length; ++i)
+                {
+                    if (i > 0)
+                        query += ", ";
+                    query += "?";
+                }
+                query += ")";
+
+                auto con = DbConnection::GetConnection();
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    con->prepareStatement(query));
+
+                for (int i = 0; i < this->studentIds->Length; ++i)
+                    stmt->setInt64(i + 1, this->studentIds[i]);
+
+                std::unique_ptr<sql::ResultSet> result(stmt->executeQuery());
+                if (!result->next())
+                    return -1;
+
+                int matchedStudents = result->getInt("matched_students");
+                int sourceClassCount = result->getInt("source_class_count");
+
+                if (matchedStudents != this->studentIds->Length ||
+                    sourceClassCount != 1 ||
+                    result->isNull("source_class_id"))
+                {
+                    return -1;
+                }
+
+                return result->getInt("source_class_id");
+            }
+            catch (sql::SQLException& ex)
+            {
+                MessageBox::Show(
+                    gcnew String(ex.what()),
+                    L"Selected Students",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error);
+                return -1;
+            }
+        }
+
         void LoadInitialData()
         {
             if (System::ComponentModel::LicenseManager::UsageMode ==
@@ -94,6 +156,33 @@ namespace SchoolCore
                 return;
             }
 
+            this->preferredSourceClassId =
+                ResolveSelectedSourceClassId();
+
+            if (this->studentIds != nullptr &&
+                this->studentIds->Length > 0 &&
+                this->preferredSourceClassId <= 0)
+            {
+                this->initialSelectionContextInvalid = true;
+                this->lblCount->Text =
+                    L"Bulk promotion requires selected students to have active enrollments in one current class.";
+
+                this->lblSubtitle->Text =
+                    L"Return to Students and select students from the same current class before starting bulk promotion.";
+
+                this->btnPromote->Enabled = false;
+                this->btnLoadClass->Enabled = false;
+                this->cmbSourceClass->Enabled = false;
+
+                MessageBox::Show(
+                    L"The selected students do not all belong to one current class with active enrollments.\n\nReturn to Students, select students from the same class, and start bulk promotion again.",
+                    L"Bulk Promotion",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Information);
+                return;
+            }
+
+            this->initializingData = true;
             try
             {
                 LoadSourceClasses();
@@ -101,17 +190,45 @@ namespace SchoolCore
                 LoadTerms();
 
                 if (this->cmbSourceClass->SelectedIndex >= 0)
-                {
                     LoadTargetClasses();
-                }
             }
             catch (System::Exception^ ex)
             {
+                this->initializingData = false;
                 MessageBox::Show(
                     ex->Message,
                     L"Promotion",
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Error);
+                return;
+            }
+
+            this->initializingData = false;
+
+            if (this->preferredSourceClassId > 0 &&
+                this->cmbSourceClass->SelectedIndex < 0)
+            {
+                this->initialSelectionContextInvalid = true;
+                this->lblCount->Text =
+                    L"The selected students' current class is not available for promotion.";
+                this->btnPromote->Enabled = false;
+                this->btnLoadClass->Enabled = false;
+                this->cmbSourceClass->Enabled = false;
+                MessageBox::Show(
+                    L"The selected students' current class is not active. Please check their current enrollments.",
+                    L"Bulk Promotion",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning);
+                return;
+            }
+
+            if (this->cmbSourceClass->SelectedIndex >= 0)
+            {
+                UpdateTransitionLayout();
+                LoadTargetStreams();
+                LoadOptionalSubjects();
+                LoadCombinations();
+                LoadStudents();
             }
         }
 
@@ -832,25 +949,42 @@ namespace SchoolCore
                         safe_cast<ComboItem^>(
                             this->cmbSourceClass->Items[i]);
 
-                    if (item->Text->Equals(
-                            L"Senior 2",
-                            StringComparison::OrdinalIgnoreCase))
+                    if (this->preferredSourceClassId > 0 &&
+                        item->Id == this->preferredSourceClassId)
                     {
                         preferredIndex = i;
                         break;
                     }
                 }
 
-                if (preferredIndex >= 0)
+                if (preferredIndex < 0 &&
+                    this->preferredSourceClassId == 0)
                 {
-                    this->cmbSourceClass->SelectedIndex =
-                        preferredIndex;
+                    for (int i = 0;
+                         i < this->cmbSourceClass->Items->Count;
+                         ++i)
+                    {
+                        ComboItem^ item =
+                            safe_cast<ComboItem^>(
+                                this->cmbSourceClass->Items[i]);
+
+                        if (item->Text->Equals(
+                                L"Senior 2",
+                                StringComparison::OrdinalIgnoreCase))
+                        {
+                            preferredIndex = i;
+                            break;
+                        }
+                    }
+
+                    if (preferredIndex < 0 &&
+                        this->cmbSourceClass->Items->Count > 0)
+                    {
+                        preferredIndex = 0;
+                    }
                 }
-                else if (
-                    this->cmbSourceClass->Items->Count > 0)
-                {
-                    this->cmbSourceClass->SelectedIndex = 0;
-                }
+
+                this->cmbSourceClass->SelectedIndex = preferredIndex;
             }
             catch (sql::SQLException& ex)
             {
@@ -892,6 +1026,17 @@ namespace SchoolCore
 
         void LoadTerms()
         {
+            ComboItem^ year =
+                this->cmbAcademicYear->SelectedIndex >= 0
+                    ? dynamic_cast<ComboItem^>(
+                        this->cmbAcademicYear->SelectedItem)
+                    : nullptr;
+
+            this->cmbTerm->Items->Clear();
+
+            if (year == nullptr)
+                return;
+
             try
             {
                 auto con =
@@ -903,10 +1048,13 @@ namespace SchoolCore
                         "term_id, "
                         "term_name "
                         "FROM terms "
-                        "WHERE status = 'Active' "
+                        "WHERE academic_year_id = ? "
+                        "AND status = 'Active' "
                         "ORDER BY term_id"
                     )
                 );
+
+                stmt->setInt(1, year->Id);
 
                 std::unique_ptr<sql::ResultSet> result(
                     stmt->executeQuery());
@@ -1386,20 +1534,57 @@ namespace SchoolCore
 
         void SetDefaultTargetStreams()
         {
+            // Clear values from the previously selected target class before
+            // applying the best stream match for the new target class.
+            for each (DataGridViewRow^ row in this->studentsGrid->Rows)
+                row->Cells["TargetStream"]->Value = nullptr;
+
             if (this->streamColumn->Items->Count == 0)
-            {
                 return;
-            }
 
-            ComboItem^ first =
-                safe_cast<ComboItem^>(
-                    this->streamColumn->Items[0]);
-
-            for each (DataGridViewRow^ row in
-                this->studentsGrid->Rows)
+            for each (DataGridViewRow^ row in this->studentsGrid->Rows)
             {
-                row->Cells["TargetStream"]->Value =
-                    first;
+                String^ currentStream =
+                    row->Cells["CurrentStream"]->Value == nullptr
+                        ? L""
+                        : Convert::ToString(
+                            row->Cells["CurrentStream"]->Value)->Trim();
+
+                ComboItem^ matched = nullptr;
+
+                if (!String::IsNullOrWhiteSpace(currentStream) &&
+                    !currentStream->Equals(
+                        L"Not assigned",
+                        StringComparison::OrdinalIgnoreCase))
+                {
+                    for each (Object^ value in this->streamColumn->Items)
+                    {
+                        ComboItem^ candidate =
+                            dynamic_cast<ComboItem^>(value);
+
+                        if (candidate != nullptr &&
+                            String::Equals(
+                                candidate->Text,
+                                currentStream,
+                                StringComparison::OrdinalIgnoreCase))
+                        {
+                            matched = candidate;
+                            break;
+                        }
+                    }
+                }
+
+                // If the target class has just one stream, there is no
+                // ambiguity. Otherwise, a missing name match must be chosen
+                // explicitly by staff rather than silently assigning stream 1.
+                if (matched == nullptr &&
+                    this->streamColumn->Items->Count == 1)
+                {
+                    matched = safe_cast<ComboItem^>(
+                        this->streamColumn->Items[0]);
+                }
+
+                row->Cells["TargetStream"]->Value = matched;
             }
         }
 
@@ -1664,7 +1849,9 @@ namespace SchoolCore
             Object^ sender,
             EventArgs^ e)
         {
-            this->studentIds = nullptr;
+            if (this->initializingData)
+                return;
+
             LoadTargetClasses();
             UpdateTransitionLayout();
             LoadTargetStreams();
@@ -1677,6 +1864,9 @@ namespace SchoolCore
             Object^ sender,
             EventArgs^ e)
         {
+            if (this->initializingData)
+                return;
+
             UpdateTransitionLayout();
             LoadTargetStreams();
             LoadOptionalSubjects();
@@ -1688,6 +1878,10 @@ namespace SchoolCore
             Object^ sender,
             EventArgs^ e)
         {
+            if (this->initializingData)
+                return;
+
+            LoadTerms();
             LoadOptionalSubjects();
             ApplyExistingAcademicChoices();
         }
