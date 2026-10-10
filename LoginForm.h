@@ -193,8 +193,11 @@ using namespace System::Drawing;
             System::Object^ sender,
             System::EventArgs^ e)
         {
-            this->txtPassword->UseSystemPasswordChar =
-                !this->chkShowPassword->Checked;
+            // Use an explicit mask so the checkbox always switches
+            // between hidden and visible text consistently.
+            this->txtPassword->UseSystemPasswordChar = false;
+            this->txtPassword->PasswordChar =
+                this->chkShowPassword->Checked ? L'\0' : L'*';
         }
 
         System::Void btnLogin_Click(
@@ -757,7 +760,8 @@ using namespace System::Drawing;
                     L"Segoe UI",
                     10.5F
                 );
-            this->txtPassword->UseSystemPasswordChar = true;
+            this->txtPassword->UseSystemPasswordChar = false;
+            this->txtPassword->PasswordChar = L'*';
             this->txtPassword->TabIndex = 0;
 
             passInner->Controls->Add(this->txtPassword);
