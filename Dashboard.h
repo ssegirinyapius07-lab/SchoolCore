@@ -14,6 +14,7 @@
 #include "Attendance.h"
 #include "Examinations.h"
 #include "Finance.h"
+#include "Reports.h"
 #include "AuthSession.h"
 #include "UsersRoles.h"
 #include "AcademicEditApprovals.h"
@@ -78,6 +79,12 @@ namespace SchoolCore {
 				gcnew System::EventHandler(
 					this,
 					&Dashboard::btnUsers_Click
+				);
+
+			this->btnReports->Click +=
+				gcnew System::EventHandler(
+					this,
+					&Dashboard::btnReports_Click
 				);
 
 			this->btnSettings->Click +=
@@ -410,6 +417,23 @@ namespace SchoolCore {
 
 			this->contentPanel->Controls->Add(form);
 			form->Show();
+		}
+
+		System::Void btnReports_Click(
+			System::Object^ sender,
+			System::EventArgs^ e)
+		{
+			if (!AuthSession::HasPermission(L"reports.view"))
+			{
+				MessageBox::Show(
+					L"You do not have permission to access Reports.",
+					L"Access Denied",
+					MessageBoxButtons::OK,
+					MessageBoxIcon::Warning);
+				return;
+			}
+
+			OpenEmbeddedModule(gcnew Reports());
 		}
 
 		System::Void btnSettings_Click(
