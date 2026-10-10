@@ -100,11 +100,21 @@ namespace SchoolCore
             try
             {
                 std::string query =
-                    "SELECT COUNT(DISTINCT e.student_id) AS matched_students, "
+                    "SELECT "
+                    "COUNT(DISTINCT CASE WHEN e.enrollment_id IS NOT NULL THEN s.student_id END) AS matched_students, "
                     "COUNT(DISTINCT e.class_id) AS source_class_count, "
                     "MIN(e.class_id) AS source_class_id "
-                    "FROM enrollments e "
-                    "WHERE e.status = 'Active' AND e.student_id IN (";
+                    "FROM students s "
+                    "LEFT JOIN enrollments e ON e.enrollment_id = ("
+                        "SELECT e2.enrollment_id "
+                        "FROM enrollments e2 "
+                        "WHERE e2.student_id = s.student_id "
+                        "AND e2.status = 'Active' "
+                        "ORDER BY e2.enrollment_date DESC, e2.academic_year_id DESC, "
+                        "e2.term_id DESC, e2.enrollment_id DESC "
+                        "LIMIT 1"
+                    ") "
+                    "WHERE s.student_id IN (";
 
                 for (int i = 0; i < this->studentIds->Length; ++i)
                 {
@@ -1211,6 +1221,9 @@ namespace SchoolCore
 
         void LoadTargetStreams()
         {
+            for each (DataGridViewRow^ row in this->studentsGrid->Rows)
+                row->Cells["TargetStream"]->Value = nullptr;
+
             this->streamColumn->Items->Clear();
 
             ComboItem^ target =
@@ -1700,9 +1713,16 @@ namespace SchoolCore
                             "WHEN eos.option_number = 2 "
                             "THEN eos.subject_id "
                             "END) AS option2_id "
-                        "FROM enrollments e "
-                        "INNER JOIN students s "
-                        "ON s.student_id = e.student_id "
+                        "FROM students s "
+                        "INNER JOIN enrollments e ON e.enrollment_id = ("
+                            "SELECT e2.enrollment_id "
+                            "FROM enrollments e2 "
+                            "WHERE e2.student_id = s.student_id "
+                            "AND e2.status = 'Active' "
+                            "ORDER BY e2.enrollment_date DESC, e2.academic_year_id DESC, "
+                            "e2.term_id DESC, e2.enrollment_id DESC "
+                            "LIMIT 1"
+                        ") "
                         "INNER JOIN classes c "
                         "ON c.class_id = e.class_id "
                         "LEFT JOIN streams st "
@@ -1815,12 +1835,28 @@ namespace SchoolCore
                     }
                 }
 
+                int selectedInitially = 0;
+                for each (DataGridViewRow^ row in this->studentsGrid->Rows)
+                {
+                    if (row->Cells["Select"]->Value != nullptr &&
+                        Convert::ToBoolean(row->Cells["Select"]->Value))
+                    {
+                        ++selectedInitially;
+                    }
+                }
+
                 this->lblCount->Text =
-                    L"Students in " +
-                    source->Text +
-                    L": " +
-                    this->studentsGrid->Rows->Count.ToString() +
-                    L"    |    Select the students to promote.";
+                    selectedInitially > 0
+                        ? L"Selected students: " + selectedInitially.ToString() +
+                            L" / " + this->studentsGrid->Rows->Count.ToString() +
+                            L" in " + source->Text + L". Review each target stream before confirming."
+                        : L"Students in " + source->Text + L": " +
+                            this->studentsGrid->Rows->Count.ToString() +
+                            L"    |    Select the students to promote.";
+
+                // Incoming IDs are only used to preselect the rows once.
+                // Later class changes must not silently keep old selections.
+                this->studentIds = nullptr;
             }
             catch (sql::SQLException& ex)
             {
@@ -2118,15 +2154,65 @@ namespace SchoolCore
                 }
             }
 
+            int sameStreamCount = 0;
+            int changedStreamCount = 0;
+            int newlyAssignedStreamCount = 0;
+
+            for each (DataGridViewRow^ row in this->studentsGrid->Rows)
+            {
+                if (row->Cells["Select"]->Value == nullptr ||
+                    !Convert::ToBoolean(row->Cells["Select"]->Value))
+                {
+                    continue;
+                }
+
+                ComboItem^ targetStream =
+                    dynamic_cast<ComboItem^>(row->Cells["TargetStream"]->Value);
+
+                if (targetStream == nullptr)
+                    continue;
+
+                String^ currentStream =
+                    row->Cells["CurrentStream"]->Value == nullptr
+                        ? L"Not assigned"
+                        : Convert::ToString(row->Cells["CurrentStream"]->Value)->Trim();
+
+                if (String::Equals(
+                        currentStream,
+                        targetStream->Text,
+                        StringComparison::OrdinalIgnoreCase))
+                {
+                    ++sameStreamCount;
+                }
+                else if (String::IsNullOrWhiteSpace(currentStream) ||
+                         currentStream->Equals(
+                             L"Not assigned",
+                             StringComparison::OrdinalIgnoreCase))
+                {
+                    ++newlyAssignedStreamCount;
+                }
+                else
+                {
+                    ++changedStreamCount;
+                }
+            }
+
+            String^ streamSummary =
+                L"Target stream summary: " +
+                sameStreamCount.ToString() + L" keep their current stream name, " +
+                changedStreamCount.ToString() + L" change stream, and " +
+                newlyAssignedStreamCount.ToString() + L" receive a stream assignment.";
+
             String^ confirmation =
-                L"You are about to promote " +
-                selectedCount.ToString() +
-                L" student(s) from " +
-                source->Text +
-                L" to " +
-                target->Text +
-                L".\n\n"
-                L"Continue?";
+                L"Confirm bulk promotion\n\n" +
+                L"Students: " + selectedCount.ToString() +
+                L"\nFrom class: " + source->Text +
+                L"\nTo class: " + target->Text +
+                L"\nTarget academic year: " + year->Text +
+                L"\nTarget term: " + term->Text +
+                L"\n" + streamSummary +
+                L"\n\nReview the Target Stream column for each selected student. " +
+                L"The previous enrollment will be kept as history and a new enrollment will be created.\n\nContinue?";
 
             if (MessageBox::Show(
                     confirmation,
