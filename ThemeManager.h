@@ -927,22 +927,24 @@ namespace SchoolCore
 
             System::String^ name = form->GetType()->Name;
 
+            // These forms define their own typography and control spacing.
+            // Do not run the global bold pass on their carefully positioned
+            // controls, because wider text can make the layout look crowded.
+            if (name->Equals(L"LoginForm") ||
+                name->Equals(L"PasswordChangeForm"))
+            {
+                return;
+            }
+
             form->BackColor = Canvas();
             form->ForeColor = Ink();
 
-            // Typography is global, including hand-styled forms/dialogs.
-            // Colours and layout are still allowed to remain custom.
+            // Typography is global for the standard application forms.
             ApplyBoldTypographyToForm(form);
 
             // The dashboard uses a dark navigation rail that must
             // keep its own colours.
             if (name->Equals(L"Dashboard"))
-            {
-                return;
-            }
-
-            if (name->Equals(L"LoginForm") ||
-                name->Equals(L"PasswordChangeForm"))
             {
                 return;
             }
