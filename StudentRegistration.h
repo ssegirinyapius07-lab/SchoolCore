@@ -3574,17 +3574,29 @@ void InitializeComponent(void)
                 }
                 catch (sql::SQLException& auditEx)
                 {
-                    System::Diagnostics::Debug::WriteLine(
-                        gcnew String(auditEx.what()));
+                    MessageBox::Show(
+                        L"Student changes were saved, but the audit entry could not be written.\n\n" +
+                            gcnew String(auditEx.what()),
+                        L"Student Audit Warning",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning);
                 }
                 catch (Exception^ auditEx)
                 {
-                    System::Diagnostics::Debug::WriteLine(auditEx->Message);
+                    MessageBox::Show(
+                        L"Student changes were saved, but the audit entry could not be written.\n\n" +
+                            auditEx->Message,
+                        L"Student Audit Warning",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning);
                 }
                 catch (...)
                 {
-                    System::Diagnostics::Debug::WriteLine(
-                        "Audit logging failed after updating a student.");
+                    MessageBox::Show(
+                        L"Student changes were saved, but the audit entry could not be written.",
+                        L"Student Audit Warning",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning);
                 }
 
                 MessageBox::Show(
@@ -4404,17 +4416,29 @@ void InitializeComponent(void)
                 }
                 catch (sql::SQLException& auditEx)
                 {
-                    System::Diagnostics::Debug::WriteLine(
-                        gcnew String(auditEx.what()));
+                    MessageBox::Show(
+                        L"Student was registered, but its audit entry could not be written.\n\n" +
+                            gcnew String(auditEx.what()),
+                        L"Student Audit Warning",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning);
                 }
                 catch (Exception^ auditEx)
                 {
-                    System::Diagnostics::Debug::WriteLine(auditEx->Message);
+                    MessageBox::Show(
+                        L"Student was registered, but its audit entry could not be written.\n\n" +
+                            auditEx->Message,
+                        L"Student Audit Warning",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning);
                 }
                 catch (...)
                 {
-                    System::Diagnostics::Debug::WriteLine(
-                        "Audit logging failed after registering a student.");
+                    MessageBox::Show(
+                        L"Student was registered, but its audit entry could not be written.",
+                        L"Student Audit Warning",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning);
                 }
 
                 MessageBox::Show(
