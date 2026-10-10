@@ -1659,6 +1659,36 @@ namespace SchoolCore {
 				this->approvalNotificationTimer->Stop();
 			}
 
+			// Save the sign-out event before clearing the active user session.
+			// Audit storage errors must not interrupt logout.
+			try
+			{
+				AcademicSecurity::WriteAudit(
+					L"LOGOUT",
+					L"users",
+					Convert::ToString(AuthSession::UserId),
+					L"User signed out successfully.",
+					nullptr,
+					0,
+					nullptr,
+					nullptr
+				);
+			}
+			catch (sql::SQLException& auditEx)
+			{
+				System::Diagnostics::Debug::WriteLine(
+					gcnew String(auditEx.what()));
+			}
+			catch (Exception^ auditEx)
+			{
+				System::Diagnostics::Debug::WriteLine(auditEx->Message);
+			}
+			catch (...)
+			{
+				System::Diagnostics::Debug::WriteLine(
+					"Audit logging failed during sign-out.");
+			}
+
 			AuthSession::Clear();
 
 			this->Hide();
