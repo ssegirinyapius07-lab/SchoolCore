@@ -795,28 +795,28 @@ namespace SchoolCore {
 			Panel^ card = gcnew Panel();
 			card->Dock = DockStyle::Fill;
 			card->Margin = System::Windows::Forms::Padding(0, 0, addGap ? 15 : 0, 0);
-			card->BackColor = Color::FromArgb(248, 250, 252);
+			card->BackColor = Color::White;
 			card->BorderStyle = BorderStyle::FixedSingle;
 
-			// Coloured accent strip on the left edge
+			// A restrained accent keeps the existing cards distinct and consistent.
 			Panel^ strip = gcnew Panel();
 			strip->Dock = DockStyle::Left;
-			strip->Width = 6;
+			strip->Width = 4;
 			strip->BackColor = accent;
 
 			System::Windows::Forms::Label^ titleLabel = gcnew Label();
 			titleLabel->Text = title;
 			titleLabel->AutoSize = true;
-			titleLabel->Font = gcnew System::Drawing::Font(L"Segoe UI", 10.0F, FontStyle::Regular);
-			titleLabel->ForeColor = Color::DimGray;
-			titleLabel->Location = Point(24, 18);
+			titleLabel->Font = gcnew System::Drawing::Font(L"Segoe UI", 9.5F, FontStyle::Regular);
+			titleLabel->ForeColor = Color::FromArgb(100, 116, 139);
+			titleLabel->Location = Point(18, 16);
 
 			System::Windows::Forms::Label^ valueLabel = gcnew Label();
 			valueLabel->Text = value;
 			valueLabel->AutoSize = true;
-			valueLabel->Font = gcnew System::Drawing::Font(L"Segoe UI Semibold", 26.0F, FontStyle::Bold);
-			valueLabel->ForeColor = Color::FromArgb(30, 41, 59);
-			valueLabel->Location = Point(22, 44);
+			valueLabel->Font = gcnew System::Drawing::Font(L"Segoe UI Semibold", 24.0F, FontStyle::Bold);
+			valueLabel->ForeColor = Color::FromArgb(15, 23, 42);
+			valueLabel->Location = Point(18, 44);
 
 			card->Controls->Add(titleLabel);
 			card->Controls->Add(valueLabel);
@@ -824,7 +824,6 @@ namespace SchoolCore {
 
 			return card;
 		}
-
 
 
 		Panel^ CreateRecentActivityPanel()
@@ -1178,6 +1177,14 @@ namespace SchoolCore {
 			button->Tag =
 				action;
 
+			button->Font =
+				gcnew System::Drawing::Font(
+					L"Segoe UI Semibold",
+					9.5F,
+					System::Drawing::FontStyle::Bold);
+			button->Cursor =
+				System::Windows::Forms::Cursors::Hand;
+
 			button->Size =
 				System::Drawing::Size(
 					155,
@@ -1209,6 +1216,11 @@ namespace SchoolCore {
 
 			button->FlatAppearance->BorderSize =
 				1;
+			button->FlatAppearance->MouseOverBackColor =
+				Color::FromArgb(239, 246, 255);
+			button->FlatAppearance->MouseDownBackColor =
+				Color::FromArgb(219, 234, 254);
+			button->UseVisualStyleBackColor = false;
 
 			button->Visible =
 				enabled;
@@ -1349,7 +1361,7 @@ namespace SchoolCore {
 			return section;
 		}
 
-		void UpdateHeaderForResponsiveLayout()
+				void UpdateHeaderForResponsiveLayout()
 		{
 			if (this->headerPanel == nullptr)
 				return;
@@ -1360,7 +1372,8 @@ namespace SchoolCore {
 
 			if (mobile)
 			{
-				this->sidebarPanel->Width = 230;
+				// Keep the fixed-width navigation buttons inside the sidebar.
+				this->sidebarPanel->Width = 250;
 				this->sidebarPanel->Visible =
 					this->mobileSidebarVisible;
 				this->btnMenu->Visible = true;
@@ -1423,41 +1436,79 @@ namespace SchoolCore {
 					System::Drawing::Point(25, 52);
 				this->lblSubtitle->Size =
 					System::Drawing::Size(
-						compact ? 420 : 600,
+						compact
+							? Math::Min(420, Math::Max(250, width - 450))
+							: 600,
 						42);
 
-				this->lblUserName->Location =
-					System::Drawing::Point(
-						Math::Max(500, width - 430),
-						12);
-				this->lblUserName->Size =
-					System::Drawing::Size(250, 28);
-				this->lblUserName->TextAlign =
-					System::Drawing::ContentAlignment::MiddleRight;
+				if (compact)
+				{
+					// Reserve a separate right-hand column for the account controls.
+					int userLeft = Math::Max(300, width - 410);
 
-				this->lblUserRole->Visible = true;
-				this->lblUserRole->Location =
-					System::Drawing::Point(
-						Math::Max(500, width - 430),
-						43);
-				this->lblUserRole->Size =
-					System::Drawing::Size(250, 22);
-				this->lblUserRole->TextAlign =
-					System::Drawing::ContentAlignment::MiddleRight;
+					this->lblUserName->Location =
+						System::Drawing::Point(userLeft, 10);
+					this->lblUserName->Size =
+						System::Drawing::Size(220, 28);
+					this->lblUserName->Font =
+						gcnew System::Drawing::Font(
+							L"Segoe UI Semibold",
+							9.5F,
+							System::Drawing::FontStyle::Bold);
+					this->lblUserName->TextAlign =
+						System::Drawing::ContentAlignment::MiddleRight;
 
-				this->btnLogout->Location =
-					System::Drawing::Point(
-						Math::Max(760, width - 150),
-						28);
-				this->btnLogout->Size =
-					System::Drawing::Size(125, 40);
-				this->btnLogout->Text = L"Log Out";
+					this->lblUserRole->Visible = true;
+					this->lblUserRole->Location =
+						System::Drawing::Point(userLeft, 41);
+					this->lblUserRole->Size =
+						System::Drawing::Size(220, 22);
+					this->lblUserRole->TextAlign =
+						System::Drawing::ContentAlignment::MiddleRight;
+
+					this->btnLogout->Location =
+						System::Drawing::Point(
+							Math::Max(610, width - 145),
+							28);
+					this->btnLogout->Size =
+						System::Drawing::Size(125, 40);
+					this->btnLogout->Text = L"Log Out";
+				}
+				else
+				{
+					this->lblUserName->Location =
+						System::Drawing::Point(
+							Math::Max(500, width - 430),
+							12);
+					this->lblUserName->Size =
+						System::Drawing::Size(250, 28);
+					this->lblUserName->TextAlign =
+						System::Drawing::ContentAlignment::MiddleRight;
+
+					this->lblUserRole->Visible = true;
+					this->lblUserRole->Location =
+						System::Drawing::Point(
+							Math::Max(500, width - 430),
+							43);
+					this->lblUserRole->Size =
+						System::Drawing::Size(250, 22);
+					this->lblUserRole->TextAlign =
+						System::Drawing::ContentAlignment::MiddleRight;
+
+					this->btnLogout->Location =
+						System::Drawing::Point(
+							Math::Max(760, width - 150),
+							28);
+					this->btnLogout->Size =
+						System::Drawing::Size(125, 40);
+					this->btnLogout->Text = L"Log Out";
+				}
 			}
 
 			if (!mobile)
 			{
 				this->sidebarPanel->Width =
-					compact ? 230 : 280;
+					compact ? 250 : 280;
 			}
 		}
 

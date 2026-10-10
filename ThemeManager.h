@@ -939,15 +939,15 @@ namespace SchoolCore
             form->BackColor = Canvas();
             form->ForeColor = Ink();
 
-            // Typography is global for the standard application forms.
-            ApplyBoldTypographyToForm(form);
-
-            // The dashboard uses a dark navigation rail that must
-            // keep its own colours.
+            // The dashboard defines its own navigation colours and typography.
+            // Keep its carefully positioned controls out of the global bold pass.
             if (name->Equals(L"Dashboard"))
             {
                 return;
             }
+
+            // Typography is global for the standard application forms.
+            ApplyBoldTypographyToForm(form);
 
             ApplyToControls(form->Controls);
         }
