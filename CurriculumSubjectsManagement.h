@@ -486,7 +486,7 @@ namespace SchoolCore
                 this->lblActiveYear->Text =
                     year->Name;
             }
-            catch (std::exception& ex)
+            catch (std::exception&)
             {
                 this->lblActiveYear->Text =
                     L"No active academic year";
@@ -1061,7 +1061,7 @@ namespace SchoolCore
                     return;
                 }
 
-                DialogResult choice = MessageBox::Show(
+                System::Windows::Forms::DialogResult choice = MessageBox::Show(
                     this,
                     L"SchoolCore will add any missing UCE core subjects and their O-Level links, "
                     L"then load or correct these verified UNEB core codes:\n\n"
@@ -1078,7 +1078,7 @@ namespace SchoolCore
                     MessageBoxButtons::YesNo,
                     MessageBoxIcon::Question);
 
-                if (choice != DialogResult::Yes)
+                if (choice != System::Windows::Forms::DialogResult::Yes)
                     return;
 
                 array<String^>^ subjectNames = gcnew array<String^>(7);
