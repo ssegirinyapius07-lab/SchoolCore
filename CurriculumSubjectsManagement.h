@@ -892,7 +892,6 @@ namespace SchoolCore
             sql::Connection* connection,
             int curriculumId,
             int subjectId,
-            String^ subjectName,
             String^ unebCode,
             String^ subjectGroup)
         {
@@ -1126,7 +1125,6 @@ namespace SchoolCore
                         con.get(),
                         curriculum->Id,
                         subjectId,
-                        subjectNames[i],
                         codes[i],
                         groups[i]);
                 }
