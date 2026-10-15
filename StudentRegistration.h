@@ -2297,6 +2297,40 @@ void InitializeComponent(void)
                 if (this->cmbTerm->Items->Count > 1)
                 {
                     this->cmbTerm->Enabled = true;
+
+                    // Preselect the active term so staff do not have to
+                    // repeat this selection for every new student.
+                    int activeTermId = 0;
+
+                    try
+                    {
+                        activeTermId =
+                            AcademicContext::GetActiveTermIdForYear(
+                                yearItem->Id);
+                    }
+                    catch (std::exception&)
+                    {
+                        activeTermId = 0;
+                    }
+
+                    if (activeTermId > 0)
+                    {
+                        for (int i = 1;
+                             i < this->cmbTerm->Items->Count;
+                             ++i)
+                        {
+                            ComboItem^ termItem =
+                                dynamic_cast<ComboItem^>(
+                                    this->cmbTerm->Items[i]);
+
+                            if (termItem != nullptr &&
+                                termItem->Id == activeTermId)
+                            {
+                                this->cmbTerm->SelectedIndex = i;
+                                break;
+                            }
+                        }
+                    }
                 }
                 else
                 {
