@@ -43,6 +43,7 @@ namespace SchoolCore
         ComboBox^ cmbRequirement;
         Button^ btnAdd;
         Button^ btnSave;
+        Button^ btnLoadUceCore;
         DataGridView^ grid;
 
         ref class ComboItem
@@ -130,7 +131,7 @@ namespace SchoolCore
             Label^ subtitle =
                 gcnew Label();
             subtitle->Text =
-                L"Configure which subjects are Mandatory or Optional. Promotion uses this configuration.";
+                L"Load verified UCE core subject codes once; use manual setup for other curriculum subjects.";
             subtitle->Dock =
                 DockStyle::Fill;
             subtitle->ForeColor =
@@ -406,6 +407,26 @@ namespace SchoolCore
                     this,
                     &CurriculumSubjectsManagement::btnSave_Click);
 
+            this->btnLoadUceCore =
+                gcnew Button();
+            this->btnLoadUceCore->Text =
+                L"Load UCE Core Codes";
+            this->btnLoadUceCore->Width = 205;
+            this->btnLoadUceCore->Height = 38;
+            this->btnLoadUceCore->Margin =
+                System::Windows::Forms::Padding(0, 0, 10, 0);
+            this->btnLoadUceCore->BackColor =
+                Color::FromArgb(226, 232, 240);
+            this->btnLoadUceCore->ForeColor =
+                Color::FromArgb(30, 41, 59);
+            this->btnLoadUceCore->FlatStyle =
+                FlatStyle::Flat;
+            this->btnLoadUceCore->FlatAppearance->BorderSize = 0;
+            this->btnLoadUceCore->Click +=
+                gcnew EventHandler(
+                    this,
+                    &CurriculumSubjectsManagement::btnLoadUceCore_Click);
+
             Button^ closeButton =
                 gcnew Button();
             closeButton->Text =
@@ -419,6 +440,8 @@ namespace SchoolCore
                 closeButton);
             footer->Controls->Add(
                 this->btnSave);
+            footer->Controls->Add(
+                this->btnLoadUceCore);
 
             this->mainLayout->Controls->Add(
                 footer,
@@ -532,7 +555,8 @@ namespace SchoolCore
                         "ON al.academic_level_id = c.academic_level_id "
                         "WHERE c.status = 'Active' "
                         "AND al.status = 'Active' "
-                        "ORDER BY al.level_code, c.curriculum_name"
+                        "ORDER BY CASE WHEN c.curriculum_code = 'UCE_CBC' THEN 0 ELSE 1 END, "
+                        "al.level_code, c.curriculum_name"
                     )
                 );
 
@@ -761,6 +785,402 @@ namespace SchoolCore
                     L"Database Error",
                     MessageBoxButtons::OK,
                     MessageBoxIcon::Error);
+            }
+        }
+
+        int EnsureCatalogSubject(sql::Connection* connection, String^ subjectName)
+        {
+            int subjectId = 0;
+
+            std::unique_ptr<sql::PreparedStatement> findStmt(
+                connection->prepareStatement(
+                    "SELECT subject_id FROM subjects "
+                    "WHERE subject_name = ? LIMIT 1"));
+
+            findStmt->setString(
+                1,
+                msclr::interop::marshal_as<std::string>(subjectName));
+
+            std::unique_ptr<sql::ResultSet> found(findStmt->executeQuery());
+
+            if (found->next())
+            {
+                subjectId = found->getInt("subject_id");
+            }
+            else
+            {
+                std::unique_ptr<sql::PreparedStatement> insertStmt(
+                    connection->prepareStatement(
+                        "INSERT INTO subjects "
+                        "(subject_name, description, status) "
+                        "VALUES (?, 'Standard UCE core subject', 'Active')"));
+
+                insertStmt->setString(
+                    1,
+                    msclr::interop::marshal_as<std::string>(subjectName));
+                insertStmt->executeUpdate();
+
+                std::unique_ptr<sql::Statement> idStmt(
+                    connection->createStatement());
+                std::unique_ptr<sql::ResultSet> idResult(
+                    idStmt->executeQuery(
+                        "SELECT LAST_INSERT_ID() AS subject_id"));
+
+                if (!idResult->next())
+                    throw gcnew InvalidOperationException(
+                        L"SchoolCore could not retrieve the new subject ID.");
+
+                subjectId = idResult->getInt("subject_id");
+            }
+
+            std::unique_ptr<sql::PreparedStatement> activateStmt(
+                connection->prepareStatement(
+                    "UPDATE subjects SET status = 'Active' "
+                    "WHERE subject_id = ?"));
+            activateStmt->setInt(1, subjectId);
+            activateStmt->executeUpdate();
+
+            return subjectId;
+        }
+
+        void EnsureOLevelSubjectMapping(
+            sql::Connection* connection,
+            int subjectId,
+            int academicLevelId)
+        {
+            int mappingId = 0;
+
+            std::unique_ptr<sql::PreparedStatement> findStmt(
+                connection->prepareStatement(
+                    "SELECT subject_academic_level_id "
+                    "FROM subject_academic_levels "
+                    "WHERE subject_id = ? AND academic_level_id = ? "
+                    "LIMIT 1"));
+
+            findStmt->setInt(1, subjectId);
+            findStmt->setInt(2, academicLevelId);
+
+            std::unique_ptr<sql::ResultSet> found(findStmt->executeQuery());
+
+            if (found->next())
+                mappingId = found->getInt("subject_academic_level_id");
+
+            if (mappingId > 0)
+            {
+                std::unique_ptr<sql::PreparedStatement> updateStmt(
+                    connection->prepareStatement(
+                        "UPDATE subject_academic_levels "
+                        "SET status = 'Active' "
+                        "WHERE subject_academic_level_id = ?"));
+                updateStmt->setInt(1, mappingId);
+                updateStmt->executeUpdate();
+            }
+            else
+            {
+                std::unique_ptr<sql::PreparedStatement> insertStmt(
+                    connection->prepareStatement(
+                        "INSERT INTO subject_academic_levels "
+                        "(subject_id, academic_level_id, status) "
+                        "VALUES (?, ?, 'Active')"));
+                insertStmt->setInt(1, subjectId);
+                insertStmt->setInt(2, academicLevelId);
+                insertStmt->executeUpdate();
+            }
+        }
+
+        void EnsureUceCoreCurriculumMapping(
+            sql::Connection* connection,
+            int curriculumId,
+            int subjectId,
+            String^ subjectName,
+            String^ unebCode,
+            String^ subjectGroup)
+        {
+            std::unique_ptr<sql::PreparedStatement> conflictStmt(
+                connection->prepareStatement(
+                    "SELECT s.subject_name "
+                    "FROM curriculum_subjects cs "
+                    "INNER JOIN subjects s ON s.subject_id = cs.subject_id "
+                    "WHERE cs.curriculum_id = ? "
+                    "AND cs.uneb_subject_code = ? "
+                    "AND cs.subject_id <> ? "
+                    "LIMIT 1"));
+
+            conflictStmt->setInt(1, curriculumId);
+            conflictStmt->setString(
+                2,
+                msclr::interop::marshal_as<std::string>(unebCode));
+            conflictStmt->setInt(3, subjectId);
+
+            std::unique_ptr<sql::ResultSet> conflict(
+                conflictStmt->executeQuery());
+
+            if (conflict->next())
+            {
+                String^ conflictingSubject =
+                    gcnew String(conflict->getString("subject_name").c_str());
+
+                throw gcnew InvalidOperationException(
+                    L"UNEB code " + unebCode +
+                    L" is already assigned to " + conflictingSubject +
+                    L" in this curriculum. Resolve that duplicate before loading the template.");
+            }
+
+            int curriculumSubjectId = 0;
+
+            std::unique_ptr<sql::PreparedStatement> findStmt(
+                connection->prepareStatement(
+                    "SELECT curriculum_subject_id "
+                    "FROM curriculum_subjects "
+                    "WHERE curriculum_id = ? AND subject_id = ? "
+                    "LIMIT 1"));
+
+            findStmt->setInt(1, curriculumId);
+            findStmt->setInt(2, subjectId);
+
+            std::unique_ptr<sql::ResultSet> found(findStmt->executeQuery());
+
+            if (found->next())
+                curriculumSubjectId =
+                    found->getInt("curriculum_subject_id");
+
+            if (curriculumSubjectId > 0)
+            {
+                std::unique_ptr<sql::PreparedStatement> updateStmt(
+                    connection->prepareStatement(
+                        "UPDATE curriculum_subjects "
+                        "SET uneb_subject_code = ?, subject_group = ?, "
+                        "requirement_type = 'Mandatory', status = 'Active' "
+                        "WHERE curriculum_subject_id = ?"));
+
+                updateStmt->setString(
+                    1,
+                    msclr::interop::marshal_as<std::string>(unebCode));
+                updateStmt->setString(
+                    2,
+                    msclr::interop::marshal_as<std::string>(subjectGroup));
+                updateStmt->setInt(3, curriculumSubjectId);
+                updateStmt->executeUpdate();
+            }
+            else
+            {
+                std::unique_ptr<sql::PreparedStatement> insertStmt(
+                    connection->prepareStatement(
+                        "INSERT INTO curriculum_subjects "
+                        "(curriculum_id, subject_id, uneb_subject_code, "
+                        "subject_group, requirement_type, status) "
+                        "VALUES (?, ?, ?, ?, 'Mandatory', 'Active')"));
+
+                insertStmt->setInt(1, curriculumId);
+                insertStmt->setInt(2, subjectId);
+                insertStmt->setString(
+                    3,
+                    msclr::interop::marshal_as<std::string>(unebCode));
+                insertStmt->setString(
+                    4,
+                    msclr::interop::marshal_as<std::string>(subjectGroup));
+                insertStmt->executeUpdate();
+            }
+        }
+
+        System::Void btnLoadUceCore_Click(
+            Object^ sender,
+            EventArgs^ e)
+        {
+            ComboItem^ curriculum =
+                dynamic_cast<ComboItem^>(
+                    this->cmbCurriculum->SelectedItem);
+
+            if (curriculum == nullptr)
+            {
+                MessageBox::Show(
+                    L"Select the UCE CBC curriculum first.",
+                    L"UCE Core Setup",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Information);
+                return;
+            }
+
+            std::unique_ptr<sql::Connection> con;
+            bool transactionStarted = false;
+
+            try
+            {
+                con = DbConnection::GetConnection();
+
+                std::unique_ptr<sql::PreparedStatement> curriculumStmt(
+                    con->prepareStatement(
+                        "SELECT c.curriculum_code, al.level_code, "
+                        "al.academic_level_id "
+                        "FROM curricula c "
+                        "INNER JOIN academic_levels al "
+                        "ON al.academic_level_id = c.academic_level_id "
+                        "WHERE c.curriculum_id = ? "
+                        "AND c.status = 'Active' "
+                        "AND al.status = 'Active' "
+                        "LIMIT 1"));
+
+                curriculumStmt->setInt(1, curriculum->Id);
+
+                std::unique_ptr<sql::ResultSet> curriculumResult(
+                    curriculumStmt->executeQuery());
+
+                if (!curriculumResult->next())
+                {
+                    MessageBox::Show(
+                        L"The selected curriculum is no longer active.",
+                        L"UCE Core Setup",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Warning);
+                    return;
+                }
+
+                String^ curriculumCode =
+                    gcnew String(
+                        curriculumResult->getString("curriculum_code").c_str());
+                String^ levelCode =
+                    gcnew String(
+                        curriculumResult->getString("level_code").c_str());
+                int academicLevelId =
+                    curriculumResult->getInt("academic_level_id");
+
+                if (!String::Equals(
+                        curriculumCode,
+                        L"UCE_CBC",
+                        StringComparison::OrdinalIgnoreCase) ||
+                    !String::Equals(
+                        levelCode,
+                        L"O_LEVEL",
+                        StringComparison::OrdinalIgnoreCase))
+                {
+                    MessageBox::Show(
+                        L"This template is only for the UCE CBC O-Level curriculum. "
+                        L"A-Level codes are not changed by this action.",
+                        L"UCE Core Setup",
+                        MessageBoxButtons::OK,
+                        MessageBoxIcon::Information);
+                    return;
+                }
+
+                DialogResult choice = MessageBox::Show(
+                    this,
+                    L"SchoolCore will add any missing UCE core subjects and their O-Level links, "
+                    L"then load or correct these verified UNEB core codes:\n\n"
+                    L"112  English Language\n"
+                    L"456  Mathematics\n"
+                    L"241  History & Political Education\n"
+                    L"273  Geography\n"
+                    L"535  Physics\n"
+                    L"553  Biology\n"
+                    L"545  Chemistry\n\n"
+                    L"These seven curriculum records will be set to Mandatory. "
+                    L"Other subjects, papers, marks and results will not be changed. Continue?",
+                    L"Load UCE Core Codes",
+                    MessageBoxButtons::YesNo,
+                    MessageBoxIcon::Question);
+
+                if (choice != DialogResult::Yes)
+                    return;
+
+                array<String^>^ subjectNames = gcnew array<String^>(7);
+                subjectNames[0] = L"English Language";
+                subjectNames[1] = L"Mathematics";
+                subjectNames[2] = L"History & Political Education";
+                subjectNames[3] = L"Geography";
+                subjectNames[4] = L"Physics";
+                subjectNames[5] = L"Biology";
+                subjectNames[6] = L"Chemistry";
+
+                array<String^>^ codes = gcnew array<String^>(7);
+                codes[0] = L"112";
+                codes[1] = L"456";
+                codes[2] = L"241";
+                codes[3] = L"273";
+                codes[4] = L"535";
+                codes[5] = L"553";
+                codes[6] = L"545";
+
+                array<String^>^ groups = gcnew array<String^>(7);
+                groups[0] = L"Languages";
+                groups[1] = L"Mathematics";
+                groups[2] = L"Humanities";
+                groups[3] = L"Humanities";
+                groups[4] = L"Sciences";
+                groups[5] = L"Sciences";
+                groups[6] = L"Sciences";
+
+                con->setAutoCommit(false);
+                transactionStarted = true;
+
+                for (int i = 0; i < subjectNames->Length; ++i)
+                {
+                    int subjectId =
+                        EnsureCatalogSubject(con.get(), subjectNames[i]);
+
+                    EnsureOLevelSubjectMapping(
+                        con.get(),
+                        subjectId,
+                        academicLevelId);
+
+                    EnsureUceCoreCurriculumMapping(
+                        con.get(),
+                        curriculum->Id,
+                        subjectId,
+                        subjectNames[i],
+                        codes[i],
+                        groups[i]);
+                }
+
+                con->commit();
+                con->setAutoCommit(true);
+                transactionStarted = false;
+
+                LoadSubjects();
+                LoadSubjectsInCurriculum();
+
+                MessageBox::Show(
+                    L"The seven UCE core subject codes are ready. "
+                    L"Existing matching records were corrected safely, and missing O-Level subject links were added. "
+                    L"Configure examination papers separately when their official structure is confirmed.",
+                    L"UCE Core Setup",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Information);
+            }
+            catch (sql::SQLException& ex)
+            {
+                if (transactionStarted && con != nullptr)
+                {
+                    try
+                    {
+                        con->rollback();
+                        con->setAutoCommit(true);
+                    }
+                    catch (...) {}
+                }
+
+                MessageBox::Show(
+                    gcnew String(ex.what()),
+                    L"UCE Core Setup",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Error);
+            }
+            catch (Exception^ ex)
+            {
+                if (transactionStarted && con != nullptr)
+                {
+                    try
+                    {
+                        con->rollback();
+                        con->setAutoCommit(true);
+                    }
+                    catch (...) {}
+                }
+
+                MessageBox::Show(
+                    ex->Message,
+                    L"UCE Core Setup",
+                    MessageBoxButtons::OK,
+                    MessageBoxIcon::Warning);
             }
         }
 
