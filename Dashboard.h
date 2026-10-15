@@ -566,11 +566,9 @@ namespace SchoolCore {
 			System::Object^ sender,
 			System::EventArgs^ e)
 		{
-			Button^ button =
-				safe_cast<Button^>(sender);
+			Button^ button = safe_cast<Button^>(sender);
 
-			String^ action =
-				button->Tag == nullptr
+			String^ action = button->Tag == nullptr
 				? L""
 				: button->Tag->ToString();
 
@@ -578,15 +576,7 @@ namespace SchoolCore {
 				L"register_student",
 				StringComparison::Ordinal))
 			{
-				StudentRegistration^ form =
-					gcnew StudentRegistration();
-
-				if (form->ShowDialog(this) ==
-					System::Windows::Forms::DialogResult::OK)
-				{
-					ShowDashboardOverview();
-				}
-
+				OpenEmbeddedModule(gcnew StudentRegistration());
 				return;
 			}
 
@@ -594,11 +584,7 @@ namespace SchoolCore {
 				L"students",
 				StringComparison::Ordinal))
 			{
-				StudentManagement^ form =
-					gcnew StudentManagement();
-
-				form->ShowDialog(this);
-				ShowDashboardOverview();
+				OpenEmbeddedModule(gcnew StudentManagement());
 				return;
 			}
 
@@ -606,11 +592,7 @@ namespace SchoolCore {
 				L"teachers",
 				StringComparison::Ordinal))
 			{
-				TeacherManagement^ form =
-					gcnew TeacherManagement();
-
-				form->ShowDialog(this);
-				ShowDashboardOverview();
+				OpenEmbeddedModule(gcnew TeacherManagement());
 				return;
 			}
 
@@ -618,11 +600,7 @@ namespace SchoolCore {
 				L"subjects",
 				StringComparison::Ordinal))
 			{
-				SubjectManagement^ form =
-					gcnew SubjectManagement();
-
-				form->ShowDialog(this);
-				ShowDashboardOverview();
+				OpenEmbeddedModule(gcnew SubjectManagement());
 				return;
 			}
 
@@ -630,25 +608,10 @@ namespace SchoolCore {
 				L"academic",
 				StringComparison::Ordinal))
 			{
-				this->contentPanel->Controls->Clear();
-
-				SchoolCore::AcademicYearsTerms^ form =
-					gcnew SchoolCore::AcademicYearsTerms();
-
-				form->TopLevel = false;
-				form->FormBorderStyle =
-					System::Windows::Forms::FormBorderStyle::None;
-				form->Dock =
-					System::Windows::Forms::DockStyle::Fill;
-				form->WindowState =
-					System::Windows::Forms::FormWindowState::Normal;
-
-				this->contentPanel->Controls->Add(form);
-				form->Show();
+				OpenEmbeddedModule(gcnew SchoolCore::AcademicYearsTerms());
+				return;
 			}
 		}
-
-
 		System::Void btnDashboard_Click(
 			System::Object^ sender,
 			System::EventArgs^ e)
