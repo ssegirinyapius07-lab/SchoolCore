@@ -3,6 +3,7 @@
 #include "DbConnection.h"
 #include "ThemeManager.h"
 #include "Settings.h"
+#include "UserGuide.h"
 #include "StudentManagement.h"
 #include "StudentRegistration.h"
 #include "TeacherManagement.h"
@@ -609,6 +610,14 @@ namespace SchoolCore {
 				StringComparison::Ordinal))
 			{
 				OpenEmbeddedModule(gcnew SchoolCore::AcademicYearsTerms());
+				return;
+			}
+
+			if (action->Equals(
+				L"help",
+				StringComparison::Ordinal))
+			{
+				OpenEmbeddedModule(gcnew SchoolCore::UserGuide());
 				return;
 			}
 		}
@@ -1375,6 +1384,14 @@ namespace SchoolCore {
 					AuthSession::HasPermission(
 						L"academic_years.view"
 					)
+				)
+			);
+
+			actions->Controls->Add(
+				CreateQuickActionButton(
+					L"User Guide",
+					L"help",
+					true
 				)
 			);
 
