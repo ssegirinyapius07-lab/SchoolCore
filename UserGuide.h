@@ -81,7 +81,11 @@ namespace SchoolCore
 
             this->headerPanel->BackColor = Color::FromArgb(30, 41, 59);
             this->lblTitle->ForeColor = Color::White;
+            this->lblTitle->Font = gcnew Drawing::Font(
+                L"Segoe UI Semibold", 18.0F, FontStyle::Bold);
             this->lblSubtitle->ForeColor = Color::FromArgb(226, 232, 240);
+            this->lblSubtitle->Font = gcnew Drawing::Font(
+                L"Segoe UI", 9.5F, FontStyle::Regular);
 
             for each (Control^ item in this->guideList->Controls)
             {
