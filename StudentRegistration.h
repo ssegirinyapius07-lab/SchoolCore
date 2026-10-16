@@ -26,7 +26,8 @@ namespace SchoolCore
                 StudentRegistration(void)
                 {
                     InitializeComponent();
-                                        ThemeManager::ApplyToForm(this);
+                    ThemeManager::ApplyToForm(this);
+                    ConfigureKeyboardNavigation();
                     WireEvents();
         
                     if (System::ComponentModel::LicenseManager::UsageMode != System::ComponentModel::LicenseUsageMode::Designtime)
@@ -40,6 +41,8 @@ namespace SchoolCore
                 StudentRegistration(long long studentId)
                 {
                     InitializeComponent();
+                    ThemeManager::ApplyToForm(this);
+                    ConfigureKeyboardNavigation();
                     WireEvents();
         
                     this->editMode = true;
@@ -4645,6 +4648,41 @@ void InitializeComponent(void)
         // =========================================================
         // EVENT WIRING
         // =========================================================
+
+        void ConfigureKeyboardNavigation()
+        {
+            // Keep keyboard entry in the same order as the visible fields.
+            this->txtFirstName->TabIndex = 1;
+            this->txtLastName->TabIndex = 3;
+            this->txtMiddleName->TabIndex = 5;
+            this->cmbGender->TabIndex = 7;
+            this->dtpDob->TabIndex = 9;
+            this->dtpAdmissionDate->TabIndex = 11;
+            this->txtHomeAddress->TabIndex = 13;
+
+            this->cmbAcademicYear->TabIndex = 1;
+            this->cmbTerm->TabIndex = 3;
+            this->cmbAcademicLevel->TabIndex = 5;
+            this->cmbClass->TabIndex = 7;
+            this->cmbStream->TabIndex = 9;
+            this->cmbSession->TabIndex = 11;
+
+            this->txtGuardianName->TabIndex = 1;
+            this->txtGuardianRelationship->TabIndex = 3;
+            this->txtGuardianPhone->TabIndex = 5;
+            this->txtGuardianAlternativePhone->TabIndex = 7;
+            this->txtGuardianEmail->TabIndex = 9;
+            this->txtGuardianAddress->TabIndex = 11;
+
+            // Buttons follow their visual order from left to right.
+            this->btnCancel->TabIndex = 0;
+            this->btnClear->TabIndex = 1;
+            this->btnSave->TabIndex = 2;
+
+            this->AcceptButton = this->btnSave;
+            this->CancelButton = this->btnCancel;
+        }
+
 
         void WireEvents()
         {
