@@ -392,7 +392,7 @@ void InitializeComponent(void)
             this->scrollPanel->AutoScrollMinSize =
                 System::Drawing::Size(
                     0,
-                    900
+                    640
                 );
 
 
@@ -408,7 +408,7 @@ void InitializeComponent(void)
                 System::Windows::Forms::AutoSizeMode::GrowAndShrink;
 
             this->mainLayout->ColumnCount = 1;
-            this->mainLayout->RowCount = 5;
+            this->mainLayout->RowCount = 3;
 
             this->mainLayout->BackColor =
                 System::Drawing::Color::WhiteSmoke;
@@ -416,14 +416,12 @@ void InitializeComponent(void)
             this->mainLayout->Margin =
                 System::Windows::Forms::Padding(0);
 
-
             this->mainLayout->ColumnStyles->Add(
                 gcnew ColumnStyle(
                     System::Windows::Forms::SizeType::Percent,
                     100.0F
                 )
             );
-
 
             // Header
             this->mainLayout->RowStyles->Add(
@@ -433,35 +431,15 @@ void InitializeComponent(void)
                 )
             );
 
-            // Student
-            // Extra vertical space keeps the address field and photo
-            // section comfortably inside the Student Information box.
+            // Tabbed student, enrollment and guardian details
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
                     System::Windows::Forms::SizeType::Absolute,
-                    285.0F
+                    410.0F
                 )
             );
 
-            // Enrollment
-            this->mainLayout->RowStyles->Add(
-                gcnew RowStyle(
-                    System::Windows::Forms::SizeType::Absolute,
-                    205.0F
-                )
-            );
-
-            // Guardian
-            this->mainLayout->RowStyles->Add(
-                gcnew RowStyle(
-                    System::Windows::Forms::SizeType::Absolute,
-                    210.0F
-                )
-            );
-
-            // Buttons
-            // A larger action row keeps all actions reachable when
-            // the registration form is reduced and scrolled.
+            // Action buttons
             this->mainLayout->RowStyles->Add(
                 gcnew RowStyle(
                     System::Windows::Forms::SizeType::Absolute,
@@ -2106,29 +2084,59 @@ void InitializeComponent(void)
             // MAIN LAYOUT CONTROLS
             // =========================================================
 
+            // =========================================================
+            // REGISTRATION TABS
+            // =========================================================
+
+            TabControl^ registrationTabs = gcnew TabControl();
+            registrationTabs->Name = L"registrationTabs";
+            registrationTabs->Dock = DockStyle::Fill;
+            registrationTabs->Margin = System::Windows::Forms::Padding(0, 0, 0, 10);
+            registrationTabs->Font = gcnew System::Drawing::Font(
+                L"Segoe UI Semibold",
+                9.5F,
+                FontStyle::Bold
+            );
+            registrationTabs->SizeMode = TabSizeMode::Fixed;
+            registrationTabs->ItemSize = System::Drawing::Size(160, 34);
+            registrationTabs->Padding = System::Drawing::Point(14, 5);
+
+            TabPage^ studentTab = gcnew TabPage(L"Student Details");
+            studentTab->Name = L"studentDetailsTab";
+            studentTab->Padding = System::Windows::Forms::Padding(8);
+            studentTab->UseVisualStyleBackColor = true;
+            studentTab->Controls->Add(this->studentGroup);
+
+            TabPage^ enrollmentTab = gcnew TabPage(L"Enrollment");
+            enrollmentTab->Name = L"enrollmentTab";
+            enrollmentTab->Padding = System::Windows::Forms::Padding(8);
+            enrollmentTab->UseVisualStyleBackColor = true;
+            enrollmentTab->Controls->Add(this->enrollmentGroup);
+
+            TabPage^ guardianTab = gcnew TabPage(L"Parent / Guardian");
+            guardianTab->Name = L"guardianTab";
+            guardianTab->Padding = System::Windows::Forms::Padding(8);
+            guardianTab->UseVisualStyleBackColor = true;
+            guardianTab->Controls->Add(this->guardianGroup);
+
+            registrationTabs->TabPages->Add(studentTab);
+            registrationTabs->TabPages->Add(enrollmentTab);
+            registrationTabs->TabPages->Add(guardianTab);
+            registrationTabs->SelectedIndex = 0;
+
             this->mainLayout->Controls->Add(
                 this->headerPanel,
                 0, 0
             );
 
             this->mainLayout->Controls->Add(
-                this->studentGroup,
+                registrationTabs,
                 0, 1
             );
 
             this->mainLayout->Controls->Add(
-                this->enrollmentGroup,
-                0, 2
-            );
-
-            this->mainLayout->Controls->Add(
-                this->guardianGroup,
-                0, 3
-            );
-
-            this->mainLayout->Controls->Add(
                 this->buttonPanel,
-                0, 4
+                0, 2
             );
 
 
@@ -2149,7 +2157,7 @@ void InitializeComponent(void)
             this->mainLayout->MinimumSize =
                 System::Drawing::Size(
                     0,
-                    900
+                    600
                 );
 
             this->scrollPanel->Controls->Add(
