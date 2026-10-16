@@ -239,7 +239,7 @@ namespace SchoolCore
             this->guideList->FlowDirection = FlowDirection::TopDown;
             this->guideList->WrapContents = false;
             this->guideList->AutoSize = true;
-            this->guideList->AutoSizeMode = AutoSizeMode::GrowAndShrink;
+            this->guideList->AutoSizeMode = System::Windows::Forms::AutoSizeMode::GrowAndShrink;
             this->guideList->Padding = System::Windows::Forms::Padding(0);
             this->guideList->Margin = System::Windows::Forms::Padding(0);
             this->guideList->BackColor = Color::FromArgb(248, 250, 252);
