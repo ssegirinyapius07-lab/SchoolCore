@@ -177,6 +177,9 @@
     <ClInclude Include="UsersRoles.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="UserGuide.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
     <ClInclude Include="UnebSubjectPaperManagement.h">
       <FileType>CppForm</FileType>
     </ClInclude>
